@@ -462,6 +462,25 @@ sub set
   &gst_report_end ();
 }
 
+sub set_profile
+{
+  my ($tool, $profile_name) = @_;
+  my ($hash, $profiles, $profile);
+
+  &read_profiledb (\%$hash);
+  $profiles = $$hash{"profiledb"}{"profile"};
+
+  foreach $profile (@$profiles)
+  {
+    if ($$profile{"name"} eq $profile_name)
+    {
+      &gst_network_conf_set ($profile);
+    }
+  }
+
+  &gst_report_end ();
+}
+
 
 # --- Filter config: XML in, XML out --- #
 
@@ -570,6 +589,8 @@ $directives = {
   "filter"             => [ \&filter,       [], "" ],
   "list_ifaces"        => [ \&list_ifaces,  [],
                             "List interfaces and active/inactive status." ],
+  "set_profile"        => [ \&set_profile,  [ "profile_name" ],
+                            "Set a profile as the default configuration" ],
   "enable_iface"       => [ \&enable_iface, [ "interface", "enabled" ],
                             "Immediatly enable or disable a given interface. " .
                             "interface is the file tag value, enabled is 1 or 0." ],
