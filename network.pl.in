@@ -42,29 +42,6 @@ require "$SCRIPTSDIR/service.pl$DOTIN";
 require "$SCRIPTSDIR/util.pl$DOTIN";
 require "$SCRIPTSDIR/xml.pl$DOTIN";
 
-
-# Shared XML printing function
-sub network_xml_print_statichost
-{
-  my ($h) = $_[0];
-  my ($statichost, $i, $j, $val);
-
-  &gst_xml_print_vspace ();
-  foreach $i (keys %{$$h{"statichost"}})
-  {
-    $statichost = $ {$$h{"statichost"}}{$i};
-    &gst_xml_container_enter ("statichost");
-    $val = &gst_xml_quote ($i);
-    &gst_xml_print_pcdata ("ip", $val);
-    foreach $j (@$statichost)
-    {
-      $val = &gst_xml_quote ($j);
-      &gst_xml_print_pcdata ("alias", $val);
-    }
-    &gst_xml_container_leave ("statichost");
-  }
-}
-
 sub gst_network_get_linux_wireless_ifaces
 {
   my ($fd, $line);
@@ -4389,8 +4366,8 @@ sub gst_network_get_interface_parse_table
            [ "broadcast",          \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "broadcast" ],
            [ "network",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "network" ],
            [ "gateway",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "gateway" ],
-           [ "essid",              \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "wireless_essid" ],
-           [ "key",                \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "wireless_key" ],
+           [ "essid",              \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "wireless[_-]essid" ],
+           [ "key",                \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "wireless[_-]key1?" ],
            [ "wvsection",          \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "provider" ],
            [ "update_dns",         \&gst_network_pump_get_nodns,         PUMP, "%dev%", "%bootproto%" ],
            [ "update_dns",         \&gst_parse_kw,                       PPP_OPTIONS, "usepeerdns" ],
