@@ -156,8 +156,8 @@ sub gst_network_enable_iface_with_config
       $command  = $command_ifconfig if ($$tool{"system"} eq "FreeBSD");
 
       $command .= " $dev";
-      $command .= " essid $essid" if ($essid);
-      $command .= " key $key" if ($key);
+      $command .= " essid '$essid'" if ($essid);
+      $command .= " key '$key'" if ($key);
       &gst_file_run ($command);
     }
 

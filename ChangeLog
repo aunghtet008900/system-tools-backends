@@ -1,3 +1,8 @@
+2004-11-26  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* network.pl.in (gst_network_enable_iface_with_config): little fix 
+	with multiword essids
+
 2004-11-23  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* network.pl.in: add the PPP interface EVEN if it's not configured
