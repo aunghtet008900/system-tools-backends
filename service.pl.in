@@ -225,11 +225,12 @@ sub xst_service_sysv_get_default_runlevel
 sub xst_service_sysv_add_link
 {
   my ($runlevel, $action, $priority, $service) = @_;
+  my ($prio) = sprintf ("%0.2d",$priority);
 
-  symlink ("$initd_path/$service", "$rcd_path/rc$runlevel.d/$action$priority$service");
+  symlink ("$initd_path/$service", "$rcd_path/rc$runlevel.d/$action$prio$service");
   
   &xst_report_enter ();
-  &xst_report ("service_sysv_add_link", "$rcd_path/rc$runlevel.d/$action$priority$service");
+  &xst_report ("service_sysv_add_link", "$rcd_path/rc$runlevel.d/$action$prio$service");
   &xst_report_leave ();
 }
 
@@ -256,8 +257,8 @@ sub xst_service_sysv_set_service
   $script = $$service{"script"};
   $priority = $$service{"priority"};
   $runlevels = $$service{"runlevels"}[0]{"runlevel"};
-  
-  # goes though all the runlevels checking if the service must be started or stopped  
+
+  # pass though all the runlevels checking if the service must be started or stopped  
   for ($i = 0; $i<=6; $i++){
     $found = 0;
     foreach $j (@$runlevels)
