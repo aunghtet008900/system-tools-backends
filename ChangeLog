@@ -1,15 +1,13 @@
-2002-02-10  Chema Celorio  <chema@celorio.com>
+2002-05-17  Carlos Garnacho Parro  <garparr@teleline.es>
 
-	* Port to the GNOME 2.0 platform
-
-2002-02-10  Chema Celorio  <chema@celorio.com>
-
-	* configure.in : portify AC_INIT and AM_INIT_AUTOMAKE
-
+	* service-list.pl.in: added a service list
+	* service.pl.in: added new functionality
+	* runlevel-conf.in: rewritten from scratch
+	* AUTHORS: updated
+	
 2002-02-08  Chema Celorio  <chema@celorio.com>
 
 	* configure.in: 0.12.0 here we go
-	
 2002-01-07  Tambet Ingo  <tambet@ximian.com>
 
 	* dhcpd.pl.in (xst_dhcpd_conf_get_parse_table): Added RH 7.1 to platforms list.
