@@ -1,5 +1,11 @@
 2004-11-11  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* network.pl.in (gst_network_interfaces_set): really delete the
+	interfaces that aren't configured.
+	* replace.pl.in: somewhat improve interfaces deleting in debian
+
+2004-11-11  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* network.pl.in: more silly improvements for storing correctly the
 	information
 

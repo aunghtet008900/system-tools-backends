@@ -2257,7 +2257,7 @@ sub gst_network_interfaces_set
     if (exists $$old_hash{$i}{"configuration"} &&
         not exists $$values_hash{$i}{"configuration"})
     {
-      &$delete_proc ($$old_hash{$i}) if not exists $$values_hash{$i};
+      &$delete_proc ($$old_hash{$i});
     }
     elsif (exists $$values_hash{$i}{"configuration"})
     {
