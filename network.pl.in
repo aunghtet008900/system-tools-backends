@@ -184,6 +184,21 @@ sub gst_network_get_interface_name
 }
 
 # Parse <interface>...</interface>. Put here so it can be shared with internetsharing.
+sub gst_network_xml_parse_interface_config
+{
+  my ($tree) = @_;
+  my (%config);
+
+  shift @$tree;
+
+  while ($elem = shift @$tree)
+  {
+    $$config{$elem} = &gst_xml_get_pcdata (shift @$tree);
+  }
+
+  return $config;
+}
+
 sub gst_network_xml_parse_interface
 {
   my ($tree, $interface) = @_;
@@ -193,11 +208,12 @@ sub gst_network_xml_parse_interface
 
   while ($elem = shift @$tree)
   {
-    $hash{$elem} = &gst_xml_get_pcdata (shift @$tree);
+      if ($elem eq "configuration") { $hash{$elem} = &gst_network_xml_parse_interface_config (shift @$tree); }
+      else                          { $hash{$elem} = &gst_xml_get_pcdata (shift @$tree); }
   }
 
-  $hash{"file"} = &gst_network_get_file (\%hash) if !exists $hash{"file"};
-  $dev = $hash{"file"};
+  $hash{"configuration"}{"file"} = &gst_network_get_file (\%hash) if !exists $hash{"configuration"}{"file"};
+  $dev = $hash{"configuration"}{"file"};
   $$interface{$dev} = \%hash;
 }
 
@@ -2155,17 +2171,18 @@ sub gst_network_interface_changed
     return 0;
 }
 
-sub gst_network_interfaces_down_and_up_changed
+# silly function for leveling the configuration hash
+# with the interface hash
+sub level_interface_hash
 {
-  my ($proc_iface_set, $old_hash, $values_hash) = @_;
+  my ($hash) = @_;
+  my (%config, $i);
 
-  foreach $i (keys %$values_hash)
+  $config = $$hash{"configuration"};
+
+  foreach $i (keys %$config)
   {
-    if (&gst_network_interface_changed ($$values_hash{$i}, $$old_hash{$i}))
-    {
-      &$proc_iface_set ($$values_hash{$i}, $$old_hash{$i}, 0, 1);
-      &$proc_iface_set ($$values_hash{$i}, $$old_hash{$i}, 1, 1);
-    }
+    $$hash{$i} = $config{$i};
   }
 }
 
@@ -2180,6 +2197,9 @@ sub gst_network_interface_set
   %dist_attrib = &gst_network_get_interface_replace_table ();
   $proc = $dist_attrib{"iface_set"};
   %fn = %{$dist_attrib{"fn"}};
+
+  level_interface_hash (\%$values_hash);
+  level_interface_hash ($old_hash);
   
   foreach $i (keys (%fn))
   {
@@ -2204,6 +2224,7 @@ sub gst_network_interfaces_set
   my ($value, $proc);
   my ($i, $j);
   my ($tmp, $res);
+  my ($delete_proc, $set_proc);
 
   &gst_report_enter ();
   &gst_report ("network_ifaces_set");
@@ -2211,22 +2232,25 @@ sub gst_network_interfaces_set
   %dist_attrib = &gst_network_get_interface_replace_table ();
   $old_hash = $$old_hash{"interface"};
 
-  # Delete all old interfaces that are not in the hash.
-  $proc = $dist_attrib{"iface_delete"};
-
-  foreach $i (keys %$old_hash)
-  {
-    &$proc ($$old_hash{$i}) if not exists $$values_hash{$i};
-  }
+  $delete_proc = $dist_attrib{"iface_delete"};
+  $set_proc    = $dist_attrib{"iface_set"};
 
   foreach $i (keys %$values_hash)
   {
-    $tmp = &gst_network_interface_set ($i, $$values_hash{$i}, $$old_hash{$i});
-    $res = $tmp if !$res;
+    # delete it if it's no longer configured
+    if (exists $$old_hash{$i}{"configuration"} &&
+        not exists $$values_hash{$i}{"configuration"})
+    {
+      &$delete_proc ($$old_hash{$i}) if not exists $$values_hash{$i};
+    }
+    elsif (exists $$values_hash{$i}{"configuration"})
+    {
+      &$set_proc ($$values_hash{$i}, $$old_hash{$i}, 0, 1);
+      $tmp = &gst_network_interface_set ($i, $$values_hash{$i}, $$old_hash{$i});
+      $res = $tmp if !$res;
+      &$set_proc ($$values_hash{$i}, $$old_hash{$i}, 1, 1);
+    }
   }
-
-  $proc = $dist_attrib{"iface_set"};
-  &gst_network_interfaces_down_and_up_changed ($proc, $old_hash, $values_hash);
 
   &gst_report_leave ();
   return $res;
