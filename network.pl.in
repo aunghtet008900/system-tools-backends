@@ -541,10 +541,30 @@ sub gst_network_dialing_get
         $hash{"external_line"} = $1;
         $hash{"phone"} =~ s/^.*[wW]//;
     }
-}
+  }
   
   &gst_report_leave ();
   return \%ret;
+}
+
+# returns interface type depending on it's interface name
+sub gst_network_get_interface_type
+{
+  my ($dev) = @_;
+  my (@wireless_ifaces, $wi);
+
+  #check whether interface is wireless
+  $wireless_ifaces = &gst_network_get_wireless_ifaces ();
+  foreach $wi (@$wireless_ifaces)
+  {
+    return "wireless" if ($dev eq $wi);
+  }
+
+  # do the rest of checks
+  return "ethernet" if ($dev =~ /(eth|dc|ed|bfe)[0-9]/);
+  return "irlan" if ($dev =~ /irlan[0-9]/);
+  return "plip" if ($dev =~ /plip[0-9]/);
+  return "loopback" if ($dev =~ /lo[0-9]?/);
 }
 
 sub gst_network_freebsd_interfaces_get_info
@@ -563,27 +583,21 @@ sub gst_network_freebsd_interfaces_get_info
     if (/^([^ \t:]+):.*(<.*>)/)
     {
       $dev = $1;
-      $ {$ifaces{$dev}}{"dev"}    = $dev;
-      $ {$ifaces{$dev}}{"active"} = 1 if ($2 =~ /[<,]UP[,>]/);
+      $ifaces{$dev}{"dev"}    = $dev;
+      $ifaces{$dev}{"enabled"} = 1 if ($2 =~ /[<,]UP[,>]/);
     }
     
     s/^[ \t]+//;
     if ($dev)
     {
-      $ {$ifaces{$dev}}{"hwaddr"}  = $1 if /ether[ \t]+([^ \t]+)/i;
-      $ {$ifaces{$dev}}{"addr"}    = $1 if /inet[ \t]+([^ \t]+)/i;
-      $ {$ifaces{$dev}}{"mask"}    = $1 if /netmask[ \t]+([^ \t]+)/i;
-      $ {$ifaces{$dev}}{"bcast"}   = $1 if /broadcast[ \t]+([^ \t]+)/i;
+      $ifaces{$dev}{"hwaddr"}  = $1 if /ether[ \t]+([^ \t]+)/i;
+#      $$ifaces{$dev}{"addr"}    = $1 if /inet[ \t]+([^ \t]+)/i;
+#      $$ifaces{$dev}{"mask"}    = $1 if /netmask[ \t]+([^ \t]+)/i;
+#      $$ifaces{$dev}{"bcast"}   = $1 if /broadcast[ \t]+([^ \t]+)/i;
     }
   }
   
   &gst_file_close ($fd);
-
-  foreach $dev (keys %ifaces)
-  {
-    $ {$ifaces{$dev}}{"active"} = 0 if $ {$ifaces{$dev}}{"addr"} eq undef;
-  }
-  
   &gst_report_leave ();
   return \%ifaces;
 }
@@ -604,36 +618,46 @@ sub gst_network_linux_interfaces_get_info
     if (/^([^ \t:]+)/)
     {
       $dev = $1;
-      $ {$ifaces{$dev}}{"active"} = 0;
-      $ {$ifaces{$dev}}{"dev"}    = $dev;
+      $ifaces{$dev}{"enabled"} = 0;
+      $ifaces{$dev}{"dev"}    = $dev;
     }
     
     s/^[ \t]+//;
     if ($dev)
     {
-      $ {$ifaces{$dev}}{"hwaddr"}  = $1 if /HWaddr[ \t]+([^ \t]+)/i;
-      $ {$ifaces{$dev}}{"addr"}    = $1 if /addr:([^ \t]+)/i;
-      $ {$ifaces{$dev}}{"mask"}    = $1 if /mask:([^ \t]+)/i;
-      $ {$ifaces{$dev}}{"bcast"}   = $1 if /bcast:([^ \t]+)/i;
-      $ {$ifaces{$dev}}{"active"}  = 1  if /^UP[ \t]/i;
+      $ifaces{$dev}{"hwaddr"}  = $1 if /HWaddr[ \t]+([^ \t]+)/i;
+#      $$ifaces{$dev}{"addr"}    = $1 if /addr:([^ \t]+)/i;
+#      $$ifaces{$dev}{"mask"}    = $1 if /mask:([^ \t]+)/i;
+#      $$ifaces{$dev}{"bcast"}   = $1 if /bcast:([^ \t]+)/i;
+      $ifaces{$dev}{"enabled"}  = 1  if /^UP[ \t]/i;
     }
   }
   
   &gst_file_close ($fd);
-
-  foreach $dev (keys %ifaces)
-  {
-    $ {$ifaces{$dev}}{"active"} = 0 if $ {$ifaces{$dev}}{"addr"} eq undef;
-  }
-  
   &gst_report_leave ();
   return \%ifaces;
 }
 
 sub gst_network_interfaces_get_info
 {
-  return &gst_network_linux_interfaces_get_info   if ($$tool{"system"} eq "Linux");
-  return &gst_network_freebsd_interfaces_get_info if ($$tool{"system"} eq "FreeBSD");
+  my (%ifaces);
+
+  $ifaces = &gst_network_linux_interfaces_get_info   if ($$tool{"system"} eq "Linux");
+  $ifaces = &gst_network_freebsd_interfaces_get_info if ($$tool{"system"} eq "FreeBSD");
+
+  foreach $dev (keys %$ifaces)
+  {
+    #$$ifaces{$dev}{"enabled"} = 0 if $$ifaces{$dev}{"addr"} eq undef;
+    $$ifaces{$dev}{"type"} = &gst_network_get_interface_type ($dev);
+
+    #delete unknown ifaces
+    if ($$ifaces{$dev}{"type"} eq undef)
+    {
+      delete $$ifaces{$dev};
+    }
+  }
+
+  return $ifaces;
 }
 
 sub gst_network_active_interfaces_get
@@ -1302,10 +1326,12 @@ sub gst_network_set_modem_volume
 
 sub gst_network_interfaces_get
 {
-  my (%dist_attrib, %hash, %fn, @ifaces, $iface);
+  my (%dist_attrib, %config_hash, %hash, %fn);
+  my (@config_ifaces, $iface);
   my ($dist, $value, $file, $proc);
   my ($i, $j);
 
+  $hash = &gst_network_interfaces_get_info ();
   %dist_attrib = &gst_network_get_interface_parse_table ();
   %fn = %{$dist_attrib{"fn"}};
   $proc = $dist_attrib{"ifaces_get"};
@@ -1323,10 +1349,10 @@ sub gst_network_interfaces_get
     &gst_network_interface_ensure_broadcast_and_network ($iface);
     $$iface{"file"} = $i if ($$iface{"file"} eq undef);
 
-    $hash{$i} = $iface;
+    $$hash{$i}{"configuration"} = $iface if (exists $$hash{$i});
   }
 
-  return \%hash;
+  return \%$hash;
 }
 
 sub gst_network_conf_get
@@ -4379,11 +4405,11 @@ sub gst_network_get_interface_parse_table
       },
 	    table =>
           [
-           [ "user",               \&gst_parse_trivial,                  0 ], # not supported.
-           [ "dev",                \&gst_parse_trivial,                  IFACE ],
+#           [ "user",               \&gst_parse_trivial,                  0 ], # not supported.
+#           [ "dev",                \&gst_parse_trivial,                  IFACE ],
            [ "bootproto",          \&gst_network_deb22_parse_bootproto,  [INTERFACES, IFACE]],
            [ "auto",               \&gst_network_debian_woody_get_auto,  [INTERFACES, IFACE]],
-           [ "name",               \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "name" ],
+#           [ "name",               \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "name" ],
            [ "address",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "address" ],
            [ "netmask",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "netmask" ],
            [ "broadcast",          \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "broadcast" ],
@@ -4412,9 +4438,9 @@ sub gst_network_get_interface_parse_table
            [ "serial_escapechars", \&gst_parse_split_first_str,          PPP_OPTIONS, "escape", "[ \t]+" ],
            [ "serial_hwctl",       \&gst_parse_kw,                       PPP_OPTIONS, "crtscts" ],
            [ "phone_number",       \&gst_parse_chat,                     CHAT, "^atd[^0-9]*([0-9, -]+)" ],
-           [ "enabled",            \&gst_network_interface_active,       IFACE,
-                                                                       \&gst_network_active_interfaces_get ],
-           [ "enabled",            \&gst_parse_trivial,                  0 ]
+#           [ "enabled",            \&gst_network_interface_active,       IFACE,
+#                                                                       \&gst_network_active_interfaces_get ],
+#           [ "enabled",            \&gst_parse_trivial,                  0 ]
            ]
              },
 

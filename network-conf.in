@@ -277,6 +277,26 @@ sub xml_print_profiledb
   gst_xml_print_line ("</profiledb>\n");
 }
 
+sub xml_print_interfaces
+{
+  my ($h) = @_;
+  my ($dev, $type);
+
+  foreach $dev (keys %$h)
+  {
+    $type = $$h{$dev}{"type"};
+    delete $$h{$dev}{"type"};
+    
+    &gst_xml_print_vspace ();
+    &gst_xml_print_line ("<interface type='$type'>");
+    &gst_xml_enter ();
+    &gst_xml_print_hash ($$h{$dev});
+
+    &gst_xml_leave ();
+    &gst_xml_print_line ("</interface>");
+  }
+}
+
 sub xml_print
 {
   my ($h) = @_;
@@ -295,7 +315,7 @@ sub xml_print
   &gst_xml_print_arrays ($h, @array_keys);
   &network_xml_print_statichost ($h);
 
-  &gst_xml_print_hash_hash ($$h{"interface"}, "interface");
+  &xml_print_interfaces ($$h{"interface"});
   &gst_xml_print_hash_hash ($$h{"dialing"}, "dialing");
   &xml_print_profiledb ($h);
 

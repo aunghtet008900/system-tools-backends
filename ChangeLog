@@ -1,3 +1,8 @@
+2004-11-08  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* network-conf.in, network.pl.in: modified XML format for the new
+	network tool
+
 2004-11-05  Carlos Garcia Campos <carlosgc@gnome.org>
 
 	* disks-conf.in, partition.pl.in: added DVD support 
