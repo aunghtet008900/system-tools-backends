@@ -3483,6 +3483,29 @@ sub gst_network_suse9_get_dev_name
   return $dev;
 }
 
+sub gst_network_detect_essids
+{
+  my ($iface) = @_;
+  my ($fd, @arr, $encrypted);
+
+  $fd = &gst_file_run_pipe_read ("iwlist $iface scanning");
+  return undef if (!$fd);
+
+  while (<$fd>)
+  {
+    if (/^[ \t]*Encryption key:([^ \t\n]+)/)
+    {
+      $encrypted = ($1 eq "off") ? 0 : 1;
+    }
+    elsif (/^[ \t]*ESSID\:"(.+)"/)
+    {
+      push @arr, {"essid" => $1,
+                  "encrypted" => $encrypted };
+    }
+  }
+
+  return \@arr;
+}
 
 # Set dist_map for your distro to "" if you don't want
 # loopback ensuring. See suse-7.0 entry for example.

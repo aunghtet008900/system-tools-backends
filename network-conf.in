@@ -456,6 +456,19 @@ sub detect_modem
   &gst_xml_print_end    ("network-modem-device");
 }
 
+sub detect_essids
+{
+  my ($tool, $iface) = @_;
+  my (@essids);
+
+  $essids = &gst_network_detect_essids ($iface);
+  &gst_report_end ();
+
+  &gst_xml_print_begin ("essids");
+  &gst_xml_print_structure ($essids, "network");
+  &gst_xml_print_end   ("essids");
+}
+
 sub get_interface_name
 {
   my ($tool, $keyword) = @_;
@@ -485,6 +498,7 @@ $directives = {
                             "Immediatly enable or disable a given interface. " .
                             "interface is the file tag value, enabled is 1 or 0." ],
   "detect_modem"       => [ \&detect_modem, [], "Detects the modem device." ],
+  "detect_essids"      => [ \&detect_essids, [ "interface" ], "Detects active wireless networks" ],
   "get_interface_name" => [ \&get_interface_name, ["interface name" ],
                             "get the system dependent device name from a keyword. " .
                             "it accepts [Modem|Ethernet|Parallel|Infrared]." ]
