@@ -1,5 +1,9 @@
 2004-12-06  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* Release 1.0.2
+
+2004-12-06  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* network.pl.in, parse.pl.in: improved debian essid and wep key parsing
 
 2004-11-14  Carlos Garnacho Parro  <carlosg@gnome.org>
