@@ -1368,8 +1368,6 @@ sub gst_network_create_pppscript
   my ($contents);
   local *FILE;
 
-  print "1111 $pppscript\n";
-
   if (!&gst_file_exists ($pppscript))
   {
     # create a template file from scratch
