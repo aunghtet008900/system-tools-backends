@@ -68,9 +68,10 @@ sub network_xml_print_statichost
 sub gst_network_get_linux_wireless_ifaces
 {
   my ($fd, $line);
-  my (@ifaces);
+  my (@ifaces, $command);
 
-  $fd = &gst_file_run_pipe_read ("iwconfig");
+  $command = &gst_file_get_cmd_path ("iwconfig");
+  open $fd, "$command |";
   return @ifaces if $fd eq undef;
 
   while (<$fd>)
@@ -90,9 +91,10 @@ sub gst_network_get_linux_wireless_ifaces
 sub gst_network_get_freebsd_wireless_ifaces
 {
   my ($fd, $line, $iface);
-  my (@ifaces);
+  my (@ifaces, $command);
 
-  $fd = &gst_file_run_pipe_read ("ifconfig");
+  $command = &gst_file_get_cmd_path ("iwconfig");
+  open $fd, "$command |";
   return @ifaces if $fd eq undef;
 
   while (<$fd>)

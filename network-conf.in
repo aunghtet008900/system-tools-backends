@@ -253,7 +253,11 @@ sub fix_profile_interface_format
   }
 
   $$interface{"type"} = &gst_network_get_interface_type ($$interface{"dev"});
-  $$interface{"configuration"} = \%configuration;
+
+  if (%configuration)
+  {
+    $$interface{"configuration"} = \%configuration;
+  }
 }
 
 sub fix_profile_format

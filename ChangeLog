@@ -1,3 +1,9 @@
+2004-12-16  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* network-conf.in: avoid the creation of empty <configuration> tags
+	* network.pl.in: don't report when running iwconfig, it was getting
+	saved in the profiles file
+
 2004-12-14  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* network-conf.in, network.pl.in: improved old profiles fixing, 
