@@ -1,5 +1,11 @@
 2004-08-17  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* users-conf.in: Added <allows_to> tag for some groups.
+	(change_user_chfn): compared old and new data before changing it.
+	Fixes #150248
+
+2004-08-17  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* share.pl.in, shares-conf.in: small fixes, made it work (at least 
 	the SMB exports) with all the distributions that network-conf 
 	already supports
