@@ -1,16 +1,24 @@
-# Hungarian translation of system-tools-backends.
+# translation of system-tools-backends to Kinyarwanda.
 # Copyright (C) 2005 Free Software Foundation, Inc.
 # This file is distributed under the same license as the system-tools-backends package.
-# Szabolcs Varga <shirokuma@shirokuma.hu>, 2005.
+# Steve Murphy <murf@e-tools.com>, 2005
+# Steve performed initial rough translation from compendium built from translations provided by the following translators:
+# Philibert Ndandali  <ndandali@yahoo.fr>, 2005.
+# Viateur MUGENZI <muvia1@yahoo.fr>, 2005.
+# Noëlla Mupole <s24211045@tuks.co.za>, 2005.
+# Carole Karema <karemacarole@hotmail.com>, 2005.
+# JEAN BAPTISTE NGENDAHAYO <ngenda_denis@yahoo.co.uk>, 2005.
+# Augustin KIBERWA  <akiberwa@yahoo.co.uk>, 2005.
+# Donatien NSENGIYUMVA <ndonatienuk@yahoo.co.uk>, 2005..
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: system-tools-backends\n"
+"Project-Id-Version: system-tools-backends HEAD\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-03-29 05:02+0200\n"
-"PO-Revision-Date: 2005-03-06 10:44+0100\n"
-"Last-Translator: Szabolcs Varga <shirokuma@shirokuma.hu>\n"
-"Language-Team: Hungarian <gnome@gnome.hu>\n"
+"POT-Creation-Date: 2005-04-03 17:54-0600\n"
+"PO-Revision-Date: 2005-03-31 20:55-0700\n"
+"Last-Translator: Steve Murphy <murf@e-tools.com>\n"
+"Language-Team: Kinyarwanda <translation-team-rw@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,919 +26,959 @@ msgstr ""
 #. please, keep this list sorted
 #. service => [long_name, description]
 #: service-list.pl.in:36
+#, fuzzy
 msgid "ACPI event handler"
-msgstr "ACPI eseménykezelő"
+msgstr "Icyabaye"
 
 #: service-list.pl.in:36
+#, fuzzy
 msgid ""
 "Notifies user-space programs of ACPI events: executes arbitrary commands in "
 "response to ACPI events such as power buttons."
 msgstr ""
-"Értesíti a felhasználói területen futó programokat az ACPI-eseményekről: "
-"tetszőleges parancsot végrehajt a különféle ACPI-eseményekre (pl. a "
-"bekapcsológomb megnyomására) válaszul."
+"Ukoresha: Umwanya Porogaramu Bya Ibyabaye Amabwiriza in Kuri Ibyabaye Nka "
+"UMWIKUBE Utubuto"
 
 #: service-list.pl.in:37
 msgid "Advanced Linux Sound Architecture"
-msgstr "Továbbfejlesztett Linux hangarchitektúra (ALSA)"
+msgstr ""
 
 #: service-list.pl.in:38 service-list.pl.in:70
+#, fuzzy
 msgid "web server"
-msgstr "webkiszolgáló"
+msgstr "Urubuga Seriveri"
 
 #: service-list.pl.in:38 service-list.pl.in:70
+#, fuzzy
 msgid ""
 "Apache is a World Wide Web server.  It is used to serve HTML files and CGI."
-msgstr ""
-"Az Apache egy WWW-kiszolgáló. HTML fájlok kiszolgálására és CGI-programok "
-"futtatására szolgál."
+msgstr "ni a Seriveri ni Kuri Idosiye Na"
 
 #: service-list.pl.in:39
+#, fuzzy
 msgid "Run missed scheduled jobs at startup"
-msgstr "A kihagyott ütemezett feladatok futtatása rendszerindításkor"
+msgstr "ku"
 
 #: service-list.pl.in:39
+#, fuzzy
 msgid "Run cron jobs that were left out due to downtime"
-msgstr "A leállás miatt kihagyott cron-feladatok futtatása"
+msgstr "Ibumoso: Inyuma Kuri"
 
 #: service-list.pl.in:40
+#, fuzzy
 msgid "Automatic power management daemon"
-msgstr "Automatikus energiafelügyeleti démon"
+msgstr "UMWIKUBE"
 
 #: service-list.pl.in:40
+#, fuzzy
 msgid ""
 "apmd is used for monitoring battery status and logging it via syslog(8). It "
 "can also be used for shutting down the machine when the battery is low."
 msgstr ""
-"Az apmd szolgál az akkumulátor állapotának figyelésére és a syslog(8)-ot "
-"keresztüli naplózására. Használható továbbá a gép kikapcsolására, ha az "
-"akkumulátor kifogyott."
+"ni kugirango Imimerere Na Biturutse 8 kugirango Hasi i Ryari: i ni Byo hasi"
 
 #: service-list.pl.in:41
+#, fuzzy
 msgid "Runs a command at a given time"
-msgstr "Egy adott parancsot futtat egy megadott időben"
+msgstr "a Komandi: ku a Igihe"
 
 #: service-list.pl.in:41
+#, fuzzy
 msgid ""
 "Runs commands scheduled by the at command at the time specified when at was "
 "run, and runs batch commands when the load average is low enough."
 msgstr ""
-"Az at parancs által meghatározott időre ütemezett parancsok futtatása az at "
-"futtatásakor megadott időben, valamint a kötegelt parancsok futtatása, ha az "
-"átlagos terhelés alacsony."
+"Amabwiriza ku i ku Komandi: ku i Igihe Ryari: ku Gukoresha Na Amabwiriza "
+"Ryari: i Ibirimo Impuzandengo ni Byo hasi"
 
 #: service-list.pl.in:42
 msgid "Audio mixer"
-msgstr "Keverőpult"
+msgstr ""
 
 #: service-list.pl.in:42
+#, fuzzy
 msgid "This program adjusts the settings of an audio mixing device"
-msgstr "Ez a program módosítja az audiokeverő eszköz beállításait"
+msgstr "Porogaramu i Amagenamiterere Bya APAREYE"
 
 #: service-list.pl.in:43
 msgid "BinFormat Support"
-msgstr "BinFormat támogatás"
+msgstr ""
 
 #: service-list.pl.in:43
+#, fuzzy
 msgid "Support for running non ELF binaries on Linux"
-msgstr "Nem ELF bináris fájlok Linuxon futtatásának támogatása"
+msgstr "kugirango ku"
 
 #: service-list.pl.in:44
+#, fuzzy
 msgid "Boot messages recorder"
-msgstr "Rendszerindítási üzenetek rögzítője"
+msgstr "Ubutumwa"
 
 #: service-list.pl.in:44
+#, fuzzy
 msgid ""
 "Runs in the background and copies all strings sent to the /dev/console "
 "device to a logfile"
 msgstr ""
-"A háttérben futva a /dev/console eszközre küldött üzeneteket átmásolja egy "
-"naplófájlba"
+"in i Mbuganyuma Na Amakopi Byose Ikurikiranyanyuguti Yoherejwe: Kuri i "
+"APAREYE Kuri a"
 
 #: service-list.pl.in:45
+#, fuzzy
 msgid ""
 "An xinetd internal service which generate characters. The xinetd internal "
 "service which continuously generates characters until the connection is "
 "dropped.  This is the tcp version. You must enable xinetd to use this "
 "service."
 msgstr ""
-"Egy belső xinetd szolgáltatás, amely karaktereket állít elő. A belső xinetd "
-"szolgáltatás, amely folyamatosan állít elő karaktereket, amíg a kapcsolat "
-"megszakításra nem kerül. Ez a tcp változat. A szolgáltatás használatához "
-"engedélyezni kell a xinetd-t."
+"By'imbere Serivisi Inyuguti By'imbere Serivisi Inyuguti i Ukwihuza ni ni i "
+"Verisiyo Gushoboza Kuri Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:46
+#, fuzzy
 msgid ""
 "An xinetd internal service which generate characters. The xinetd internal "
 "service which continuously generates characters until the connection is "
 "dropped.  This is the udp version. You must enable xinetd to use this "
 "service."
 msgstr ""
-"Egy belső xinetd szolgáltatás, amely karaktereket állít elő. A belső xinetd "
-"szolgáltatás, amely folyamatosan állít elő karaktereket, amíg a kapcsolat "
-"megszakításra nem kerül. Ez az udp változat. A szolgáltatás használatához "
-"engedélyezni kell a xinetd-t."
+"By'imbere Serivisi Inyuguti By'imbere Serivisi Inyuguti i Ukwihuza ni ni i "
+"Verisiyo Gushoboza Kuri Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:47
+#, fuzzy
 msgid "CPU frequency monitor"
-msgstr "CPU-frekvenciafigyelő"
+msgstr "Ubwisubire"
 
 #: service-list.pl.in:47
+#, fuzzy
 msgid ""
 "cpufreqd is used to monitor the status of the battery and adjust the "
 "frequency of the CPU accordingly in order to preserve battery power while "
 "providing optimal performance"
 msgstr ""
-"A cpufreqd szolgál az akkumulátor állapotának figyelésére, és a CPU "
-"frekvenciájának megfelelő szabályozására az energiatakarékosság érdekében, "
-"ugyanakkor fenntartva az optimális működést"
+"ni Kuri i Imimerere Bya i Na i Ubwisubire Bya i in Itondekanya Kuri UMWIKUBE "
+"Bitunganye"
 
 #: service-list.pl.in:48 service-list.pl.in:130
+#, fuzzy
 msgid "daemon to execute scheduled commands"
-msgstr "az ütemezett parancsok végrehajtására szolgáló démon"
+msgstr "Kuri Gukora Amabwiriza"
 
 #: service-list.pl.in:49
 msgid "Run scheduled jobs"
-msgstr "Ütemezett feladatok futtatása"
+msgstr ""
 
 #: service-list.pl.in:49
+#, fuzzy
 msgid ""
 "cron is a standard UNIX program that runs user-specified programs at "
 "periodic scheduled times. vixie cron adds a number of features to the basic "
 "UNIX cron, including better security and more powerful configuration options."
 msgstr ""
-"A cron egy szabványos UNIX program, amely meghatározott időközönként "
-"lefuttatja a felhasználó által megadott programokat. A vixie cron számos "
-"extra funkcióval bővíti ki a UNIX alapszintű cron segédprogramját, szigorúbb "
-"biztonságot és szélesebb körű beállítási lehetőségeket biztosít."
+"ni a Bisanzwe Porogaramu Ukoresha: Porogaramu ku Times a Umubare Bya "
+"Ibiranga Kuri i BASIC Umutekano Na Birenzeho Iboneza Amahitamo"
 
 #: service-list.pl.in:50 service-list.pl.in:51
 msgid "Common Unix Printing System"
-msgstr "Egységes UNIX-nyomtatási rendszer (CUPS)"
+msgstr ""
 
 #: service-list.pl.in:50 service-list.pl.in:51
+#, fuzzy
 msgid "Printing system based upon the Internet Printing Protocol, version  1.1"
-msgstr ""
-"Az IPP (Internet Printing Protocol) v1.1 ajánlásra épülő nyomtatási rendszer"
+msgstr "Sisitemu i Verisiyo 1. 1."
 
 #: service-list.pl.in:52
+#, fuzzy
 msgid ""
 "An internal xinetd service which gets the current system time then prints it "
 "out in a format like this: 'Wed Nov 13 22:30:27 EST 2002'.  This is the tcp "
 "version. You must enable xinetd to use this service."
 msgstr ""
-"Egy belső xinetd szolgáltatás, amely lekérdezi az aktuális rendszeridőt, "
-"majd kinyomtatja az alábbihoz hasonló formátumban: 'Wed Nov 13 22:30:27 EST "
-"2002'. Ez a tcp változat. A szolgáltatás használatához engedélyezni kell a "
-"xinetd-t."
+"By'imbere Serivisi i KIGEZWEHO Sisitemu Igihe Hanyuma Inyuma in a Imiterere "
+"nka iyi ni i Verisiyo Gushoboza Kuri Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:53
+#, fuzzy
 msgid ""
 "An internal xinetd service which gets the current system time then prints it "
 "out in a format like this: 'Wed Nov 13 22:30:27 EST 2002'.  This is the udp "
 "version. You must enable xinetd to use this service."
 msgstr ""
-"Egy belső xinetd szolgáltatás, amely lekérdezi az aktuális rendszeridőt, "
-"majd kinyomtatja az alábbihoz hasonló formátumban: 'Wed Nov 13 22:30:27 EST "
-"2002'. Ez az udpváltozat. A szolgáltatás használatához engedélyezni kell a "
-"xinetd-t."
+"By'imbere Serivisi i KIGEZWEHO Sisitemu Igihe Hanyuma Inyuma in a Imiterere "
+"nka iyi ni i Verisiyo Gushoboza Kuri Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:54 service-list.pl.in:55
 msgid "Dynamic DNS Client"
-msgstr "Dinamikus DNS kliens"
+msgstr ""
 
 #: service-list.pl.in:54
+#, fuzzy
 msgid "A Dynamic DNS Name service from www.dyndns.org"
-msgstr "Dinamikus névszolgáltatás a www.dyndns.org-tól"
+msgstr "A Serivisi Bivuye www org"
 
 #: service-list.pl.in:55
+#, fuzzy
 msgid "A Dynamic DNS Name service from www.dhis.org"
-msgstr "Dinamikus névszolgáltatás a www.dhis.org-tól"
+msgstr "A Serivisi Bivuye www org"
 
 #: service-list.pl.in:56
 msgid "Dict Dictionary Server"
-msgstr "Dict szótárkiszolgáló"
+msgstr ""
 
 #: service-list.pl.in:57
+#, fuzzy
 msgid ""
 "An xinetd internal service which echo's characters back to clients.  This is "
 "the tcp version. You must enable xinetd to use this service."
 msgstr ""
-"Egy belső xinetd szolgáltatás, amely visszaküldi a karaktereket a kliensek "
-"felé. Ez a tcp változat. A szolgáltatás használatához engedélyezni kell a "
-"xinetd-t."
+"By'imbere Serivisi Inyuguti Inyuma Kuri ni i Verisiyo Gushoboza Kuri "
+"Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:58
+#, fuzzy
 msgid ""
 "An xinetd internal service which echo's characters back to clients.  This is "
 "the udp version. You must enable xinetd to use this service."
 msgstr ""
-"Egy belső xinetd szolgáltatás, amely visszaküldi a karaktereket a kliensek "
-"felé. Ez az udp változat. A szolgáltatás használatához engedélyezni kell a "
-"xinetd-t."
+"By'imbere Serivisi Inyuguti Inyuma Kuri ni i Verisiyo Gushoboza Kuri "
+"Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:59
+#, fuzzy
 msgid "Sound mixing server"
-msgstr "Hangkeverő kiszolgáló"
+msgstr "Seriveri"
 
 #: service-list.pl.in:59
 msgid "The Enlightened Sound Daemon"
-msgstr "A Megvilágosult hang démon (ESD)"
+msgstr ""
 
 #: service-list.pl.in:60
 msgid "Exim SMTP Server"
-msgstr "Exim SMTP-kiszolgáló"
+msgstr ""
 
 #: service-list.pl.in:61
+#, fuzzy
 msgid "file alteration monitor"
-msgstr "fájlmódosítás-figyelő"
+msgstr "IDOSIYE"
 
 #: service-list.pl.in:62
+#, fuzzy
 msgid "Firstboot is a druid style program that runs on the first time"
-msgstr "A Firstboot egy druid-stílusú program, amely az első alkalommal lefut"
+msgstr "ni a IMISUSIRE Porogaramu ku i Itangira Igihe"
 
 #: service-list.pl.in:63
+#, fuzzy
 msgid "Text-to-speech system"
-msgstr "Szövegfelolvasó rendszer"
+msgstr "Kuri Sisitemu"
 
 #: service-list.pl.in:63
+#, fuzzy
 msgid "Festival is a general purpose text-to-speech system"
-msgstr "A Festival egy általános célú szövegfelolvasó rendszer"
+msgstr "ni a Rusange Intego Umwandiko Kuri Sisitemu"
 
 #: service-list.pl.in:64
 msgid "Mail Fetcher"
-msgstr "Levélbegyűjtő"
+msgstr ""
 
 #: service-list.pl.in:64
+#, fuzzy
 msgid "A Mail Fetcher from external Servers"
-msgstr "Külső kiszolgálókról gyűjti be a leveleket"
+msgstr "A Bivuye external"
 
 #: service-list.pl.in:65
 msgid "IPv6 Tunnel Broker"
-msgstr "IPv6-alagútbróker"
+msgstr ""
 
 #: service-list.pl.in:65
+#, fuzzy
 msgid "A IPv6 Dynamic Tunnel Broker"
-msgstr "Dinamikus IPv6-alagútbróker"
+msgstr "A"
 
 #: service-list.pl.in:66
 msgid "GNOME Display Manager"
-msgstr "GNOME képernyőkezelő"
+msgstr ""
 
 #: service-list.pl.in:66
+#, fuzzy
 msgid "gdm provides the GNOME equivalent of a \"login:\" prompt."
-msgstr "A gdm a \"login:\" ablak GNOME-megfelelőjét biztosítja."
+msgstr "i Bya a Ifashayinjira Urwinjiriro"
 
 #: service-list.pl.in:67
+#, fuzzy
 msgid "console mouse support"
-msgstr "egértámogatás konzolon"
+msgstr "Imbeba Gushigikira"
 
 #: service-list.pl.in:67
+#, fuzzy
 msgid ""
 "GPM adds mouse support to text-based Linux applications such the Midnight "
 "Commander. It also allows mouse-based console cut-and-paste operations, and "
 "includes support for pop-up menus on the console."
 msgstr ""
-"A GPM egérkezeléssel bővíti a szöveges képernyőn működő linuxos "
-"alkalmazásokat, például a Midnight Commandert. Lehetővé teszi továbbá "
-"kivágási és beillesztési műveletek egérrel elvégzését, valamint támogatja a "
-"konzol legördülő menüinek használatát."
+"Imbeba Gushigikira Kuri Umwandiko Porogaramu i Imbeba Gukata Na Komeka "
+"Ibikorwa: Na Gushigikira kugirango Hejuru Ibikubiyemo ku i"
 
 #: service-list.pl.in:68
+#, fuzzy
 msgid "Set hard disk parameters"
-msgstr "Merevlemez-paraméterek beállítása"
+msgstr "Ikomeye Ibigenga"
 
 #: service-list.pl.in:68
+#, fuzzy
 msgid ""
 "Provides a interface to various hard disk ioctls supported by the stock "
 "Linux ATA/IDE device driver subsystem."
-msgstr ""
-"Felületet biztosít a 'gyári' Linux ATA/IDE eszközillesztő-alrendszer által "
-"támogatott különféle merevlemez ioctl-ekhez."
+msgstr "a Kuri Ikomeye ku i APAREYE Musomyi:"
 
 #: service-list.pl.in:69
+#, fuzzy
 msgid "Linux hotplugging support"
-msgstr "Üzem közbeni csere támogatása Linux alatt"
+msgstr "Gushigikira"
 
 #: service-list.pl.in:69
+#, fuzzy
 msgid ""
 "hotplug is a program which is used by the kernel to notify user mode "
 "software when some significant (usually hardware-related) events take place. "
 "An example is when a USB or Cardbus device has just been plugged in."
 msgstr ""
-"A hotplug programot a kernel használja, hogy értesítse a felhasználói módú "
-"programokat, ha valamilyen fontos (jellemzően hardverrel kapcsolatos) "
-"esemény történik. Ilyen például, ha egy USB vagy Cardbus eszközt "
-"csatlakoztatnak a géphez."
+"ni a Porogaramu ni ku i Kuri Ukoresha: Ubwoko Ryari: Ibyabaye Urugero ni "
+"Ryari: a Cyangwa APAREYE in"
 
 #: service-list.pl.in:71
+#, fuzzy
 msgid "internet superserver"
-msgstr "internetes szuperszerver"
+msgstr "Interineti"
 
 #: service-list.pl.in:71
+#, fuzzy
 msgid ""
 "inetd allows running one daemon to invoke several others, reducing load on "
 "the system."
-msgstr ""
-"Az inetd lehetővé teszi, hogy egyetlen futó démon hívjon meg sok másikat, "
-"így csökkenti a rendszer terhelését."
+msgstr "Kuri Ibindi Ibirimo ku i Sisitemu"
 
 #: service-list.pl.in:72
+#, fuzzy
 msgid "administration tool for IPv4 packet filtering and NAT"
-msgstr "adminisztrációs eszköz IPv4 csomagszűréshez és címfordításhoz (NAT)"
+msgstr "ubuyobozi kugirango Iyungurura Na"
 
 #: service-list.pl.in:72
+#, fuzzy
 msgid ""
 "Iptables is used to set up, maintain, and inspect the tables of IP packet "
 "filter rules in the Linux kernel."
-msgstr ""
-"Az Iptables szolgál a Linux kernel IP-csomagszűrési szabálytáblázatainak "
-"létrehozására, karbantartására és vizsgálatára."
+msgstr "ni Kuri Gushyiraho Hejuru Na i Imbonerahamwe Bya Muyunguruzi... in i"
 
 #: service-list.pl.in:73
+#, fuzzy
 msgid "IrDA stack for Linux"
-msgstr "IrDA-csomag Linuxhoz"
+msgstr "kugirango"
 
 #: service-list.pl.in:74
+#, fuzzy
 msgid "The Internet Key Exchange protocol"
-msgstr "Az Internet Key Exchange (internetes kulcscsere) protokoll"
+msgstr "Porotokole"
 
 #: service-list.pl.in:74
+#, fuzzy
 msgid "The Internet Key Exchange protocol openbsd implementation"
-msgstr "Az Internet Key Exchange protokoll openbsd-megvalósítása"
+msgstr "Porotokole"
 
 #: service-list.pl.in:75
+#, fuzzy
 msgid "start and stop ISDN services"
-msgstr "ISDN-szolgáltatások elindítása és leállítása"
+msgstr "Gutangira Na Guhagarara"
 
 #: service-list.pl.in:76
+#, fuzzy
 msgid "Check and fix joystick device nodes"
-msgstr "Botkormány-eszköz csomópontok ellenőrzése és javítása"
+msgstr "Na APAREYE"
 
 #: service-list.pl.in:76
+#, fuzzy
 msgid ""
 "Runs joystick-device-check.  joystick-device-check is a program which "
 "ensures that the /dev/js* device nodes are correct for the kernel version in "
 "use."
 msgstr ""
-"A joystick-device-check futtatása. A joystick-device-check program "
-"ellenőrzi, hogy a /dev/js* eszközcsomópontok megfelelnek a használt "
-"kernelverziónak."
+"APAREYE Kugenzura... APAREYE Kugenzura... ni a Porogaramu i APAREYE "
+"kugirango i Verisiyo in Gukoresha"
 
 #: service-list.pl.in:77
+#, fuzzy
 msgid ""
 "This package loads the selected keyboard map as set in /etc/sysconfig/"
 "keyboard.  This can be selected using the kbdconfig utility.  You should "
 "leave this enabled for most machines."
 msgstr ""
-"Ez a csomag betölti az /etc/sysconfig/ könyvtárban megadott "
-"billentyűzetkiosztást. Ez a kbdconfig segédprogrammal választható ki. Ezt a "
-"beállítást a legtöbb gépen bekapcsolva kell hagyni."
+"i Byahiswemo Mwandikisho Nka Gushyiraho in Mwandikisho Byahiswemo ikoresha i "
+"iyi Bikora kugirango"
 
 #: service-list.pl.in:78
 msgid "Kernel Log Daemon"
-msgstr "Kernelnaplózó démon"
+msgstr ""
 
 #: service-list.pl.in:78
+#, fuzzy
 msgid ""
 "klogd is a system daemon which intercepts and logs Linux kernel messages."
-msgstr ""
-"A klogd egy rendszerdémon, amelyik elfogja és naplózza a Linux-kernel "
-"üzeneteit."
+msgstr "ni a Sisitemu Na Ubutumwa"
 
 #: service-list.pl.in:79
+#, fuzzy
 msgid ""
 "This runs the hardware probe, and optionally configures changed hardware."
-msgstr ""
-"Lefuttatja a hardverkeresőt, és igény esetén beállítja a megváltozott "
-"hardvert."
+msgstr "i Na Byahinduwe"
 
 #: service-list.pl.in:80 service-list.pl.in:81
+#, fuzzy
 msgid ""
 "LIRC is a package that allows you to decode and send infra-red signals of "
 "many commonly used remote controls"
-msgstr ""
-"Az LIRC csomaggal dekódolhatók, illetve elküldhetők a legtöbb elterjedt "
-"távvezérlő infravörös jelei"
+msgstr "ni a Kuri Na Kohereza Umutuku Bya Amagenzura"
 
 #: service-list.pl.in:82
+#, fuzzy
 msgid "Starts misc programs that should be started"
-msgstr "Elindítja a különféle elindítandó programokat"
+msgstr "Porogaramu"
 
 #: service-list.pl.in:83
+#, fuzzy
 msgid ""
 "lpd is the print daemon required for lpr to work properly. It is basically a "
 "server that arbitrates print jobs to printer(s)."
 msgstr ""
-"Az lpd az lpr helyes működéséhez szükséges nyomtatódémon. Lényegében egy "
-"kiszolgáló, amely irányítja a nyomtatási feladatokat a nyomtató(k)ra."
+"ni i Gucapa Bya ngombwa kugirango Kuri Akazi ni a Seriveri Gucapa Kuri "
+"Mucapyi S"
 
 #: service-list.pl.in:84
 msgid "Create devices"
-msgstr "Eszközök létrehozása"
+msgstr ""
 
 #: service-list.pl.in:84
+#, fuzzy
 msgid ""
 "Script that will create the devices in /dev used to interface with drivers "
 "in the kernel"
-msgstr ""
-"A /dev könyvtárban a kernelhez csatlakozásra használt eszközöket létrehozó "
-"parancsfájl"
+msgstr "Kurema i in Kuri Na: in i"
 
 #: service-list.pl.in:85
 msgid "Syslog Replacement"
-msgstr "Syslog-helyettesítő"
+msgstr ""
 
 #: service-list.pl.in:85
 msgid "Modern logging daemon"
-msgstr "Modern naplózó démon"
+msgstr ""
 
 #: service-list.pl.in:86
+#, fuzzy
 msgid "Load kernel modules"
-msgstr "Kernelmodulok betöltése"
+msgstr "Modire"
 
 #: service-list.pl.in:87
+#, fuzzy
 msgid "tools for managing Linux kernel modules"
-msgstr "Eszközök Linux-kernelmodulok kezeléséhez"
+msgstr "Ibikoresho kugirango Modire"
 
 #: service-list.pl.in:88 service-list.pl.in:105
+#, fuzzy
 msgid "database server"
-msgstr "adatbázis-kiszolgáló"
+msgstr "Ububikoshingiro Seriveri"
 
 #: service-list.pl.in:88
+#, fuzzy
 msgid "MySQL, a SQL-based relational database daemon"
-msgstr "MySQL, egy SQL alapú relációsadatbázis-démon"
+msgstr "a Ububikoshingiro"
 
+# svx/source\options\optinet2.src:RID_SVXPAGE_INET_PROXY.GB_DNS.text
 #: service-list.pl.in:89
+#, fuzzy
 msgid "dns server"
-msgstr "dns-kiszolgáló"
+msgstr "Seriveri DNS"
 
 #: service-list.pl.in:89
+#, fuzzy
 msgid ""
 "named (BIND) is a Domain Name Server (DNS) that is used to resolve host "
 "names to IP addresses."
-msgstr ""
-"A named (BIND) egy DNS-névkiszolgáló, amely a gépneveket IP-címekké oldja "
-"fel."
+msgstr "ni a ni Kuri Ubuturo Amazina Kuri Amaderesi"
 
 #: service-list.pl.in:90
+#, fuzzy
 msgid ""
 "Mounts and unmounts all Network File System (NFS), SMB (Lan Manager/"
 "Windows), and NCP (NetWare) mount points."
-msgstr ""
-"Felcsatolja és lekapcsolja az összes NFS (Network File System ), SMB (Lan "
-"Manager/Windows) és NCP (NetWare) csatolási pontot."
+msgstr "Na Byose Idosiye Na Utudomo"
 
 #: service-list.pl.in:91
+#, fuzzy
 msgid ""
 "Activates/Deactivates all network interfaces configured to start at boot "
 "time."
-msgstr ""
-"Aktiválja/lekapcsolja a rendszerindításkor indulásra beállított összes "
-"hálózati eszközt."
+msgstr "Byose urusobe Kuri Gutangira ku Igihe"
 
 #: service-list.pl.in:92
+#, fuzzy
 msgid ""
 "NFS is a popular protocol for file sharing across TCP/IP networks. This "
 "service provides NFS server functionality, which is configured via the /etc/"
 "exports file."
 msgstr ""
-"Az NFS egy népszerű protokoll fájlok TCP/IP-hálózatokon keresztüli "
-"megosztására. Ez a szolgáltatás NFS-kiszolgáló funkcionalitást biztosít, "
-"amely az /etc/exports fájlon keresztül állítható be."
+"ni a Porotokole kugirango IDOSIYE Bisangiwe Kwambukiranya Serivisi Seriveri "
+"ni Biturutse i IDOSIYE"
 
 #: service-list.pl.in:93
+#, fuzzy
 msgid ""
 "NFS is a popular protocol for file sharing across TCP/IP networks. This "
 "service provides NFS file locking functionality."
 msgstr ""
-"Az NFS egy népszerű protokoll fájlok TCP/IP-hálózatokon keresztüli "
-"megosztására. Ez a szolgáltatás NFS-fájlzárolási funkcionalitást biztosít."
+"ni a Porotokole kugirango IDOSIYE Bisangiwe Kwambukiranya Serivisi IDOSIYE"
 
 #: service-list.pl.in:94
+#, fuzzy
 msgid "Name service cache daemon"
-msgstr "Névszolgáltatás-cache démon"
+msgstr "Serivisi Ubwihisho"
 
 #: service-list.pl.in:94
+#, fuzzy
 msgid "Daemon that provides a cache for the most common name service requests."
-msgstr ""
-"A szokásos névszolgáltatási kérésekhez átmeneti tárolást biztosító démon."
+msgstr "a Ubwihisho kugirango i Izina: Serivisi"
 
 #: service-list.pl.in:95
 msgid "Network Time Protocol daemon"
-msgstr "NTP (Network Time Protocol) démon"
+msgstr ""
 
 #: service-list.pl.in:95
+#, fuzzy
 msgid "ntpd is the NTPv4 daemon."
-msgstr "Az ntpd az NTPv4-démon."
+msgstr "ni i"
 
 #: service-list.pl.in:96 service-list.pl.in:97
+#, fuzzy
 msgid "Update the system time over the network"
-msgstr "A rendszer idejét frissíti hálózaton keresztüli egyeztetéssel"
+msgstr "i Sisitemu Igihe KURI i urusobe"
 
 #: service-list.pl.in:96 service-list.pl.in:97
+#, fuzzy
 msgid ""
 "Checks the time from a Network Time Protocol (ntp) server and adjusts the "
 "system time accordingly."
-msgstr ""
-"Ellenőrzi az időt egy NTP (Network Time Protocol) kiszolgáló segítségével, "
-"majd ennek megfelelően beállítja a rendszer idejét."
+msgstr "i Igihe Bivuye a Seriveri Na i Sisitemu Igihe"
 
 #: service-list.pl.in:98
+#, fuzzy
 msgid "Network Time Protocol (NTP) server"
-msgstr "NTP (Network Time Protocol) kiszolgáló"
+msgstr "Seriveri"
 
 #: service-list.pl.in:98
+#, fuzzy
 msgid ""
 "Daemon which sets and maintains the system time-of-day in synchronism with "
 "Internet standard time servers"
-msgstr ""
-"A rendszeridőt az internetes időszerverekkel egyeztetve beállító és "
-"fenntartó démon"
+msgstr "Na i Sisitemu Igihe Bya UMUNSI in Na: Bisanzwe Igihe"
 
 #: service-list.pl.in:99
+#, fuzzy
 msgid "HTTP caching proxy"
-msgstr "Ideiglenes tárolást biztosító HTTP-proxy"
+msgstr "Porogisi"
 
 #: service-list.pl.in:100
 msgid "PCMCIA Services"
-msgstr "PCMCIA-szolgáltatások"
+msgstr ""
 
 #: service-list.pl.in:101
 msgid "Caching-Only DNS Server"
-msgstr "Csak átmeneti tárolást biztosító DNS-kiszolgáló"
+msgstr ""
 
 #: service-list.pl.in:102
 msgid "IPsec tunnel implementation"
-msgstr "IPsec-alagút megvalósítás"
+msgstr ""
 
 #: service-list.pl.in:103
+#, fuzzy
 msgid "DARPA port to RPC program number mapper"
-msgstr "A DARPA portok és az RPC programszámok megfeleltetése"
+msgstr "Umuyoboro Kuri Porogaramu Umubare"
 
 #: service-list.pl.in:103
+#, fuzzy
 msgid ""
 "The portmapper manages RPC connections, which are used by protocols such as "
 "NFS and NIS. The portmap server must be running on machines which act as "
 "servers for protocols which make use of the RPC mechanism."
-msgstr ""
-"A portleképező kezeli a például az NFS és NIC protokollok által használt RPC-"
-"kapcsolatokat. A portmap kiszolgálónak futnia kell az olyan gépeken, amelyek "
-"az RPC-mechanizmust használó protokollok számára kiszolgálóként viselkednek."
+msgstr "Ukwihuza ku Nka Na Seriveri ku Nka kugirango Ubwoko Gukoresha Bya i"
 
 #: service-list.pl.in:104
 msgid "Mail Transport Agent"
-msgstr "Levéltovábbítási ügynök"
+msgstr ""
 
 #: service-list.pl.in:106
+#, fuzzy
 msgid "Point to Point Protocol daemon"
-msgstr "PPP (Point to Point Protocol) démon"
+msgstr "Kuri"
 
 #: service-list.pl.in:106
+#, fuzzy
 msgid ""
 "The  Point-to-Point Protocol (PPP) provides a method for transmitting "
 "datagrams over serial point-to-point links."
-msgstr ""
-"A Point-to-Point Protocol (PPP) megoldást kínál datagramok soros pont-pont "
-"kapcsolatokon keresztüli elküldésére."
+msgstr "Kuri a Uburyo kugirango KURI Akadomo Kuri Akadomo amahuza"
 
 #: service-list.pl.in:107
 msgid "Privacy enhancing HTTP Proxy"
-msgstr "Biztonságnövelő HTTP-proxy"
+msgstr ""
 
 #: service-list.pl.in:108
+#, fuzzy
 msgid ""
 "Saves and restores system entropy pool for higher quality random number "
 "generation."
-msgstr ""
-"Elmenti és visszaállítja a rendszerentrópia-tárolót a jobb minőségű "
-"véletlenszám-előállítás érdekében."
+msgstr "Na Sisitemu Itsinda kugirango Ubwiza Umubare"
 
 #: service-list.pl.in:109
+#, fuzzy
 msgid ""
 "This scripts assignes raw devices to block devices (such as hard drive "
 "partitions). This is for the use of applications such as Oracle. You can set "
 "up the raw device to block device mapping by editing the file /etc/sysconfig/"
 "rawdevices."
 msgstr ""
-"Ezek a parancsfájlok a nyers (raw) eszközöket blokkeszközökhöz (például "
-"merevlemez-partíciókhoz) rendelik hozzá. Erre az olyan alkalmazások miatt "
-"van szükség, mint például az Oracle. A nyers- és blokkeszközök közötti "
-"megfeleltetés az /etc/sysconfig/rawdevices fájl módosításával állítható be."
+"Inyandikoporogaramu Kuri Funga Nka Ikomeye Porogaramu- shoboza ni kugirango "
+"i Gukoresha Bya Porogaramu Nka Gushyiraho Hejuru i APAREYE Kuri Funga "
+"APAREYE Igereranya ku i IDOSIYE"
 
 #: service-list.pl.in:110
+#, fuzzy
 msgid ""
 "This is a daemon which handles the task of connecting periodically to the "
 "Red Hat Network servers to check for updates, notifications and perform "
 "system monitoring tasks according to the service level that this server is "
 "subscribed for."
 msgstr ""
-"Ez a démon időről időre hozzácsatlakozik a Red Hat Network kiszolgálóihoz, "
-"ellenőrzi, hogy rendelkezésre állnak-e frissítések, értesítések, valamint "
-"rendszerfigyelési feladatokat hajt végre, attól függően, hogy milyen szintű "
-"szolgáltatásra van feliratkozva az adott kiszolgáló."
+"ni a i Igikorwa Bya Kwihuza... Kuri i Kuri Kugenzura... kugirango "
+"Ibimenyetso Na Sisitemu Ibikorwa Kuri i Serivisi urwego iyi Seriveri ni "
+"yanditswe/ byemewe kugirango"
 
 #: service-list.pl.in:111 service-list.pl.in:112
+#, fuzzy
 msgid ""
 "The rsync server is a good addition to am ftp server, as it allows crc "
 "checksumming etc. You must enable xinetd to use this service."
 msgstr ""
-"Az rsync kiszolgáló az am ftp kiszolgáló hasznos kiegészítője, ugyanis "
-"lehetővé teszi például a crc alapú ellenőrző összegek használatát. A "
-"szolgáltatás használatához engedélyezni kell a xinetd-t."
+"Seriveri ni a Guteranya+ Kuri FTP Seriveri Nka Gushoboza Kuri Gukoresha iyi "
+"Serivisi"
 
 #: service-list.pl.in:112
+#, fuzzy
 msgid "Faster, flexible replacement for rcp"
-msgstr "Az rcp gyorsabb, rugalmasabb helyettesítője"
+msgstr "kugirango"
 
 #: service-list.pl.in:113
+#, fuzzy
 msgid "A Windows SMB/CIFS fileserver for UNIX"
-msgstr "Windows SMB/CIFS fájlkiszolgáló UNIX alá"
+msgstr "A kugirango"
 
 #: service-list.pl.in:113
+#, fuzzy
 msgid ""
 "The Samba software suite is a collection of programs that implements the "
 "Server Message Block protocol for UNIX systems."
-msgstr ""
-"A Samba szoftvercsomag programok gyűjteménye, amelyek a Server Message Block "
-"protokollt valósítják meg UNIX-rendszereken is."
+msgstr "ni a Bya Porogaramu i Porotokole kugirango"
 
 #: service-list.pl.in:114
+#, fuzzy
 msgid ""
 "saslauthd is a server process which handles plaintext authentication "
 "requests on behalf of the cyrus-sasl library."
-msgstr ""
-"Az saslauthd a cyrus-sasl könyvtár nevében az egyszerű szöveges hitelesítési "
-"kéréseket kezelő kiszolgálófolyamat."
+msgstr "ni a Seriveri ku Bya i Isomero"
 
 #: service-list.pl.in:115
+#, fuzzy
 msgid ""
 "Sendmail is a Mail Transport Agent, which is the program that moves mail "
 "from one machine to another."
-msgstr ""
-"A Sendmail egy levéltovábbító ügynökprogram, amely az elektronikus "
-"üzeneteket továbbítja az egyes gépek között."
+msgstr "ni a ni i Porogaramu Ubutumwa Bivuye Kuri"
 
 #: service-list.pl.in:116
+#, fuzzy
 msgid ""
 "An internal xinetd service, listing active servers. You must enable xinetd "
 "to use this service."
-msgstr ""
-"Egy belső xinetd szolgáltatás, az aktív kiszolgálókat listázza. A "
-"szolgáltatás használatához engedélyezni kell a xinetd-t."
+msgstr "By'imbere Serivisi Gikora Gushoboza Kuri Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:117
+#, fuzzy
 msgid ""
 "An internal xinetd service, listing active services. You must enable xinetd "
 "to use this service."
-msgstr ""
-"Egy belső xinetd szolgáltatás, az aktív szolgáltatásokat listázza. A "
-"szolgáltatás használatához engedélyezni kell a xinetd-t."
+msgstr "By'imbere Serivisi Gikora Gushoboza Kuri Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:118
+#, fuzzy
 msgid "get/set serial port information"
-msgstr "soros portok adatainak lekérdezése és beállítása"
+msgstr "Kubona Gushyiraho Umuyoboro Ibisobanuro"
 
 #: service-list.pl.in:118
+#, fuzzy
 msgid ""
 "setserial is a program designed to set and/or report the configuration "
 "information associated with a serial port."
 msgstr ""
-"A setserial program szolgál a soros portok beállítási adatainak "
-"lekérdezésére és megadására."
+"ni a Porogaramu Kuri Gushyiraho Na Cyangwa Icyegeranyo i Iboneza Ibisobanuro "
+"Na: a Umuyoboro"
 
 #: service-list.pl.in:119
+#, fuzzy
 msgid ""
 "FAM is a file monitoring daemon. It can be used to get reports when files "
 "change. You must enable xinetd to use this service."
 msgstr ""
-"A FAM egy fájlfigyelő démon. Képes jelentéseket készíteni, ha a fájlok "
-"módosulnak. A szolgáltatás használatához engedélyezni kell a xinetd-t."
+"ni a IDOSIYE Kuri Kubona Raporo Ryari: Idosiye Guhindura>> Gushoboza Kuri "
+"Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:120
+#, fuzzy
 msgid "control and monitor storage systems using S.M.A.R.T."
-msgstr ""
-"Tárolórendszerek figyelése és vezérlése a S.M.A.R.T. szabványnak megfelelően"
+msgstr "A."
 
 #: service-list.pl.in:121
+#, fuzzy
 msgid "Perl-based spam filter using text analysis"
-msgstr "Perl alapú, szövegelemző spamszűrő"
+msgstr "Muyunguruzi... ikoresha Umwandiko"
 
 #: service-list.pl.in:122
 msgid "Simple Network Management Protocol (SNMP) Daemon"
-msgstr "SNMP (Simple Network Management Protocol) démon"
+msgstr ""
 
 #: service-list.pl.in:123 service-list.pl.in:124
+#, fuzzy
 msgid "OpenSSH SSH server"
-msgstr "OpenSSH SSH kiszolgáló"
+msgstr "Seriveri"
 
 #: service-list.pl.in:123
+#, fuzzy
 msgid ""
 "ssh is a program for logging into a remote machine and for executing "
 "commands on a remote machine."
-msgstr ""
-"Az ssh program segítségével be lehet jelentkezni egy távoli gépre és "
-"parancsokat lehet rajta végrehajtani."
+msgstr "ni a Porogaramu kugirango a Na kugirango Gukora:%s Amabwiriza ku a"
 
 #: service-list.pl.in:124
+#, fuzzy
 msgid "OpenSSH server daemon"
-msgstr "OpenSSH kiszolgáló démon"
+msgstr "Seriveri"
 
 #: service-list.pl.in:125
+#, fuzzy
 msgid "Linux system logging utilities"
-msgstr "Linux rendszernaplózási segédprogramok"
+msgstr "Sisitemu"
 
 #: service-list.pl.in:125
+#, fuzzy
 msgid ""
 "Sysklogd provides two system utilities which provide support for system  "
 "logging  and  kernel  message  trapping."
-msgstr ""
-"A Sysklogd két rendszer-segédprogramot biztosít a rendszer naplózásához és a "
-"kernelüzenetek elfogásához."
+msgstr "Sisitemu Gushigikira kugirango Sisitemu Na Ubutumwa"
 
 #: service-list.pl.in:126
+#, fuzzy
 msgid ""
 "Syslog is the facility by which many daemons use to log messages to various "
 "system log files.  It is a good idea to always run syslog."
 msgstr ""
-"A Syslog nevű segédprogramot használja számos más démon az üzenetek "
-"naplózására különféle rendszernaplófájlokba. A syslog folyamatos futtatása "
-"okos dolog."
+"ni i ku Gukoresha Kuri LOG Ubutumwa Kuri Sisitemu LOG Idosiye ni a Kuri Buri "
+"gihe Gukoresha"
 
 #: service-list.pl.in:127
+#, fuzzy
 msgid ""
 "An RFC 868 time server. This protocol provides a site-independent, machine "
 "readable date and time. The Time service sends back to the originating "
 "source the time in seconds since midnight on January first 1900.  This is "
 "the tcp version. You must enable xinetd to use this service."
 msgstr ""
-"Egy RFC 868 időszerver. Ez a protokoll egy helyfüggetlen, géppel olvasható "
-"dátumot és időt biztosít. Az időszolgáltatás a forrásnak elküldi az 1900. "
-"január 1. óta eltelt időt másodpercekben. Ez a tcp változat. A szolgáltatás "
-"használatához engedélyezni kell a xinetd-t."
+"Igihe Seriveri Porotokole a Ipaji Itariki Na Igihe Serivisi Inyuma Kuri i "
+"Inkomoko i Igihe in amasogonda guhera Saa sita zijoro ku Itangira ni i "
+"Verisiyo Gushoboza Kuri Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:128
+#, fuzzy
 msgid ""
 "An RFC 868 time server. This protocol provides a site-independent, machine "
 "readable date and time. The Time service sends back to the originating "
 "source the time in seconds since midnight on January first 1900.  This is "
 "the udp version. You must enable xinetd to use this service."
 msgstr ""
-"Egy RFC 868 időszerver. Ez a protokoll egy helyfüggetlen, géppel olvasható "
-"dátumot és időt biztosít. Az időszolgáltatás a forrásnak elküldi az 1900. "
-"január 1. óta eltelt időt másodpercekben. Ez az udp változat. A szolgáltatás "
-"használatához engedélyezni kell a xinetd-t."
+"Igihe Seriveri Porotokole a Ipaji Itariki Na Igihe Serivisi Inyuma Kuri i "
+"Inkomoko i Igihe in amasogonda guhera Saa sita zijoro ku Itangira ni i "
+"Verisiyo Gushoboza Kuri Gukoresha iyi Serivisi"
 
 #: service-list.pl.in:129
+#, fuzzy
 msgid "kernel random number source devices"
-msgstr "kernel véletlenszám-forrás eszközök"
+msgstr "Umubare Inkomoko"
 
 #: service-list.pl.in:129
+#, fuzzy
 msgid ""
 "The  random  number  generator  gathers environmental noise from device "
 "drivers and other sources into an entropy pool. From this entropy pool "
 "random numbers are created."
-msgstr ""
-"A véletlenszám-generátor környezeti zajt szed fel az eszközillesztőkből és "
-"más forrásokból egy entrópiatárolóba. A véletlenszámok előállításához ezt az "
-"entrópiatárolót használja a rendszer."
+msgstr "Umubare Bivuye APAREYE Na Ikindi Itsinda iyi Itsinda Imibare Byaremwe"
 
 #: service-list.pl.in:131
+#, fuzzy
 msgid "Intel(TM) x86(TM)-based virtual machine"
-msgstr "Intel(TM) x86(TM) alapú virtuális gép"
+msgstr "Kitaboneka"
 
 #: service-list.pl.in:131
+#, fuzzy
 msgid ""
 "The vmware command starts an Intel X86-based virtual machine. This script "
 "manages the services needed to run VMware software."
-msgstr ""
-"A vmware parancs elindít egy Intel X86 alapú virtuális gépet. Ez a "
-"parancsfájl kezeli a VMware szoftver futtatásához szükséges szolgáltatásokat."
+msgstr "Komandi: Kitaboneka IYANDIKA i Kuri Gukoresha"
 
 #: service-list.pl.in:132
+#, fuzzy
 msgid "Web-based administration toolkit"
-msgstr "Webes adminisztrációs eszközcsomag"
+msgstr "ubuyobozi"
 
 #: service-list.pl.in:133
+#, fuzzy
 msgid "Name Service Switch daemon for resolving names from NT servers"
-msgstr "Name Service Switch démon NT kiszolgálók neveinek feloldásához"
+msgstr "kugirango Amazina Bivuye"
 
 #: service-list.pl.in:133
+#, fuzzy
 msgid "Starts and stops the Samba winbind daemon"
-msgstr "A Samba winbind démon indítása és leállítása"
+msgstr "Na i"
 
 #: service-list.pl.in:134
+#, fuzzy
 msgid ""
 "Allow users to run Windows(tm) applications by just clicking on them (or "
 "typing ./file.exe)"
-msgstr ""
-"Lehetővé teszi a felhasználók számára a Windows(tm)-alkalmazások futtatását "
-"egyszerű rájuk kattintással (vagy a nevük, pl. ./file.exe beírásával)"
+msgstr "IDOSIYE."
 
 #: service-list.pl.in:135
 msgid "X Display Manager"
-msgstr "X kijelzővezérlő"
+msgstr ""
 
 #: service-list.pl.in:135
+#, fuzzy
 msgid "Provides the X equivalent of a \"login:\" prompt."
-msgstr "A \"login:\" képernyő X-megfelelője."
+msgstr "i Bya a Ifashayinjira Urwinjiriro"
 
 #: service-list.pl.in:136
+#, fuzzy
 msgid "X font server"
-msgstr "X betűtípus-kezelő kiszolgáló"
+msgstr "Intego- nyuguti Seriveri"
 
 #: service-list.pl.in:136
+#, fuzzy
 msgid ""
 "Xfs is the X Window System font server. It supplies fonts to X Window System "
 "display servers."
-msgstr ""
-"Az Xfs az X Window rendszer betűtípus-kezelő kiszolgálója. Ez biztosítja az "
-"X Window rendszer megjelenítő kiszolgálói számára a betűtípusokat."
+msgstr "ni i Intego- nyuguti Seriveri Imyandikire Kuri Kugaragaza"
 
 #: service-list.pl.in:137
+#, fuzzy
 msgid ""
 "xinetd is a powerful replacement for inetd. xinetd has access control "
 "machanisms, extensive logging capabilities, the ability to make services "
 "available based on time, and can place limits on the number of servers that "
 "can be started, among other things."
 msgstr ""
-"A xinetd az inetd hatékony helyettesítője. A xinetd hozzáférés-vezérlési "
-"mechanizmusokat is tartalmaz, sokoldalú naplózási lehetőségeket, lehetővé "
-"teszi a szolgáltatások idő alapján szabályozott elérését, korlátozhatja az "
-"elindítható kiszolgálók számát... és még sok minden másra is képes."
+"ni a kugirango Igenzura i Kuri Ubwoko Bihari ku Igihe Na Imbibi ku i Umubare "
+"Bya Ikindi"
 
 #: service.pl.in:229 service.pl.in:234
+#, fuzzy
 msgid "Halting the system"
-msgstr "A rendszer leállítása"
+msgstr "i Sisitemu"
 
+# 6229
 #: service.pl.in:230 service.pl.in:236
 msgid "Text mode"
-msgstr "Szöveges mód"
+msgstr "Ubwoko bw'amagambo"
 
 #: service.pl.in:231 service.pl.in:235 service.pl.in:244
+#, fuzzy
 msgid "Graphical mode"
-msgstr "Grafikus mód"
+msgstr "Ubwoko"
 
 #: service.pl.in:232 service.pl.in:237
+#, fuzzy
 msgid "Rebooting the system"
-msgstr "A rendszer újraindítása"
+msgstr "i Sisitemu"
 
 #: service.pl.in:239
+#, fuzzy
 msgid "Starts all system neccesary services"
-msgstr "Az összes szükséges rendszerszolgáltatás elindítása"
+msgstr "Byose Sisitemu"
 
 #: service.pl.in:240
 msgid "Default runlevel"
-msgstr "Alapértelmezett futási szint"
+msgstr ""
 
 #: service.pl.in:241
 msgid "Networkless runlevel"
-msgstr "Hálózat nélküli futási szint"
+msgstr ""
 
 #: users-conf.in:179
+#, fuzzy
 msgid "Monitor system logs"
-msgstr "Rendszernaplók figyelése"
+msgstr "Sisitemu"
 
 #: users-conf.in:180
 msgid "Use audio devices"
-msgstr "Audioeszközök használata"
+msgstr ""
 
 #: users-conf.in:181
+#, fuzzy
 msgid "Access to CD-ROM drives"
-msgstr "CD-olvasók elérése"
+msgstr "Kuri"
 
 #: users-conf.in:182
+#, fuzzy
 msgid "Access to modem devices"
-msgstr "Modemeszközök elérése"
+msgstr "Kuri Modemu"
 
 #: users-conf.in:183
+#, fuzzy
 msgid "Connect to Internet through modem devices"
-msgstr "Kapcsolódás az internethez modemeszközökkel"
+msgstr "Kuri Gihinguranya Modemu"
 
 #: users-conf.in:184
+#, fuzzy
 msgid "Send and receive faxes"
-msgstr "Faxok küldése és fogadása"
+msgstr "Na Akira"
 
 #: users-conf.in:185
+#, fuzzy
 msgid "Access to floppy drives"
-msgstr "Hajlékonylemez-meghajtók elérése"
+msgstr "Kuri"
 
 #: users-conf.in:186
+#, fuzzy
 msgid "Enable access to external storage devices automatically"
-msgstr "Külső tárolóeszközök hozzáférésének automatikus engedélyezése"
+msgstr "Kuri external ku buryo bwikora"
 
 #: users-conf.in:187
+#, fuzzy
 msgid "Access to tape drives"
-msgstr "Szalagos meghajtók elérése"
+msgstr "Kuri"
 
 #: users-conf.in:188
+#, fuzzy
 msgid "Be able to get administrator privileges"
-msgstr "Adminisztrátori jogosultságok megszerzésének lehetősége"
+msgstr "Kuri Kubona umuyobozi/ uyobora Uburenganzira..."
 
 #: users-conf.in:492
 msgid "Default"
-msgstr "Alapértelmezett"
+msgstr "Mburabuzi"
 
 #: users-conf.in:493
+#, fuzzy
 msgid "Default profile"
-msgstr "Alapértelmezett profil"
+msgstr "Ibijyana"

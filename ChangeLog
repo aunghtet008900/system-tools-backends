@@ -1,6 +1,23 @@
-2005-04-05  Carlos Garnacho Parro  <carlosg@gnome.org>
+2005-04-07  Carlos Garnacho Parro  <carlosg@gnome.org>
 
-	* The backends have now been moved to FreeDesktop
+	* sync'ed contents with the current gnome.org server
+
+2005-04-03  Steve Murphy  <murf@e-tools.com>
+
+        * configure.in: Added "rw" to ALL_LINGUAS (again, sorry!). Must have glitched or stroked or something.
+
+2005-04-04  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* configure.in: Removed "rw" from ALL_LINGUAS, it seems it wasn't
+	added...
+
+2005-04-01  Adi Attar  <aattar@cvs.gnome.org>
+
+	* configure.in: Added "xh" to ALL_LINGUAS.
+
+2005-03-31  Steve Murphy  <murf@e-tools.com>
+
+        * configure.in: Added "rw" to ALL_LINGUAS.
 
 2005-03-25  Carlos Garnacho Parro  <carlosg@gnome.org>
 
