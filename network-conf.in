@@ -57,11 +57,6 @@ BEGIN {
   require "$SCRIPTSDIR/network.pl$DOTIN";
 }
 
-
-# Debug stuff
-#$gst_prefix = "/tmp/y";
-#open STDERR, ">/tmp/err";
-
 # --- Tool information --- #
 
 $name = "network";
@@ -211,12 +206,48 @@ sub xml_parse_dialing
   $$dialing{$name} = \%hash;
 }
 
+# couple of functions for fixing profiles format
+sub fixdown_profile_interface_format
+{
+  my ($interface) = @_;
+  my (%configuration, $key);
+
+  return if (exists $$interface{"configuration"});
+
+  foreach $key (keys %$interface)
+  {
+    if ($key !~ /^(dev|enabled|hwaddr)$/)
+    {
+      $configuration{$key} = $$interface{$key};
+      delete $$interface{$key};
+    }
+  }
+
+  $$interface{"configuration"} = \%configuration;
+}
+
+sub fixdown_profile_format
+{
+  my ($hash) = @_;
+  my ($interfaces, $iface);
+
+  $interfaces = $$hash{"interface"};
+
+  foreach $iface (keys %$interfaces)
+  {
+    &fixdown_profile_interface_format ($$interfaces{$iface});
+  }
+}
+
 sub xml_parse_profile
 {
   my ($tree, $hash) = @_;
   my (%profile);
 
   &xml_parse_network ($tree, \%profile);
+
+  # We've got to translate the old profiles format
+  &fixdown_profile_format (\%profile);
 
   push @{$hash->{"profiledb"}{"profile"}}, \%profile;
 }
