@@ -193,27 +193,43 @@ sub gst_network_xml_parse_interface_config
 
   while ($elem = shift @$tree)
   {
-    $$config{$elem} = &gst_xml_get_pcdata (shift @$tree);
+    $config{$elem} = &gst_xml_get_pcdata (shift @$tree);
   }
 
-  return $config;
+  return \%config;
 }
 
 sub gst_network_xml_parse_interface
 {
   my ($tree, $interface) = @_;
-  my (%hash, $dev, $elem);
+  my (%hash, $aux, $dev, $elem);
 
   shift @$tree;
 
   while ($elem = shift @$tree)
   {
-      if ($elem eq "configuration") { $hash{$elem} = &gst_network_xml_parse_interface_config (shift @$tree); }
-      else                          { $hash{$elem} = &gst_xml_get_pcdata (shift @$tree); }
+    if ($elem eq "configuration")
+    {
+      $aux = &gst_network_xml_parse_interface_config (shift @$tree);
+      $hash{$elem} = $aux if ($aux ne undef);
+    }
+    else
+    {
+      $hash{$elem} = &gst_xml_get_pcdata (shift @$tree);
+    }
   }
 
-  $hash{"configuration"}{"file"} = &gst_network_get_file (\%hash) if !exists $hash{"configuration"}{"file"};
-  $dev = $hash{"configuration"}{"file"};
+  if (($hash{"configuration"} ne undef) &&
+      ($hash{"configuration"}{"file"} ne undef))
+  {
+    $dev = $hash{"configuration"}{"file"};
+  }
+  else
+  {
+    $dev = &gst_network_get_file (\%hash);
+    $hash{"configuration"}{"file"} = $dev if ($hash{"configuration"} ne undef);
+  }
+
   $$interface{$dev} = \%hash;
 }
 
@@ -2182,7 +2198,7 @@ sub level_interface_hash
 
   foreach $i (keys %$config)
   {
-    $$hash{$i} = $config{$i};
+    $$hash{$i} = $$config{$i};
   }
 }
 
@@ -2199,8 +2215,8 @@ sub gst_network_interface_set
   %fn = %{$dist_attrib{"fn"}};
 
   level_interface_hash (\%$values_hash);
-  level_interface_hash ($old_hash);
-  
+  level_interface_hash (\%$old_hash);
+
   foreach $i (keys (%fn))
   {
     $ {$dist_attrib{"fn"}}{$i} = &gst_parse_expand ($fn{$i}, "iface", $dev);
