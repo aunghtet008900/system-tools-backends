@@ -1359,7 +1359,7 @@ sub gst_network_set_modem_volume
 sub gst_network_interfaces_get
 {
   my (%dist_attrib, %config_hash, %hash, %fn);
-  my (@config_ifaces, $iface);
+  my (@config_ifaces, $iface, $dev);
   my ($dist, $value, $file, $proc);
   my ($i, $j);
 
@@ -1381,7 +1381,9 @@ sub gst_network_interfaces_get
     &gst_network_interface_ensure_broadcast_and_network ($iface);
     $$iface{"file"} = $i if ($$iface{"file"} eq undef);
 
-    $$hash{$i}{"configuration"} = $iface if (exists $$hash{$i});
+    $dev = $$iface{"dev"};
+    delete $$iface{"dev"};
+    $$hash{$dev}{"configuration"} = $iface if (exists $$hash{$dev});
   }
 
   return \%$hash;
@@ -1744,15 +1746,15 @@ sub gst_network_rh62_interface_activate
 
   if ($force || &gst_network_interface_changed ($hash, $old_hash))
   {
-      if (exists $$hash{"file"})
+      if (exists $$hash{"configuration"}{"file"})
       {
-          $dev = $$hash{"file"};
+          $dev = $$hash{"configuration"}{"file"};
       }
       else
       {
           $dev = $$hash{"dev"};
       }
-      
+
       &gst_network_rh62_interface_activate_by_dev ($dev, $enabled);
   }
 }
@@ -1764,9 +1766,9 @@ sub gst_network_suse9_interface_activate
 
   if ($force || &gst_network_interface_changed ($hash, $old_hash))
   {
-    if (exists $$hash{"file"})
+    if (exists $$hash{"configuration"}{"file"})
     {
-      $iface = $$hash{"file"};
+      $iface = $$hash{"configuration"}{"file"};
       $dev = &gst_network_suse9_get_dev_name ($iface);
     }
     else
@@ -1870,7 +1872,7 @@ sub gst_network_slackware91_interface_activate_by_dev
 sub gst_network_slackware91_interface_activate
 {
   my ($hash, $old_hash, $enabled, $force) = @_;
-  my $dev = $$hash{"file"};
+  my $dev = $$hash{"configuration"}{"file"};
 
   if ($force || &gst_network_interface_changed ($hash, $old_hash))
   {
@@ -1890,7 +1892,7 @@ sub gst_network_gentoo_interface_activate_by_dev
 sub gst_network_gentoo_interface_activate
 {
   my ($hash, $old_hash, $enabled, $force) = @_;
-  my $dev = $$hash{"file"};
+  my $dev = $$hash{"configuration"}{"file"};
 
   if ($force || &gst_network_interface_changed ($hash, $old_hash))
   {
@@ -1901,7 +1903,7 @@ sub gst_network_gentoo_interface_activate
 sub gst_network_freebsd_interface_activate_by_dev
 {
   my ($hash, $enabled) = @_;
-  my ($dev)     = $$hash{"file"};
+  my ($dev)     = $$hash{"configuration"}{"file"};
   my ($startif) = "/etc/start_if.$dev";
   my ($file)    = "/etc/rc.conf";
   my ($command, $dhcp_flags, $defaultroute, $fd);
@@ -1973,13 +1975,13 @@ sub gst_network_remove_pap_entry
 sub gst_network_rh62_interface_delete
 {
   my ($old_hash) = @_;
-  my $dev = $$old_hash{"file"};
+  my $dev = $$old_hash{"configuration"}{"file"};
   my $file = "$gst_prefix/etc/sysconfig/network-scripts/ifcfg-$dev";
   my $login;
 
   &gst_network_rh62_interface_activate_by_dev ($dev, 0);
 
-  $login = $old_hash{"login"};
+  $login = $old_hash{"configuration"}{"login"};
   if ($login ne "")
   {
     &gst_network_remove_pap_entry ("/etc/ppp/pap-secrets", $login);
@@ -1994,9 +1996,9 @@ sub gst_network_rh72_interface_delete
   my ($old_hash) = @_;
   my ($dev, $login);
 
-  $filedev = $$old_hash{"file"};
+  $filedev = $$old_hash{"configuration"}{"file"};
   $dev     = $$old_hash{"dev"};
-  $login   = $$old_hash{"login"};
+  $login   = $$old_hash{"configuration"}{"login"};
   
   &gst_network_rh62_interface_activate_by_dev ($filedev, 0);
 
@@ -2021,7 +2023,7 @@ sub gst_network_deb22_interface_delete
   &gst_network_rh62_interface_activate_by_dev ($dev, 0);
   &gst_replace_interfaces_iface_stanza_delete ("$gst_prefix/etc/network/interfaces", $dev);
   
-  $login = $old_hash{"login"};
+  $login = $old_hash{"configuration"}{"login"};
   if ($login ne "")
   {
     &gst_network_remove_pap_entry ("/etc/ppp/pap-secrets", $login);
@@ -2032,7 +2034,7 @@ sub gst_network_deb22_interface_delete
 sub gst_network_suse70_interface_delete
 {
   my ($old_hash) = @_;
-  my $dev = $$old_hash{"file"};
+  my $dev = $$old_hash{"configuration"}{"file"};
   my $file = "$gst_prefix/etc/rc.config";
   my $login;
 
@@ -2054,7 +2056,7 @@ sub gst_network_suse70_interface_delete
 sub gst_network_suse90_interface_delete
 {
   my ($old_hash) = @_;
-  my $file = $$old_hash{"file"};
+  my $file = $$old_hash{"configuration"}{"file"};
   my $provider = &gst_parse_sh ("$gst_prefix/etc/sysconfig/network/ifcfg-$file", PROVIDER);
   my $dev = &gst_network_suse9_get_dev_name ($file);
 
@@ -2068,13 +2070,13 @@ sub gst_network_suse90_interface_delete
 sub gst_network_pld10_interface_delete
 {
   my ($old_hash) = @_;
-  my $dev = $$old_hash{"file"};
+  my $dev = $$old_hash{"configuration"}{"file"};
   my $file = "$gst_prefix/etc/sysconfig/interfaces/ifcfg-$dev";
   my $login;
                                                                                 
   &gst_network_rh62_interface_activate_by_dev ($dev, 0);
                                                                                 
-  $login = $old_hash{"login"};
+  $login = $old_hash{"configuration"}{"login"};
   if ($login ne "")
   {
     &gst_network_remove_pap_entry ("/etc/ppp/pap-secrets", $login);
@@ -2113,7 +2115,7 @@ sub gst_network_gentoo_interface_delete
 {
   my ($old_hash) = @_;
   my ($dev) = $$old_hash {"dev"};
-  my ($gateway) = $$old_hash {"gateway"};
+  my ($gateway) = $$old_hash {"configuration"}{"gateway"};
   my ($initfile) = "$gst_prefix/etc/init.d/net.$dev";
   my ($netconf);
 
@@ -2171,20 +2173,10 @@ sub gst_network_freebsd_interface_delete
 sub gst_network_interface_changed
 {
     my ($iface, $iface_old) = @_;
-    my ($attr);
-    my @attrs = qw(bootproto dev address netmask broadcast network gateway update_dns
-                  dns1 dns2 mtu mru remote_address login serial_port serial_speed essid key
-                  ppp_options dial_command set_default_gw persist serial_hwctl phone_number enabled);
 
-    return 1 if (!$iface_old);
-    foreach $attr (@attrs)
-    {
-      next if (!exists $$iface{$attr}) && (!exists $$iface_old{$attr});
-      return 1 if (exists $$iface{$attr}) != (exists $$iface_old{$attr});
-      return 1 if $$iface{$attr} ne $$iface_old{$attr};
-    }
-
-    return 0;
+    delete $$iface{"type"};
+    delete $$iface_old{"type"};
+    return !&gst_util_struct_eq ($iface, $iface_old);
 }
 
 # silly function for leveling the configuration hash
@@ -2257,14 +2249,18 @@ sub gst_network_interfaces_set
     if (exists $$old_hash{$i}{"configuration"} &&
         not exists $$values_hash{$i}{"configuration"})
     {
+      &$set_proc ($$values_hash{$i}, $$old_hash{$i}, 0, 1);
       &$delete_proc ($$old_hash{$i});
     }
     elsif (exists $$values_hash{$i}{"configuration"})
     {
-      &$set_proc ($$values_hash{$i}, $$old_hash{$i}, 0, 1);
-      $tmp = &gst_network_interface_set ($i, $$values_hash{$i}, $$old_hash{$i});
-      $res = $tmp if !$res;
-      &$set_proc ($$values_hash{$i}, $$old_hash{$i}, 1, 1);
+      if (&gst_network_interface_changed ($$values_hash{$i}, $$old_hash{$i}))
+      {
+        &$set_proc ($$values_hash{$i}, $$old_hash{$i}, 0, 1);
+        $tmp = &gst_network_interface_set ($i, $$values_hash{$i}, $$old_hash{$i});
+        $res = $tmp if !$res;
+        &$set_proc ($$values_hash{$i}, $$old_hash{$i}, 1, 1);
+      }
     }
   }
 
@@ -4484,7 +4480,7 @@ sub gst_network_get_interface_parse_table
 	    table =>
           [
 #           [ "user",               \&gst_parse_trivial,                  0 ], # not supported.
-#           [ "dev",                \&gst_parse_trivial,                  IFACE ],
+           [ "dev",                \&gst_parse_trivial,                  IFACE ],
            [ "bootproto",          \&gst_network_deb22_parse_bootproto,  [INTERFACES, IFACE]],
            [ "auto",               \&gst_network_debian_woody_get_auto,  [INTERFACES, IFACE]],
 #           [ "name",               \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "name" ],

@@ -414,7 +414,7 @@ sub enable_iface
 {
   my ($tool, $iface, $enabled) = @_;
   my (%dist_attrib, $iface_set);
-  my %hash = ("file" => $iface);
+  my %hash = ("configuration" => {"file" => $iface});
   
   %dist_attrib = &gst_network_get_interface_replace_table ();
   $iface_set = $dist_attrib{"iface_set"};
