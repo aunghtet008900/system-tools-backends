@@ -1,3 +1,10 @@
+2004-12-06  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+        * file.pl.in (gst_file_get_temp_name): added.
+        * network.pl.in (gst_network_enable_iface_with_config): splitted in
+        several functions. Handled too the modem stuff, creating a temporary
+        chat file and using pppd.
+
 2004-12-01  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* network.pl.in: moved pppscripts creation to a generic function,

@@ -24,6 +24,7 @@
 
 use File::Path;
 use File::Copy;
+use File::Temp;
 use Carp;
 
 $SCRIPTSDIR = "@scriptsdir@";
@@ -890,6 +891,13 @@ sub gst_file_copy
   my ($orig, $dest) = @_;
 
   copy ("$gst_prefix/$orig", "$gst_prefix/$dest");
+}
+
+sub gst_file_get_temp_name
+{
+  my ($prefix) = @_;
+
+  return mktemp ($prefix);
 }
 
 1;

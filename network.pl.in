@@ -123,17 +123,123 @@ sub gst_network_get_wireless_ifaces
   return &gst_network_get_freebsd_wireless_ifaces if ($plat eq "FreeBSD");
 }
 
-# Enables/disables an interface with a given config
+# set of functions for enabling an interface
+sub gst_network_config_wireless
+{
+  my ($hash, $dev, $command_iwconfig, $command_ifconfig) = @_;
+  my ($essid, $key, $command);
+
+  $essid = $$hash{"configuration"}{"essid"};
+  $key   = $$hash{"configuration"}{"key"};
+
+  if ($essid)
+  {
+    $command  = $command_iwconfig if ($$tool{"system"} eq "Linux");
+    $command  = $command_ifconfig if ($$tool{"system"} eq "FreeBSD");
+
+    $command .= " $dev";
+    $command .= " essid '$essid'" if ($essid);
+    $command .= " key '$key'" if ($key);
+    &gst_file_run ($command);
+  }
+}
+
+sub gst_network_enable_iface
+{
+  my ($hash, $dev, $command_ifconfig, $command_dhclient) = @_;
+  my ($address, $netmask, $bootproto, $remote_address);
+
+  $address        = $$hash{"configuration"}{"address"};
+  $netmask        = $$hash{"configuration"}{"netmask"};
+  $bootproto      = $$hash{"configuration"}{"bootproto"};
+  $remote_address = $$hash{"configuration"}{"remote_address"};
+
+  if ($bootproto eq "dhcp")
+  {
+    $command = "$command_dhclient $dev";
+  }
+  else
+  {
+    $command  = $command_ifconfig;
+    $command .= " $dev";
+    $command .= " $address" if ($address);
+    $command .= " netmask $netmask" if ($netmask);
+    $command .= " remote_address $remote_address" if ($remote_address);
+    $command .= " up";
+  }
+
+  return &gst_file_run ($command);
+}
+
+sub gst_network_get_chat_file
+{
+  my ($hash) = @_;
+  my ($volume, $phone_number, $external_line, $dial_command);
+  my ($dial, $tmp_file, $filename, $arr);
+
+  $volume        = $$hash{"configuration"}{"volume"};
+  $phone_number  = $$hash{"configuration"}{"phone_number"};
+  $external_line = $$hash{"configuration"}{"external_line"};
+  $dial_command  = $$hash{"configuration"}{"dial_command"};
+
+  $filename = gst_file_get_temp_name ("network-admin-chat-script-XXXXXXXXX");
+  $tmp_file = "/tmp/$filename";
+
+  $dial  = $dial_command;
+  $dial .= $external_line . "W" if ($external_line);
+  $dial .= $phone_number;
+
+  &gst_network_create_pppscript ($tmp_file);
+  chmod (0600, $tmp_file);
+  &gst_replace_chat ($tmp_file, "atd[tp][0-9wW]+", $dial);
+  &gst_network_set_modem_volume ($tmp_file, $volume);
+
+  $arr = &gst_file_buffer_load ($tmp_file);
+  push @$arr, "ogin:--ogin: " . $$hash{"configuration"}{"login"} . "\n";
+  push @$arr, "ssword: " . $$hash{"configuration"}{"password"} . "\n";
+  &gst_file_buffer_save ($arr, $tmp_file);
+
+  return $tmp_file;
+}
+
+sub gst_network_enable_modem
+{
+  my ($hash, $dev, $command_pppd, $command_chat) = @_;
+  my ($config, $chat_file, $command, $ret);
+
+  $config    = $$hash{"configuration"};
+  $chat_file = &gst_network_get_chat_file ($hash);
+
+  $command  = $command_pppd;
+  $command .= " " . $$config{"serial_port"};
+  $command .= " debug" if ($$config{"debug"});
+  $command .= ($$config{"noauth"}) ? " noauth" : " auth";
+  $command .= ($$config{"persist"}) ? " persist" : " nopersist";
+  $command .= ($$config{"serial_hwctl"}) ? " crtscts" : " nocrtscts";
+  $command .= ($$config{"set_default_gw"}) ? " defaultroute" : " nodefaultroute";
+  $command .= " usepeerdns" if ($$config{"update_dns"});
+  $command .= " connect `$command_chat -f $chat_file`";
+
+  $ret = &gst_file_run ($command);
+  
+  # we don't want this file to have backup
+  unlink $chat_file;
+
+  return $ret;
+}
+
 sub gst_network_enable_iface_with_config
 {
   my ($hash) = @_;
   my ($command_ifconfig, $command_iwconfig, $command_dhclient);
-  my ($dev, $essid, $key, $address, $netmask, $bootproto, $remote_address);
-  my ($command, $ret);
+  my ($command_pppd, $command_chat);
+  my ($dev, $command, $ret);
 
   $command_ifconfig = "ifconfig";
   $command_iwconfig = "iwconfig";
   $command_dhclient = "dhclient";
+  $command_pppd     = "pppd";
+  $command_chat     = gst_file_locate_tool ("chat");
 
   $dev = $$hash{"dev"};
 
@@ -142,40 +248,16 @@ sub gst_network_enable_iface_with_config
 
   if (exists ($$hash{"configuration"}))
   {
-    $essid          = $$hash{"configuration"}{"essid"};
-    $key            = $$hash{"configuration"}{"key"};
-    $address        = $$hash{"configuration"}{"address"};
-    $netmask        = $$hash{"configuration"}{"netmask"};
-    $bootproto      = $$hash{"configuration"}{"bootproto"};
-    $remote_address = $$hash{"configuration"}{"remote_address"};
-
-    # if it's a wireless interface, put first the essid
-    if ($essid)
+    if (exists ($$hash{"configuration"}{"phone_number"}))
     {
-      $command  = $command_iwconfig if ($$tool{"system"} eq "Linux");
-      $command  = $command_ifconfig if ($$tool{"system"} eq "FreeBSD");
-
-      $command .= " $dev";
-      $command .= " essid '$essid'" if ($essid);
-      $command .= " key '$key'" if ($key);
-      &gst_file_run ($command);
-    }
-
-    if ($bootproto eq "dhcp")
-    {
-      $command = "$command_dhclient $dev";
+      $ret = &gst_network_enable_modem ($hash, $dev, $command_pppd, $command_chat);
     }
     else
     {
-      $command  = $command_ifconfig;
-      $command .= " $dev";
-      $command .= " $address" if ($address);
-      $command .= " netmask $netmask" if ($netmask);
-      $command .= " remote_address $remote_address" if ($remote_address);
-      $command .= " up";
+      # if it's a wireless interface, put first the essid
+      &gst_network_config_wireless ($hash, $dev, $command_iwconfig, $command_ifconfig);
+      $ret = &gst_network_enable_iface ($hash, $dev, $command_iwconfig, $command_dhclient);
     }
-
-    $ret = &gst_file_run ($command);
   }
 
   return $ret;
@@ -1366,7 +1448,6 @@ sub gst_network_create_pppscript
 {
   my ($pppscript) = @_;
   my ($contents);
-  local *FILE;
 
   if (!&gst_file_exists ($pppscript))
   {
@@ -1381,7 +1462,7 @@ sub gst_network_create_pppscript
     $contents .= 'ABORT "NO ANSWER"' . "\n";
     $contents .= '"" "ATZ"' . "\n";
     $contents .= '"" "AT&FH0"' . "\n";
-    $contents .= 'OK "ATDT000000000"' . "\n";
+    $contents .= 'OK-AT-OK "ATDT000000000"' . "\n";
     $contents .= 'TIMEOUT 75' . "\n";
     $contents .= 'CONNECT' . "\n";
 
@@ -3534,6 +3615,8 @@ sub gst_network_detect_essids
   my ($iface) = @_;
   my ($fd, @arr, $encrypted);
 
+  # some wireless cards need to be up before scanning
+  &gst_file_run ("ifconfig $iface up");
   $fd = &gst_file_run_pipe_read ("iwlist $iface scanning");
   return undef if (!$fd);
 
