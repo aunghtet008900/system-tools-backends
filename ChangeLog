@@ -1,8 +1,8 @@
 2004-12-14  Carlos Garnacho Parro  <carlosg@gnome.org>
 
-	* network.pl.in: improved old profiles fixing, fixed plip interfaces
-	enabling, accept other characters than numbers in dial prefix, other
-	code improvements
+	* network-conf.in, network.pl.in: improved old profiles fixing, 
+	fixed plip interfaces enabling, accept other characters than numbers 
+	in dial prefix, other code improvements
 
 2004-12-06  Carlos Garnacho Parro  <carlosg@gnome.org>
 

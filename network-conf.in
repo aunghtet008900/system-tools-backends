@@ -207,10 +207,29 @@ sub xml_parse_dialing
 }
 
 # couple of functions for fixing profiles format
-sub fixdown_profile_interface_format
+sub fix_profile_modem_iface
 {
-  my ($interface) = @_;
-  my (%configuration, $key);
+  my ($configuration, $section, $dialing) = @_;
+  my ($s, $key, %h);
+
+  foreach $s (keys %$dialing)
+  {
+    if ($s eq $section)
+    {
+      $h = $$dialing{$s};
+
+      foreach $key (keys %$h)
+      {
+        $$configuration{$key} = $$h{$key};
+      }
+    }
+  }
+}
+
+sub fix_profile_interface_format
+{
+  my ($interface, $dialing) = @_;
+  my (%configuration, $key, $section);
 
   return if (exists $$interface{"configuration"});
 
@@ -218,24 +237,36 @@ sub fixdown_profile_interface_format
   {
     if ($key !~ /^(dev|enabled|hwaddr)$/)
     {
-      $configuration{$key} = $$interface{$key};
+      if ($key eq 'wvsection')
+      {
+        &fix_profile_modem_iface (\%configuration, $$interface{$key}, $dialing);
+        $configuration{"section"} = $$interface{$key};
+      }
+      else
+      {
+        $dest_key = $key;
+        $configuration{$key} = $$interface{$key};
+      }
+
       delete $$interface{$key};
     }
   }
 
+  $$interface{"type"} = &gst_network_get_interface_type ($$interface{"dev"});
   $$interface{"configuration"} = \%configuration;
 }
 
-sub fixdown_profile_format
+sub fix_profile_format
 {
   my ($hash) = @_;
-  my ($interfaces, $iface);
+  my ($interfaces, $dialing, $iface);
 
   $interfaces = $$hash{"interface"};
+  $dialing    = $$hash{"dialing"};
 
   foreach $iface (keys %$interfaces)
   {
-    &fixdown_profile_interface_format ($$interfaces{$iface});
+    &fix_profile_interface_format ($$interfaces{$iface}, $dialing);
   }
 }
 
@@ -247,7 +278,7 @@ sub xml_parse_profile
   &xml_parse_network ($tree, \%profile);
 
   # We've got to translate the old profiles format
-  &fixdown_profile_format (\%profile);
+  &fix_profile_format (\%profile);
 
   push @{$hash->{"profiledb"}{"profile"}}, \%profile;
 }
@@ -273,16 +304,28 @@ sub xml_parse_profiledb
 
 # --- XML printing --- #
 
-sub xml_print_profiledb
+sub xml_print_configuration
 {
   my ($h) = @_;
   my @scalar_keys =
       qw(auto hostname gateway gatewaydev gwdevunsup domain 
-         hostmatch workgroup description smbdesc winsserver winsuse smbuse
+         hostmatch workgroup smbdesc winsserver winsuse smbuse
          smartdhcpcd smbinstalled dialinstalled name);
   my @array_keys =
       qw(nameserver searchdomain order);
 
+  # Hostname, domain, search domains, nameservers.
+
+  &gst_xml_print_scalars ($h, @scalar_keys);
+  &gst_xml_print_arrays ($h, @array_keys);
+  &network_xml_print_statichost ($h);
+
+  &xml_print_interfaces ($$h{"interface"});
+}
+
+sub xml_print_profiledb
+{
+  my ($h) = @_;
 
   &gst_xml_print_vspace ();
 
@@ -293,13 +336,7 @@ sub xml_print_profiledb
     gst_xml_print_line ("<profile>\n");
     gst_xml_enter ();
 
-    #print profile contents
-    &gst_xml_print_scalars ($i, @scalar_keys);
-    &gst_xml_print_arrays ($i, @array_keys);
-    &network_xml_print_statichost ($i);
-
-    &gst_xml_print_hash_hash ($$i{"interface"}, "interface");
-    &gst_xml_print_hash_hash ($$i{"dialing"}, "dialing");
+    &xml_print_configuration ($i);
 
     gst_xml_leave ();
     gst_xml_print_line ("</profile>\n");
@@ -315,8 +352,15 @@ sub xml_print_interfaces
 
   foreach $dev (keys %$h)
   {
-    $type = $$h{$dev}{"type"};
-    delete $$h{$dev}{"type"};
+    if ($$h{$dev}{"type"})
+    {
+      $type = $$h{$dev}{"type"};
+      delete $$h{$dev}{"type"};
+    }
+    else
+    {
+      $type = &gst_network_get_interface_type ($dev);
+    }
     
     &gst_xml_print_vspace ();
     &gst_xml_print_line ("<interface type='$type'>");
@@ -331,23 +375,10 @@ sub xml_print_interfaces
 sub xml_print
 {
   my ($h) = @_;
-  my @scalar_keys =
-      qw(auto hostname gateway gatewaydev gwdevunsup domain 
-         hostmatch workgroup smbdesc winsserver winsuse smbuse
-         smartdhcpcd smbinstalled dialinstalled);
-  my @array_keys =
-      qw(wireless_device nameserver searchdomain order);
 
   &gst_xml_print_begin ();
 
-  # Hostname, domain, search domains, nameservers.
-
-  &gst_xml_print_scalars ($h, @scalar_keys);
-  &gst_xml_print_arrays ($h, @array_keys);
-  &network_xml_print_statichost ($h);
-
-  &xml_print_interfaces ($$h{"interface"});
-  &gst_xml_print_hash_hash ($$h{"dialing"}, "dialing");
+  &xml_print_configuration ($h);
   &xml_print_profiledb ($h);
 
   &gst_xml_print_end ();
