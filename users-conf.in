@@ -179,7 +179,7 @@ for ($i = 0; $groups_prop_array[$i] ne ""; $i += 2)
   "audio"     => _("Use audio devices"),
   "cdrom"     => _("Access to CD-ROM drives"),
   "dialout"   => _("Access to modem devices"),
-  "dip"       => _("Connect to internet through modem"),
+  "dip"       => _("Connect to internet through modem devices"),
   "fax"       => _("Send and receive faxes"),
   "floppy"    => _("Access to floppy drives"),
   "tape"      => _("Access to tape drives"),

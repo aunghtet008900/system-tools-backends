@@ -631,13 +631,16 @@ sub get_configured_imports
 sub get_configured_exports
 {
   my ($smb_exports, $nfs_exports);
-  my (%dist_attrib, $smb_conf);
+  my (%dist_attrib, $smb_conf, $exports);
   
   %dist_attrib = &gst_network_get_parse_table ();
   $smb_conf    = $dist_attrib{"fn"}{"SMB_CONF"};
 
+  # This is pretty standard
+  $exports     = "/etc/exports";
+
   $smb_exports = &gst_share_parse_smb_conf    ($smb_conf);
-  $nfs_exports = &gst_share_parse_nfs_exports (&distro_file ("exports"));
+  $nfs_exports = &gst_share_parse_nfs_exports ($exports);
 
   return ($smb_exports, $nfs_exports);
 }
