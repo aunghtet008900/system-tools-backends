@@ -164,7 +164,7 @@ sub gst_network_enable_iface
     $command .= " $dev";
     $command .= " $address" if ($address);
     $command .= " netmask $netmask" if ($netmask);
-    $command .= " remote_address $remote_address" if ($remote_address);
+    $command .= " dstaddr $remote_address" if ($remote_address);
     $command .= " up";
   }
 
@@ -256,7 +256,7 @@ sub gst_network_enable_iface_with_config
     {
       # if it's a wireless interface, put first the essid
       &gst_network_config_wireless ($hash, $dev, $command_iwconfig, $command_ifconfig);
-      $ret = &gst_network_enable_iface ($hash, $dev, $command_iwconfig, $command_dhclient);
+      $ret = &gst_network_enable_iface ($hash, $dev, $command_ifconfig, $command_dhclient);
     }
   }
 
@@ -4640,8 +4640,8 @@ sub gst_network_get_interface_parse_table
            [ "persist",            \&gst_network_check_iface,            [IFACE, "ppp", \&gst_parse_kw, PPP_OPTIONS, "persist" ]],
            [ "serial_escapechars", \&gst_network_check_iface,            [IFACE, "ppp", \&gst_parse_split_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
            [ "serial_hwctl",       \&gst_network_check_iface,            [IFACE, "ppp", \&gst_parse_kw, PPP_OPTIONS, "crtscts" ]],
-           [ "external_line",      \&gst_network_check_iface,            [IFACE, "ppp", \&gst_parse_chat, CHAT, "atd[^0-9]*([0-9]*)[wW]" ]],
-           [ "phone_number",       \&gst_network_check_iface,            [IFACE, "ppp", \&gst_parse_chat, CHAT, "atd.*[ptw]([0-9, -]+)" ]],
+           [ "external_line",      \&gst_network_check_iface,            [IFACE, "ppp", \&gst_parse_chat, CHAT, "atd[^0-9]([0-9*#]*)[wW]" ]],
+           [ "phone_number",       \&gst_network_check_iface,            [IFACE, "ppp", \&gst_parse_chat, CHAT, "atd.*[ptwW]([0-9, -]+)" ]],
            [ "dial_command",       \&gst_network_check_iface,            [IFACE, "ppp", \&gst_parse_chat, CHAT, "(atd[tp])[0-9, -w]+" ]],
            [ "volume",             \&gst_network_check_iface,            [IFACE, "ppp", \&gst_network_get_modem_volume, CHAT ]],
 #           [ "enabled",            \&gst_network_interface_active,       IFACE,
