@@ -427,18 +427,22 @@ sub enable_iface
 sub enable_iface_with_config
 {
   my ($tool) = @_;
-  my ($tree, %hash);
+  my ($tree, $hash, $ret, $str);
 
   # Scan XML to tree.
   $tree = &gst_xml_scan ();
 
   if (shift @$tree eq "interface")
   {
-    %hash = &gst_network_xml_parse_interface (shift @$tree);
+    $hash = &gst_network_xml_parse_interface (shift @$tree);
   }
 
-  # TODO: do something!!
+  $ret = &gst_network_enable_iface_with_config ($hash);
   &gst_report_end ();
+
+  &gst_xml_print_begin  ("enable-iface");
+  &gst_xml_print_pcdata ("success", ($ret == 0) ? "1" : "0");
+  &gst_xml_print_end    ("enable-iface");
 }
 
 sub list_ifaces
@@ -485,20 +489,6 @@ sub detect_essids
   &gst_xml_print_end   ("essids");
 }
 
-sub get_interface_name
-{
-  my ($tool, $keyword) = @_;
-  my ($name);
-
-  $name = &gst_network_get_interface_name ($keyword);
-  &gst_report_end ();
-
-  &gst_xml_print_begin  ("network-get-interface-name");
-  &gst_xml_print_pcdata ("name", $name) if ($name ne undef);
-  &gst_xml_print_end    ("network-get-interface-name");
-}
-
-
 # --- Main --- #
 
 # get, set and filter are special cases that don't need more parameters than a ref to their function.
@@ -516,10 +506,7 @@ $directives = {
   "enable_iface_with_config" => [ \&enable_iface_with_config, [],
                                   "Enable an interface with a given configuration" ],
   "detect_modem"       => [ \&detect_modem, [], "Detects the modem device." ],
-  "detect_essids"      => [ \&detect_essids, [ "interface" ], "Detects active wireless networks" ],
-  "get_interface_name" => [ \&get_interface_name, ["interface name" ],
-                            "get the system dependent device name from a keyword. " .
-                            "it accepts [Modem|Ethernet|Parallel|Infrared]." ]
+  "detect_essids"      => [ \&detect_essids, [ "interface" ], "Detects active wireless networks" ]
 };
 
 $tool = &gst_init ($name, $version, $description, $directives, @ARGV);

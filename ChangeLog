@@ -1,5 +1,12 @@
 2004-11-18  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* network-conf.in, network.pl.in: finished the
+	"enable_iface_with_config" directive, it should work with eth, wifi,
+	irlan and plip interfaces in linux and freebsd. Got rid of the hideous
+	"get_interface_name" hack
+
+2004-11-18  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* network-conf.in, network.pl.in: began working on the new
 	"enable_iface_with_config" directive
 

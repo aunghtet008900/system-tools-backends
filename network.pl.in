@@ -123,6 +123,63 @@ sub gst_network_get_wireless_ifaces
   return &gst_network_get_freebsd_wireless_ifaces if ($plat eq "FreeBSD");
 }
 
+# Enables/disables an interface with a given config
+sub gst_network_enable_iface_with_config
+{
+  my ($hash) = @_;
+  my ($command_ifconfig, $command_iwconfig, $command_dhclient);
+  my ($dev, $essid, $key, $address, $netmask, $bootproto, $remote_address);
+  my ($command, $ret);
+
+  $command_ifconfig = "ifconfig";
+  $command_iwconfig = "iwconfig";
+  $command_dhclient = "dhclient";
+
+  $dev = $$hash{"dev"};
+
+  $command = "$command_ifconfig $dev down";
+  $ret = &gst_file_run ($command);
+
+  if (exists ($$hash{"configuration"}))
+  {
+    $essid          = $$hash{"configuration"}{"essid"};
+    $key            = $$hash{"configuration"}{"key"};
+    $address        = $$hash{"configuration"}{"address"};
+    $netmask        = $$hash{"configuration"}{"netmask"};
+    $bootproto      = $$hash{"configuration"}{"bootproto"};
+    $remote_address = $$hash{"configuration"}{"remote_address"};
+
+    # if it's a wireless interface, put first the essid
+    if ($essid)
+    {
+      $command  = $command_iwconfig if ($$tool{"system"} eq "Linux");
+      $command  = $command_ifconfig if ($$tool{"system"} eq "FreeBSD");
+
+      $command .= " $dev";
+      $command .= " essid $essid" if ($essid);
+      $command .= " key $key" if ($key);
+      &gst_file_run ($command);
+    }
+
+    if ($bootproto eq "dhcp")
+    {
+      $command = "$command_dhclient $dev";
+    }
+    else
+    {
+      $command  = $command_ifconfig;
+      $command .= " $dev";
+      $command .= " $address" if ($address);
+      $command .= " netmask $netmask" if ($netmask);
+      $command .= " remote_address $remote_address" if ($remote_address);
+    }
+
+    $ret = &gst_file_run ($command);
+  }
+
+  return $ret;
+}
+
 # Tries to detect modem in a closed list of devices
 sub gst_network_autodetect_modem
 {
@@ -150,37 +207,6 @@ sub gst_network_autodetect_modem
       return $tty;
     }
   }
-}
-
-# Returns a system dependent interface name from a given keyword
-sub gst_network_get_interface_name
-{
-  my ($keyword) = @_;
-  my ($plat)    = $$tool {"system"};
-  my ($ifaces);
-
-  if ($plat eq "Linux")
-  {
-    $ifaces = {
-      "Modem"    => "ppp",
-      "Ethernet" => "eth",
-      "Parallel" => "plip",
-      "Infrared" => "irlan"
-    };
-  }
-  elsif ($plat eq "FreeBSD")
-  {
-    $ifaces = {
-      "Modem"    => "tun",
-      "Ethernet" => "dc",
-      "Parallel" => "plip",
-      # FIXME: is this the irlan interface name?
-      "Infrared" => "irlan"
-    };
-  }
-
-  return undef if ($ifaces eq undef);
-  return $$ifaces {$keyword};
 }
 
 # Parse <interface>...</interface>. Put here so it can be shared with internetsharing.
@@ -231,7 +257,7 @@ sub gst_network_xml_parse_interface
   }
 
   $$interface{$dev} = \%hash;
-  return %hash;
+  return \%hash;
 }
 
 # Expects something like "132.248.10.2" and returns 4 bytes.
