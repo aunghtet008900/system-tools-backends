@@ -1412,10 +1412,10 @@ sub gst_network_interfaces_get
     $$iface{"file"} = $i if ($$iface{"file"} eq undef);
 
     $dev = $$iface{"dev"};
+    delete $$iface{"dev"};
 
     if (exists $$hash{$dev})
     {
-      delete $$iface{"dev"};
       $$hash{$dev}{"configuration"} = $iface;
     }
     elsif (($dev eq "ppp0") || ($dev eq "tun0"))
@@ -1424,17 +1424,13 @@ sub gst_network_interfaces_get
     }
   }
 
-  if ($modem_settings)
-  {
-    # save the modem interface even if it's not enabled
-    $dev = $$modem_settings{"dev"};
-    delete $$modem_settings{"dev"};
+  $dev = "ppp0" if ($$tool{"system"} eq "Linux");
+  $dev = "tun0" if ($$tool{"system"} eq "FreeBSD");
 
-    $$hash{$dev}{"dev"} = $dev;
-    $$hash{$dev}{"enabled"} = 0;
-    $$hash{$dev}{"type"} = &gst_network_get_interface_type ($dev);
-    $$hash{$dev}{"configuration"} = $modem_settings;
-  }
+  $$hash{$dev}{"dev"} = $dev;
+  $$hash{$dev}{"enabled"} = 0;
+  $$hash{$dev}{"type"} = &gst_network_get_interface_type ($dev);
+  $$hash{$dev}{"configuration"} = $modem_settings if ($modem_settings);
 
   return \%$hash;
 }

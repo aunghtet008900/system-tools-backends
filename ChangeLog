@@ -1,5 +1,9 @@
 2004-11-23  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* network.pl.in: add the PPP interface EVEN if it's not configured
+
+2004-11-23  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* network.pl.in (gst_network_interfaces_get): began to handle PPP
 	devices
 
