@@ -49,6 +49,7 @@ perl_libs = $(PERLBODY:.pl.in=.pl)
 backends = $(BACKENDSBODY:.in=)
 
 scripts_SCRIPTS = $(backends) $(perl_libs) guess_system.sh type1inst
+scriptsdir = $(datadir)/setup-tool-backends/scripts
 
 EXTRA_DIST = \
 	$(PERLBODY) \
