@@ -1364,9 +1364,6 @@ sub gst_network_conf_get
 
   $hash = &gst_parse_from_table ($dist_attrib{"fn"},
                                  $dist_attrib{"table"});
-
-  $$hash {"wireless_device"} = &gst_network_get_wireless_ifaces ();
-
   return $hash;
 }
 
@@ -1512,6 +1509,23 @@ sub gst_network_get_file
   return undef;
 }
 
+sub gst_network_get_default_gatewaydev
+{
+  my ($fd, $gatewaydev);
+
+  $fd = &gst_file_run_pipe_read ("route -n");
+  while (<$fd>)
+  {
+    if (/^0\.0\.0\.0.*[ \t]([a-zA-Z0-9]*)/)
+    {
+      $gatewaydev = $1;
+      last;
+    }
+  }
+
+  &gst_file_close ($fd);
+  return $gatewaydev;
+}
 
 sub gst_network_route_set_default_gw
 {
@@ -3733,8 +3747,9 @@ sub gst_network_get_parse_table
 	    table =>
           [
            [ "hostname",      \&gst_parse_line_first,        HOSTNAME ],
-           [ "gwdevunsup",    \&gst_parse_trivial,           1 ],
-           [ "userifacectl",  \&gst_parse_trivial,           0 ],
+           [ "gatewaydev",    \&gst_network_get_default_gatewaydev ],
+#           [ "gwdevunsup",    \&gst_parse_trivial,           1 ],
+#           [ "userifacectl",  \&gst_parse_trivial,           0 ],
            [ "domain",				\&gst_parse_split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
            [ "nameserver",    \&gst_parse_split_all_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
            [ "searchdomain",  \&gst_parse_split_first_array, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
