@@ -424,6 +424,22 @@ sub enable_iface
   # XML output would come here, but this directive returns no XML.
 }
 
+sub enable_iface_with_config
+{
+  my ($tool) = @_;
+  my ($tree, %hash);
+
+  # Scan XML to tree.
+  $tree = &gst_xml_scan ();
+
+  if (shift @$tree eq "interface")
+  {
+    %hash = &gst_network_xml_parse_interface (shift @$tree);
+  }
+
+  # TODO: do something!!
+  &gst_report_end ();
+}
 
 sub list_ifaces
 {
@@ -497,6 +513,8 @@ $directives = {
   "enable_iface"       => [ \&enable_iface, [ "interface", "enabled" ],
                             "Immediatly enable or disable a given interface. " .
                             "interface is the file tag value, enabled is 1 or 0." ],
+  "enable_iface_with_config" => [ \&enable_iface_with_config, [],
+                                  "Enable an interface with a given configuration" ],
   "detect_modem"       => [ \&detect_modem, [], "Detects the modem device." ],
   "detect_essids"      => [ \&detect_essids, [ "interface" ], "Detects active wireless networks" ],
   "get_interface_name" => [ \&get_interface_name, ["interface name" ],

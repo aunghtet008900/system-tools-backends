@@ -231,6 +231,7 @@ sub gst_network_xml_parse_interface
   }
 
   $$interface{$dev} = \%hash;
+  return %hash;
 }
 
 # Expects something like "132.248.10.2" and returns 4 bytes.
