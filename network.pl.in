@@ -172,6 +172,7 @@ sub gst_network_enable_iface_with_config
       $command .= " $address" if ($address);
       $command .= " netmask $netmask" if ($netmask);
       $command .= " remote_address $remote_address" if ($remote_address);
+      $command .= " up";
     }
 
     $ret = &gst_file_run ($command);
