@@ -481,6 +481,15 @@ sub set_profile
   &gst_report_end ();
 }
 
+sub save_profiles
+{
+  my $hash;
+
+  $hash = &xml_parse ();
+  &write_profiledb ($hash);
+  &gst_report_end ();
+}
+
 
 # --- Filter config: XML in, XML out --- #
 
@@ -589,6 +598,7 @@ $directives = {
   "filter"             => [ \&filter,       [], "" ],
   "list_ifaces"        => [ \&list_ifaces,  [],
                             "List interfaces and active/inactive status." ],
+  "save_profiles"      => [ \&save_profiles, [], "Save the profiles list" ],
   "set_profile"        => [ \&set_profile,  [ "profile_name" ],
                             "Set a profile as the default configuration" ],
   "enable_iface"       => [ \&enable_iface, [ "interface", "enabled" ],
