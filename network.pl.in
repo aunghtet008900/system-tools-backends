@@ -625,6 +625,7 @@ sub gst_network_get_interface_type
   return "irlan" if ($dev =~ /irlan[0-9]/);
   return "plip" if ($dev =~ /plip[0-9]/);
   return "loopback" if ($dev =~ /lo[0-9]?/);
+  return "modem" if ($dev =~ /(ppp|tun)[0-9]/);
 }
 
 sub gst_network_freebsd_interfaces_get_info
@@ -1390,6 +1391,7 @@ sub gst_network_interfaces_get
   my (@config_ifaces, $iface, $dev);
   my ($dist, $value, $file, $proc);
   my ($i, $j);
+  my ($modem_settings);
 
   $hash = &gst_network_interfaces_get_info ();
   %dist_attrib = &gst_network_get_interface_parse_table ();
@@ -1410,8 +1412,28 @@ sub gst_network_interfaces_get
     $$iface{"file"} = $i if ($$iface{"file"} eq undef);
 
     $dev = $$iface{"dev"};
-    delete $$iface{"dev"};
-    $$hash{$dev}{"configuration"} = $iface if (exists $$hash{$dev});
+
+    if (exists $$hash{$dev})
+    {
+      delete $$iface{"dev"};
+      $$hash{$dev}{"configuration"} = $iface;
+    }
+    elsif (($dev eq "ppp0") || ($dev eq "tun0"))
+    {
+      $modem_settings = $iface;
+    }
+  }
+
+  if ($modem_settings)
+  {
+    # save the modem interface even if it's not enabled
+    $dev = $$modem_settings{"dev"};
+    delete $$modem_settings{"dev"};
+
+    $$hash{$dev}{"dev"} = $dev;
+    $$hash{$dev}{"enabled"} = 0;
+    $$hash{$dev}{"type"} = &gst_network_get_interface_type ($dev);
+    $$hash{$dev}{"configuration"} = $modem_settings;
   }
 
   return \%$hash;
