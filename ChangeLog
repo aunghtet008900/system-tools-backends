@@ -1,3 +1,7 @@
+2005-04-05  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* The backends have now been moved to FreeDesktop
+
 2005-03-25  Carlos Garnacho Parro  <carlosg@gnome.org>
 
        * network.pl.in: Fixed a bug when dealing with dhclient v3, the -e
