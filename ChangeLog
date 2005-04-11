@@ -1,3 +1,7 @@
+2005-04-12  Joe Marcus Clarke  <marcus@freebsd.org>
+
+	* network.pl.in: Fixed FreeBSD network tool support
+
 2005-04-11  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* ABOUT-NLS: Added
