@@ -2,9 +2,11 @@ AC_PREREQ(2.52)
 dnl ==============================================================
 dnl Process this file with autoconf to produce a configure script.
 dnl ==============================================================
-AC_INIT(system-tools-backends,1.2.0, http://bugzilla.gnome.org/enter_bug.cgi?product=GNOME%20System%20Tools)
+AC_INIT(system-tools-backends,1.2.0)
 AC_CONFIG_AUX_DIR(.)
+AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
+AC_PROG_LIBTOOL
 
 AC_PROG_INTLTOOL([0.29])
 
@@ -29,11 +31,11 @@ dnl ==============================================================
 dnl END: Set SCRIPTS_DIR, FILES_DIR & LOCALE_DIR
 dnl ==============================================================
 
-GETTEXT_PACKAGE=setup-tools-backends
+GETTEXT_PACKAGE=system-tools-backends
 AC_SUBST(GETTEXT_PACKAGE)
 
 ALL_LINGUAS="ar az bg bn bs ca cs da de el en_CA en_GB es eu fi fr gu hi hr hu id it ja ko lt ms nb ne nl no pa pl pt pt_BR ro rw sk sq sr sr@Latn sv ta th tr uk vi xh zh_CN zh_TW"
-AM_GLIB_GNU_GETTEXT
+AM_GNU_GETTEXT([external])
 
 AC_OUTPUT([
 Makefile
