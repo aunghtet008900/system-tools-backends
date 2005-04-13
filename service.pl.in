@@ -217,6 +217,7 @@ sub gst_service_get_verbose_runlevels
 
      "slackware-9.1.0" => "slackware-9.1.0",
      "slackware-10.0.0" => "slackware-9.1.0",
+     "slackware-10.1.0" => "slackware-9.1.0",
 
      "gentoo"         => "gentoo",
 

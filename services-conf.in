@@ -53,7 +53,7 @@ $version = "@VERSION@";
 
               "suse-7.0", "turbolinux-7.0", "fedora-1", "fedora-2", "fedora-3", "specifix",
               "pld-1.0", "pld-1.1", "pld-1.99",
-              "slackware-9.1.0", "slackware-10.0.0",
+              "slackware-9.1.0", "slackware-10.0.0", "slackware-10.1.0",
               "vine-3.0", "vine-3.1",
               "gentoo", "freebsd-5", "freebsd-6", "suse-9.0", "suse-9.1");
 

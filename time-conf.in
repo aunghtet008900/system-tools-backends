@@ -68,7 +68,7 @@ $version = "@VERSION@";
               "mandrake-10.0", "mandrake-10.1",
               "debian-2.2", "debian-3.0", "debian-sarge",
               "suse-7.0", "suse-9.0", "suse-9.1", "turbolinux-7.0",
-              "slackware-8.0.0", "slackware-8.1", "slackware-9.0.0", "slackware-9.1.0", "slackware-10.0.0",
+              "slackware-8.0.0", "slackware-8.1", "slackware-9.0.0", "slackware-9.1.0", "slackware-10.0.0", "slackware-10.1.0",
               "gentoo", "pld-1.0", "pld-1.1", "pld-1.99", "fedora-1", "fedora-2", "fedora-3", "specifix",
               "vine-3.0", "vine-3.1",
               "freebsd-5", "freebsd-6");
@@ -532,6 +532,7 @@ sub conf_get_parse_table
    "slackware-9.0.0" => "debian-2.2",
    "slackware-9.1.0" => "debian-2.2",
    "slackware-10.0.0" => "debian-2.2",
+   "slackware-10.1.0" => "debian-2.2",
 
    "gentoo"          => "gentoo",
 
@@ -762,6 +763,7 @@ sub conf_get_replace_table
    "slackware-9.0.0" => "debian-2.2",
    "slackware-9.1.0" => "debian-2.2",
    "slackware-10.0.0" => "debian-2.2",
+   "slackware-10.1.0" => "debian-2.2",
 
    "gentoo"          => "gentoo",
 
