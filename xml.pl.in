@@ -23,6 +23,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::Util;
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -31,9 +32,7 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/util.pl$DOTIN";
 require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/debug.pl$DOTIN";
 
 use Text::ParseWords;
 
@@ -179,7 +178,7 @@ sub gst_xml_print_pcdata # (name, pcdata)
 sub gst_xml_format_state_tag
 {
   my ($name, $state) = @_;
-  my $boolean = &gst_print_boolean_truefalse ($state);
+  my $boolean = &Utils::Util::print_boolean_truefalse ($state);
 
   return "<$name state='$boolean'/>";
 }
@@ -495,10 +494,10 @@ sub gst_xml_read_compressed_file
   my ($file) = @_;
   my ($doc, $i, $fd);
 
-  $fd = &gst_file_run_pipe_read ("gunzip -c $file");
+  $fd = &Utils::File::run_pipe_read ("gunzip -c $file");
   return undef if $fd eq undef;
   $doc .= $i while ($i = <$fd>);
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   if (length ($doc) < 4)  # Allow for one blank line from gzip, '\n\r'.
   {
@@ -551,8 +550,6 @@ sub gst_xml_scan
 
   # remove any blank or carriage return at the beginning of the xml
   $doc =~ s/^[ \n]*//;
-
-  &gst_debug_print_log_to_file ("in.xml", $doc);
 
   $$tool{"xml_doc"} = $doc if (&gst_is_tool ($tool));
 
@@ -649,17 +646,17 @@ sub gst_xml_model_save
 
   if ($compressed == 1)
   {
-    $fd = &gst_file_open_write_compressed ($file);
+    $fd = &Utils::File::open_write_compressed ($file);
   }
   else
   {
-    $fd = &gst_file_open_write_from_names ($file);
+    $fd = &Utils::File::open_write_from_names ($file);
   }
 
   if ($fd == -1) { return -1; }
 
   print $fd &gst_xml_model_print ($model);
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   return 0;
 }
@@ -739,7 +736,6 @@ sub gst_xml_get_pcdata
     if ($$tree[0] == 0)
     {
       $retval = &gst_xml_unquote ($$tree[1]);
-      &gst_debug_print_line ("gst_xml_get_pcdata: $retval");
       return ($retval);
     }
     
@@ -808,7 +804,7 @@ sub gst_xml_get_state
   my ($tree) = @_;
 
   # Check attribute; 'yes', 'true', 'no', 'false'.
-  return &gst_util_read_boolean ($$tree[0]->{state});
+  return &Utils::Util::read_boolean ($$tree[0]->{state});
 }
 
 # XML model operations.

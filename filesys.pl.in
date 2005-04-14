@@ -21,6 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::File;
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -29,7 +30,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/file.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/xml.pl$DOTIN";
 
@@ -54,11 +54,11 @@ sub gst_filesys_ext2_device_to_label  # device
   my $label;
   my $fd;
 
-  $fd = &gst_file_run_pipe_read ("e2label $device");
+  $fd = &Utils::File::run_pipe_read ("e2label $device");
   return undef if $fd eq undef;
   $label = <$fd>;
   chomp $label;
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   return $label;
 }
@@ -409,8 +409,6 @@ sub gst_filesys_table_remove       # filesys_table, filesys_info
       return;
     }
   }
-
-  &gst_debug_print_line ("Entry to remove [" . $info . "] not found in filesys_table.");
 }
 
 # Find and return a reference to a filesys_info in a filesys_table
@@ -449,7 +447,6 @@ sub gst_filesys_table_find         # filesys_table, device, label, uuid, network
     }
   }
 
-  &gst_debug_print_line ("Entry [" . $device . "] not found in filesys_table.");
   return undef;
 }
 
@@ -625,7 +622,7 @@ sub gst_filesys_fstab_parse  # filename
   my ($file) = @_;
   my ($fd, $table);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   return undef if !$fd;
 
   $table = &gst_filesys_table_new ();
@@ -664,7 +661,7 @@ sub gst_filesys_fstab_parse  # filename
     &gst_filesys_table_add ($table, $fsi);
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return $table;
 }
 
@@ -675,7 +672,7 @@ sub gst_filesys_freebsd_mount_cmd_parse
   my (@output, $l);
 
   $table = &gst_filesys_table_new ();
-  $mount_cmd = &gst_file_locate_tool ("mount");
+  $mount_cmd = &Utils::File::locate_tool ("mount");
   @output = (readpipe ("$mount_cmd -p"));
 
   foreach $l (@output)
@@ -727,7 +724,7 @@ sub gst_filesys_mtab_parse  # filename
   my ($file) = @_;
   my ($fd, $table);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   return undef if !$fd;
 
   $table = &gst_filesys_table_new ();
@@ -771,7 +768,7 @@ sub gst_filesys_mtab_parse  # filename
     &gst_filesys_table_add ($table, $fsi);
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return $table;
 }
 
@@ -789,7 +786,7 @@ sub gst_filesys_fstab_get_next_entry_line  # $infd, $outfd
     # <device> <mount point> <filesystem> <options> <dump flag> <fsck priority>
     my @line = split /[ \t]+/, $_;
     if ($line[0] eq "") { shift @line; }
-    if (@line < 6 || &gst_ignore_line (@line)) { print $outfd $_; next; }
+    if (@line < 6 || &Utils::Util::ignore_line (@line)) { print $outfd $_; next; }
 
     return $_;
   }
@@ -912,14 +909,14 @@ sub gst_filesys_fstab_add_entry     # filename, filesys_info
   my ($infd, $outfd);
   my ($line);
 
-  ($infd, $outfd) = &gst_file_open_filter_write_from_names ($file);
+  ($infd, $outfd) = &Utils::File::open_filter_write_from_names ($file);
   return undef if !$outfd;
 
   while (<$infd>) { print $outfd $_; }
-  &gst_file_close ($infd);
+  &Utils::File::close_file ($infd);
 
   print $outfd &gst_filesys_info_print_entry ($info) . "\n";
-  &gst_file_close ($outfd);
+  &Utils::File::close_file ($outfd);
 }
 
 sub gst_filesys_fstab_update_entry  # filename, filesys_info
@@ -929,7 +926,7 @@ sub gst_filesys_fstab_update_entry  # filename, filesys_info
   my ($line);
   my $replaced = 0;
 
-  ($infd, $outfd) = &gst_file_open_filter_write_from_names ($file);
+  ($infd, $outfd) = &Utils::File::open_filter_write_from_names ($file);
   return undef if !$outfd;
 
   while ($line = &gst_filesys_fstab_get_next_entry_line ($infd, $outfd))
@@ -949,8 +946,8 @@ sub gst_filesys_fstab_update_entry  # filename, filesys_info
     }
   }
 
-  &gst_file_close ($infd);
-  &gst_file_close ($outfd);
+  &Utils::File::close_file ($infd);
+  &Utils::File::close_file ($outfd);
 }
 
 sub gst_filesys_fstab_remove_entry  # filename, filesys_info
@@ -959,7 +956,7 @@ sub gst_filesys_fstab_remove_entry  # filename, filesys_info
   my ($infd, $outfd);
   my ($line);
 
-  ($infd, $outfd) = &gst_file_open_filter_write_from_names ($file);
+  ($infd, $outfd) = &Utils::File::open_filter_write_from_names ($file);
   return undef if !$outfd;
 
   while ($line = &gst_filesys_fstab_get_next_entry_line ($infd, $outfd))
@@ -973,8 +970,8 @@ sub gst_filesys_fstab_remove_entry  # filename, filesys_info
     }
   }
 
-  &gst_file_close ($infd);
-  &gst_file_close ($outfd);
+  &Utils::File::close_file ($infd);
+  &Utils::File::close_file ($outfd);
 }
 
 # Replace instances in fstab-style file.
@@ -1042,19 +1039,19 @@ sub gst_filesys_mount_on
   $dev   = &gst_filesys_info_print_device ($info);
   $point = &gst_filesys_info_get_point ($info);
 
-  &gst_report_enter ();
-  &gst_report ("filesys_mount", $dev, $point);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("filesys_mount", $dev, $point);
 
   $fs = &gst_filesys_info_get_fs ($info);
   $fs = "auto" if ($fs eq "");
 
-  if (&gst_file_run ("mount -t " . $fs . " -o " . &gst_filesys_info_print_options ($info) . " " .
+  if (&Utils::File::run ("mount -t " . $fs . " -o " . &gst_filesys_info_print_options ($info) . " " .
                      $dev . " " . $point))
   {
-    &gst_report ("filesys_mount_failed", $dev, $point);
+    &Utils::Report::do_report ("filesys_mount_failed", $dev, $point);
   }
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 }
 
 sub gst_filesys_mount_off
@@ -1065,15 +1062,15 @@ sub gst_filesys_mount_off
   $dev   = &gst_filesys_info_print_device ($info);
   $point = &gst_filesys_info_get_point ($info);
 
-  &gst_report_enter ();
-  &gst_report ("filesys_unmount", $dev, $point);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("filesys_unmount", $dev, $point);
 
-  if (&gst_file_run ("umount -f " . $point))
+  if (&Utils::File::run ("umount -f " . $point))
   {
-    &gst_report ("filesys_unmount_failed", $dev, $point);
+    &Utils::Report::do_report ("filesys_unmount_failed", $dev, $point);
   }
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 }
 
 sub gst_filesys_mount_sync_all

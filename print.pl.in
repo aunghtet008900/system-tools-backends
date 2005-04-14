@@ -235,7 +235,7 @@ sub gst_print_get_printer_parse_table
   my $dist = $dist_map{$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -328,7 +328,7 @@ sub gst_print_get_printer_replace_table
   my $dist = $dist_map{$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 

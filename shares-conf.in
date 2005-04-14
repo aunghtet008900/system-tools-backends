@@ -38,6 +38,8 @@
 # nmbd
 # ifconfig: check current interfaces and activate/deactivate.
 
+use Utils::Util;
+use Utils::File;
 
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
@@ -49,8 +51,6 @@ BEGIN {
   
   require "$SCRIPTSDIR/general.pl$DOTIN";
   require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/util.pl$DOTIN";
-  require "$SCRIPTSDIR/file.pl$DOTIN";
   require "$SCRIPTSDIR/xml.pl$DOTIN";
   require "$SCRIPTSDIR/filesys.pl$DOTIN";
   require "$SCRIPTSDIR/network.pl$DOTIN";
@@ -611,7 +611,7 @@ sub gst_installed_daemons_parse_table
   my $dist = $dist_map{$gst_dist};
   return %{$dist_table{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -697,7 +697,7 @@ sub get
   $$config{"smb_exports"} = $smb_exports;
   $$config{"nfs_exports"} = $nfs_exports;
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($config);
 }
 
@@ -739,7 +739,7 @@ sub set
 
 #  &gst_filesys_mount_sync_all (&distro_file ("fstab"), &distro_file ("mtab"), $$config{"imports"});
 
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 sub filter
@@ -747,7 +747,7 @@ sub filter
   my $config;
 
   $config = &xml_parse ();
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($config);
 }
 
@@ -756,7 +756,7 @@ sub scan
   my %config;
 
   $config{"imports"} = &gst_share_scan_network_imports ();
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print (\%config);
 }
 
@@ -779,7 +779,7 @@ sub get_network_conf
 
   # network interface stuff
   $hash = &gst_network_conf_get ();
-  &gst_report_end ();
+  &Utils::Report::end ();
 
   &gst_xml_print_begin ("network-conf");
   &network_xml_print_statichost ($hash);

@@ -23,6 +23,7 @@
 
 # Best viewed with 100 columns of width.
 
+use Utils::Util;
 
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
@@ -34,7 +35,6 @@ BEGIN {
 
   require "$SCRIPTSDIR/general.pl$DOTIN";
   require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/util.pl$DOTIN";
   require "$SCRIPTSDIR/file.pl$DOTIN";
   require "$SCRIPTSDIR/xml.pl$DOTIN";
   require "$SCRIPTSDIR/dhcpd.pl$DOTIN";
@@ -69,7 +69,7 @@ sub xml_parse
   while ($elem = shift @$tree)
   {
       if   ($elem eq "dhcpd") { &xml_parse_dhcpd (shift @$tree, \%hash); }
-      else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+      else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   return (\%hash);
@@ -88,7 +88,7 @@ sub xml_parse_dhcpd
     elsif ($elem eq "configured")   { $$hash{"configured"} = &gst_xml_get_pcdata (shift @$tree); }
     elsif ($elem eq "active")       { $$hash{"active"}     = &gst_xml_get_pcdata (shift @$tree); }
     elsif ($elem eq "subnet")       { &gst_dhcpd_xml_parse_subnet (shift @$tree, \%subnets); }
-    else  { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else  { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   $$hash{"subnets"} = \%subnets unless scalar keys %subnets == 0;
@@ -149,7 +149,7 @@ sub get
 
   $hash = &gst_dhcpd_conf_get ();
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 
@@ -161,7 +161,7 @@ sub set
     
     $hash = &xml_parse ();
     $res = &gst_dhcpd_conf_set ($hash);
-    &gst_report_end ();
+    &Utils::Report::end ();
 
     if ($res eq -1) {
         printf STDERR "An error ocurred while setting configuration\n";
@@ -176,7 +176,7 @@ sub filter
   my $hash;
 
   $hash = &xml_parse ();
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 

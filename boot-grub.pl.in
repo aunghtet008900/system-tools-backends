@@ -21,6 +21,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::Util;
+use Utils::File;
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -30,8 +32,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 }
 
 require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/util.pl$DOTIN";
-require "$SCRIPTSDIR/file.pl$DOTIN";
 require "$SCRIPTSDIR/xml.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/replace.pl$DOTIN";
@@ -95,7 +95,7 @@ sub gst_boot_grub_known_var
   return 0 if ($key eq "key" && $from_xml); # "key" is valid in xml only.
   return 0 if ($key eq "type" && $from_xml); # "key" is valid in xml only.
 
-  return &gst_item_is_in_list ($key, @$list);
+  return &Utils::Util::item_is_in_list ($key, @$list);
 }
 
 # Scans @buff until finds first line which looks like entry.
@@ -227,15 +227,15 @@ sub gst_boot_grub_entries_set
 
   return if (scalar @$entries <=0);
 
-  $buff = &gst_file_buffer_load ($file);
+  $buff = &Utils::File::load_buffer ($file);
 
   if ($buff eq undef)
   {
-    &gst_report ("boot_conf_read_failed", $file);
+    &Utils::Report::do_report ("boot_conf_read_failed", $file);
     return undef;
   }
   
-  &gst_file_buffer_join_lines ($buff);
+  &Utils::File::join_buffer_lines ($buff);
 	
   $lineno = &gst_boot_grub_find_entry ($buff, 0);
 
@@ -264,8 +264,8 @@ sub gst_boot_grub_entries_set
   }
 
   # save the buffer  
-  &gst_file_buffer_clean ($buff);
-  return &gst_file_buffer_save ($buff, $file);
+  &Utils::File::clean_buffer ($buff);
+  return &Utils::File::save_buffer ($buff, $file);
 }
 
 # Grub device notation converters.
@@ -292,11 +292,11 @@ sub gst_boot_grub_system2grub
   }
   else
   {
-    &gst_report ("boot_grub_convert_failed", $dev);
+    &Utils::Report::do_report ("boot_grub_convert_failed", $dev);
     return undef;
   }
 
-  $fd = &gst_file_open_read_from_names ($device_map);
+  $fd = &Utils::File::open_read_from_names ($device_map);
   $res = undef;
   
   while ($line = <$fd>)
@@ -313,7 +313,7 @@ sub gst_boot_grub_system2grub
   if ($res eq undef)
   {
     # ok, the device doesn't exist in device.map, try to guess it
-    &gst_report ("boot_grub_convert_failed", $dev);
+    &Utils::Report::do_report ("boot_grub_convert_failed", $dev);
 
     if ($drive =~ /(fd.|hd.)/)
     {
@@ -457,17 +457,17 @@ sub gst_boot_grub_get_entries
 
   foreach $i (@$grub_conf)
   {
-    $fd = &gst_file_open_read_from_names ($i);
+    $fd = &Utils::File::open_read_from_names ($i);
     last if $fd;
   }
 
   if (!$fd)
   {
-    &gst_report ("boot_conf_read_failed", "/boot/grub/menu.lst");
+    &Utils::Report::do_report ("boot_conf_read_failed", "/boot/grub/menu.lst");
     return undef;
   }
   
-  $buff = &gst_file_buffer_load_fd ($fd);
+  $buff = &Utils::File::load_buffer_from_fd ($fd);
   $line_no = 0;
   
   while ($title = &gst_boot_grub_get_next_entry ($buff, \$line_no))
@@ -517,7 +517,7 @@ sub gst_boot_grub_remove_entries
   return 0 if scalar (@$entries) == 0;
 
   $grub_conf = $$fn{"GRUB_CONF"};
-  $buff = &gst_file_buffer_load ($grub_conf);
+  $buff = &Utils::File::load_buffer ($grub_conf);
   $buff = [] if $buff eq undef;
   $line_no = 0;
 
@@ -539,7 +539,7 @@ sub gst_boot_grub_remove_entries
     $curr ++;
   }
   
-  return &gst_file_buffer_save ($buff, $grub_conf);
+  return &Utils::File::save_buffer ($buff, $grub_conf);
 }
 
 sub gst_boot_grub_search_cmd
@@ -572,7 +572,7 @@ sub gst_boot_grub_parse_cmd
   my ($grub_conf, $cmd, $entry) = @_;
   my ($line, $buff, $line_no);
 
-  $buff = &gst_file_buffer_load ($grub_conf);
+  $buff = &Utils::File::load_buffer ($grub_conf);
   return undef if $buff eq undef;
   $line_no = 0;
   
@@ -737,7 +737,7 @@ sub gst_boot_grub_parse_type
   my ($grub_conf, $entry, $partition, $rootdev) = @_;
   my ($line, $res, $buff, $line_no);
 
-  $buff = &gst_file_buffer_load ($grub_conf);
+  $buff = &Utils::File::load_buffer ($grub_conf);
   return undef if $buff eq undef;
   $line_no = 0;
   return undef if &gst_boot_grub_search_entry ($buff, \$line_no, $entry) eq undef;
@@ -838,12 +838,12 @@ sub gst_boot_grub_replace_cmd_in_buff
 sub gst_boot_grub_replace_cmd
 {
   my ($grub_conf, $cmd, $value, $entry) = @_;
-  $buff = &gst_file_buffer_load ($grub_conf);
+  $buff = &Utils::File::load_buffer ($grub_conf);
   $buff = [] if $buff eq undef;
 
   &gst_boot_grub_replace_cmd_in_buff ($buff, $cmd, $value, $entry);
   
-  return &gst_file_buffer_save ($buff, $grub_conf);
+  return &Utils::File::save_buffer ($buff, $grub_conf);
 }
 
 sub gst_boot_grub_get_stat
@@ -995,7 +995,7 @@ sub gst_boot_grub_replace_type
   my ($grub_conf, $entry, $value) = @_;
   my ($buff, $line_no, $line, $res);
 	
-  $buff = &gst_file_buffer_load ($grub_conf);
+  $buff = &Utils::File::load_buffer ($grub_conf);
   $buff = [] if $buff eq undef;
   $line_no = 0;
   return -1 if &gst_boot_grub_search_entry ($buff, \$line_no, $entry) eq undef;
@@ -1025,7 +1025,7 @@ sub gst_boot_grub_replace_type
     $$buff[$line_no] =~ s/^(\#[ \t]*GstEntryType[ \t]+).*$/\1$value/;
   }
   
-  return &gst_file_buffer_save ($buff, $grub_conf);
+  return &Utils::File::save_buffer ($buff, $grub_conf);
 }
 
 sub gst_boot_grub_replace_label
@@ -1033,7 +1033,7 @@ sub gst_boot_grub_replace_label
   my ($grub_conf, $entry, $value) = @_;
   my ($buff, $line_no, $title);
 	
-  $buff = &gst_file_buffer_load ($grub_conf);
+  $buff = &Utils::File::load_buffer ($grub_conf);
   $buff = [] if $buff eq undef;
   $line_no = 0;
 
@@ -1048,7 +1048,7 @@ sub gst_boot_grub_replace_label
     $$buff[$line_no] =~ s/^title([= \t][ \t]*).*/title\1$value/;
   }
   
-  return &gst_file_buffer_save ($buff, $grub_conf);
+  return &Utils::File::save_buffer ($buff, $grub_conf);
 }
 
 sub gst_boot_grub_check_device_map
@@ -1058,9 +1058,9 @@ sub gst_boot_grub_check_device_map
 
   if (! -f $file)
   {
-    $fd = &gst_file_run_pipe_write ("grub --batch --device-map=$file");
+    $fd = &Utils::File::run_pipe_write ("grub --batch --device-map=$file");
     print $fd "quit\n";
-    &gst_file_close ($fd);
+    &Utils::File::close_file ($fd);
   }
 }
 

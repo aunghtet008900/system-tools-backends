@@ -35,6 +35,9 @@
 #
 # /sbin/lilo
 
+use Utils::Util;
+use Utils::File;
+
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
   if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -45,8 +48,6 @@ BEGIN {
   
   require "$SCRIPTSDIR/general.pl$DOTIN";
   require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/util.pl$DOTIN";
-  require "$SCRIPTSDIR/file.pl$DOTIN";
   require "$SCRIPTSDIR/xml.pl$DOTIN";
   require "$SCRIPTSDIR/parse.pl$DOTIN";
   require "$SCRIPTSDIR/boot.pl$DOTIN";
@@ -82,7 +83,7 @@ sub xml_parse
   while ($elem = shift @$tree)
   {
     if ($elem eq "boot") { &xml_parse_boot (shift @$tree, \%hash); }
-    else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   return(\%hash);
@@ -110,7 +111,7 @@ sub xml_parse_boot
     elsif ($elem eq "pixmapsup") { $$hash{"pixmapsup"} = &gst_xml_get_pcdata (shift @$tree); }
     elsif ($elem eq "entry")     { &xml_parse_entry (shift @$tree, \@entries); }
     elsif ($elem eq "partitions") { shift @$tree; } # Just skip it.
-    else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   $$hash{"entry"} = \@entries unless scalar @entries == 0;
@@ -160,7 +161,7 @@ sub get
   my ($count);
 
   #FIXME: do mount in a more generic way, this is done because /boot may be unmounted
-  gst_file_run ("mount /boot");
+  Utils::File::run ("mount /boot");
 
   ($count, $hash) = &gst_boot_bootloader_list ();
 
@@ -173,7 +174,7 @@ sub get
     &gst_boot_fix ($hash);
   }
   
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 
@@ -184,7 +185,7 @@ sub set
   my ($hash);
 
   #FIXME: do mount in a more generic way, this is done because /boot may be unmounted
-  gst_file_run ("mount /boot");
+  Utils::File::run ("mount /boot");
   
   $hash = &xml_parse ();
 
@@ -197,11 +198,11 @@ sub set
 
     if ($bootloader eq "lilo")
     {
-      &gst_file_run (&gst_file_locate_tool ("lilo"));
+      &Utils::File::run (&Utils::File::locate_tool ("lilo"));
     }
     elsif ($bootloader eq "yaboot")
     {
-      &gst_file_run (&gst_file_locate_tool ("ybin"));
+      &Utils::File::run (&Utils::File::locate_tool ("ybin"));
     }
   }
   else
@@ -210,7 +211,7 @@ sub set
     1;
   }
   
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 
@@ -219,7 +220,7 @@ sub filter
 {
   my $hash = &xml_parse;
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 
@@ -248,7 +249,7 @@ sub verify
   $proc = $bootloader_func{$bootloader};
   $res = &$proc ($key, @values);
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &verify_print ($res);
 }
 

@@ -339,7 +339,7 @@ ModeLine "1920x1440@75" 297.0 1920 2064 2288 2640   1440 1441 1444 1500 -hsync +
 
                         );
 BEGIN {
-  &gst_report_table ({
+  &Utils::Report::add ({
     'x_version'      => ['info',  _('Detected X version [%s].')],
     'x_parse'        => ['info',  _('Configuration file [%s] successfully parsed.')],
     'x_parse_error'  => ['error', _('Error parsing keyword [%s].')],
@@ -383,7 +383,7 @@ sub x_version
   }
   close (FD);
 
-  &gst_report ('x_version', $number);
+  &Utils::Report::do_report ('x_version', $number);
 
   $x_version->{'command'} = $command;
   $x_version->{'sections'} = ($number >= 400) ? $x4_sections : $x3_sections;
@@ -493,7 +493,7 @@ sub x_parse_unique_string
   return;
 
  ERROR:
-  &gst_report ('x_parse_error', $kw);
+  &Utils::Report::do_report ('x_parse_error', $kw);
   &gst_debug_print_line ("x_parse_unique_string: error parsing $kw");
 }
 
@@ -561,7 +561,7 @@ sub x_parse_unique_int
   return;
 
  ERROR:
-  &gst_report ('x_parse_error', $kw);
+  &Utils::Report::do_report ('x_parse_error', $kw);
   &gst_debug_print_line ("x_parse_unique_int: error parsing $kw");
 }
 
@@ -620,7 +620,7 @@ sub x_parse_list_string
   return;
 
  ERROR:
-  &gst_report ('x_parse_error', $kw);
+  &Utils::Report::do_report ('x_parse_error', $kw);
   &gst_debug_print_line ("x_parse_list_string: error parsing $kw");
 }
 
@@ -717,7 +717,7 @@ sub x_parse_list_int
   return;
 
  ERROR:
-  &gst_report ('x_parse_error', $kw);
+  &Utils::Report::do_report ('x_parse_error', $kw);
   &gst_debug_print_line ("x_parse_list_int: error parsing $kw");
 }
 
@@ -840,7 +840,7 @@ sub x_parse_serverlayout_screen
   return;
 
  ERROR:
-  &gst_report ('x_parse_error', $kw);
+  &Utils::Report::do_report ('x_parse_error', $kw);
   &gst_debug_print_line ("x_parse_serverlayout_screen: error parsing $kw");
 }
 
@@ -967,7 +967,7 @@ sub x_parse_modeline
   return;
 
  ERROR:
-  &gst_report ('x_parse_error', $kw);
+  &Utils::Report::do_report ('x_parse_error', $kw);
   &gst_debug_print_line ("x_parse_modeline: error parsing $kw");
 }
 
@@ -1017,7 +1017,7 @@ sub x_xml_print_modeline
       }
       else {
         my $msg = "unknown data type $type";
-        &gst_report ('x_general_warn', $msg);
+        &Utils::Report::do_report ('x_general_warn', $msg);
         &gst_debug_print_line ("x_xml_print_modeline: $msg");
       }
     }
@@ -1109,7 +1109,7 @@ sub x_parse_range_hz
   return;
 
  ERROR:
-  &gst_report ('x_parse_error', $kw);
+  &Utils::Report::do_report ('x_parse_error', $kw);
   &gst_debug_print_line ("x_parse_range_hz: error parsing $kw");
 }
 
@@ -1173,7 +1173,7 @@ sub x_get_token
   while (@$buf) {
     my $line = $$buf[0];
 
-    if (&gst_ignore_line ($line)) {
+    if (&Utils::Util::ignore_line ($line)) {
       push @$dest_buf, $line if defined ($dest_buf);
       shift @$buf;
       next;
@@ -1201,7 +1201,7 @@ sub x_peek_token
   foreach (@$buf) {
     my $line = $_;
 
-    if (&gst_ignore_line ($line)) {
+    if (&Utils::Util::ignore_line ($line)) {
       next;
     }
 
@@ -1234,7 +1234,7 @@ sub x_parse
 
   $x_version = &x_version () unless $x_version;
 
-  my $buf = &gst_file_buffer_load ($fname);
+  my $buf = &Utils::File::load_buffer ($fname);
   return unless $buf;
   
   # Init section stack
@@ -1291,7 +1291,7 @@ sub x_parse
     }
   }
 
-  &gst_report ('x_parse', $fname);
+  &Utils::Report::do_report ('x_parse', $fname);
   return $config;
 }
 
@@ -1329,7 +1329,7 @@ sub x_xml_print_section
 
     else {
       my $msg = "unknown keyword $key in section $section";
-      &gst_report ('x_general_warn', $msg);
+      &Utils::Report::do_report ('x_general_warn', $msg);
       &gst_debug_print_line ("x_xml_print_section: $msg");
     }
   }
@@ -1401,7 +1401,7 @@ sub x_xml_parse
 
     else {
       my $msg = "received unknown xml tag $$tree[0]";
-      &gst_report ('xml_unexp_tag', $$tree[0]);
+      &Utils::Report::do_report ('xml_unexp_tag', $$tree[0]);
       &gst_debug_print_line ("x_xml_parse: $msg");
     }
 
@@ -1424,7 +1424,7 @@ sub x_update_get_token
   for ($ptr->{'line'}; $ptr->{'line'} < @$buf; $ptr->{'line'}++, $ptr->{'col'} = 0) {
     my $line = substr ($$buf[$ptr->{'line'}], $ptr->{'col'});
 
-    next if &gst_ignore_line ($line);
+    next if &Utils::Util::ignore_line ($line);
 
     $line =~ s/^(\s+)//;
     $ptr->{'col'} += length ($1) if defined ($1);
@@ -1544,7 +1544,7 @@ sub x_update_add_section
 
     else {
       my $msg = "unknown keyword $key in section $section";
-      &gst_report ('x_general_warn', $msg);
+      &Utils::Report::do_report ('x_general_warn', $msg);
       &gst_debug_print_line ("x_update_add_section: $msg");
     }
   }
@@ -1634,7 +1634,7 @@ sub x_update_section
 
     else {
       my $msg = "unknown keyword $kw in section $section_name";
-      &gst_report ('x_general_warn', $msg);
+      &Utils::Report::do_report ('x_general_warn', $msg);
       &gst_debug_print_line ("x_update_section: $msg");
     }
 
@@ -1660,7 +1660,7 @@ sub x_config_set
   return unless $xml_config;
 
   my $section_list = $x_version->{'sections'};  
-  my $buf = &gst_file_buffer_load ($fname);
+  my $buf = &Utils::File::load_buffer ($fname);
   return unless $buf;
 
   my $ptr = {};
@@ -1681,7 +1681,7 @@ sub x_config_set
     }
   }
 
-  &gst_file_buffer_save ($buf, $fname);
+  &Utils::File::save_buffer ($buf, $fname);
 }
 
 
@@ -2073,7 +2073,7 @@ sub x_probe_collect
     return $list;
   }
 
-  &gst_report ('x_probe_error', $depth);
+  &Utils::Report::do_report ('x_probe_error', $depth);
   &gst_debug_print_line ("x_probe_collect: error reading XFree's output at depth $depth.");
   return;
 }
@@ -2088,9 +2088,9 @@ sub x_probe_run
 
   my $hash;
   foreach my $depth (@x_colordepths) {
-    my $proc = &gst_process_fork (\&x_probe_scan, $cfg_file, $depth);
-    &gst_process_list_check_ready (15, $proc);
-    my $list = &gst_process_result_collect ($proc, \&x_probe_collect, $modes, $depth);
+    my $proc = &Utils::Util::process_fork (\&x_probe_scan, $cfg_file, $depth);
+    &Utils::Util::process_list_check_ready (15, $proc);
+    my $list = &Utils::Util::process_result_collect ($proc, \&x_probe_collect, $modes, $depth);
     if ($list && scalar @$list) {
       $hash->{$depth} = $list;
     } else {
@@ -2099,7 +2099,7 @@ sub x_probe_run
   }
 
   unless ($hash) {
-    &gst_report ('x_probe_error', "Error running XFree server");
+    &Utils::Report::do_report ('x_probe_error', "Error running XFree server");
     return;
   }
 
@@ -2136,9 +2136,9 @@ sub x_probe_store
   return unless $config;
   # TODO: Write monitor and card information also.
 
-  my $file = &gst_file_get_data_path () . "/" . $main::tool->{'name'} . "/" . $x_probe_file;
+  my $file = &Utils::File::get_data_path () . "/" . $main::tool->{'name'} . "/" . $x_probe_file;
 
-  my $fh = &gst_file_open_write_from_names ($file);
+  my $fh = &Utils::File::open_write_from_names ($file);
   if ($fh) {
     local *STDOUT = $fh;
     &x_probe_print_xml ($list);
@@ -2154,8 +2154,8 @@ sub x_probe_load
   return unless $config;
   # TODO: Check if monitor || card is changed
 
-  my $file = &gst_file_get_data_path () . "/" . $main::tool->{'name'} . "/" . $x_probe_file;
-  my $fh = &gst_file_open_read_from_names ($file);
+  my $file = &Utils::File::get_data_path () . "/" . $main::tool->{'name'} . "/" . $x_probe_file;
+  my $fh = &Utils::File::open_read_from_names ($file);
 
   if ($fh) {
     my @content = <$fh>;
@@ -2178,8 +2178,8 @@ sub x_probe
 
   unless ($direct) {
     my @content = &x_probe_load ($config);
-    &gst_report ('x_probe_needed') unless @content;
-    &gst_report_end ();
+    &Utils::Report::do_report ('x_probe_needed') unless @content;
+    &Utils::Report::end ();
     print @content;
     return;
   }
@@ -2197,12 +2197,12 @@ sub x_probe
 
   if ($list) {
     &x_probe_store ($config, $list);
-    &gst_report_end ();
+    &Utils::Report::end ();
     &x_probe_print_xml ($list);
     return;
   }
 
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 

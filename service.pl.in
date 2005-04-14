@@ -23,6 +23,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::Report;
+use Utils::File;
+
 $rcd_path;
 $initd_path;
 $relative_path;
@@ -38,8 +41,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 
 use File::Copy;
 
-require "$SCRIPTSDIR/file.pl$DOTIN";
-require "$SCRIPTSDIR/report.pl$DOTIN";
 require "$SCRIPTSDIR/service-list.pl$DOTIN";
 
 # Where is the SysV subsystem installed?
@@ -99,7 +100,7 @@ sub gst_service_sysv_get_paths
   my $res;
 
   $res = $dist_map{$gst_dist};
-  &gst_report ("service_sysv_unsupported", $gst_dist) if ($res eq undef);
+  &Utils::Report::do_report ("service_sysv_unsupported", $gst_dist) if ($res eq undef);
   return @$res;
 }
 
@@ -160,7 +161,7 @@ sub gst_service_sysv_get_runlevels
   my $res;
 
   $res = $dist_map{$gst_dist};
-  &gst_report ("service_sysv_unsupported", $gst_dist) if ($res eq undef);
+  &Utils::Report::do_report ("service_sysv_unsupported", $gst_dist) if ($res eq undef);
   return @$res;
 }
 
@@ -261,9 +262,9 @@ sub gst_service_proc_get_owners
   my ($fd);
   my (@arr);
 
-  &gst_report_enter ();
+  &Utils::Report::enter ();
 
-  $fd = gst_file_run_pipe_read ("ps acx -o user,pid,command");
+  $fd = Utils::File::run_pipe_read ("ps acx -o user,pid,command");
 
   while (<$fd>)
   {
@@ -275,7 +276,7 @@ sub gst_service_proc_get_owners
     push @arr, $user if ($command eq $service);
   }
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return \@arr;
 }
 
@@ -284,7 +285,7 @@ sub gst_service_proc_stop_all
 {
   my ($service) = @_;
 
-  return &gst_file_run ("killall $service");
+  return &Utils::File::run ("killall $service");
 }
 
 # Starts instances of a process for a given list of users
@@ -293,8 +294,8 @@ sub gst_service_proc_start_all
   my ($cmd, $users) = @_;
   my ($fqcmd, $fqsu);
 
-  $fqcmd = &gst_file_get_cmd_path ($cmd);
-  $fqsu  = &gst_file_locate_tool  ("su");
+  $fqcmd = &Utils::File::get_cmd_path ($cmd);
+  $fqsu  = &Utils::File::locate_tool  ("su");
 
   foreach $user (@$users)
   {
@@ -338,22 +339,22 @@ sub gst_service_sysv_get_status
   my ($rc_path, $initd_path, $res);
   my ($pid);
 
-  &gst_report_enter ();
+  &Utils::Report::enter ();
 
   # Stolen from RedHat's /etc/rc.d/init.d/functions:status
   # FIXME: portable to other UNIXES?
-  $pid = &gst_file_run_backtick ("pidof -o %PPID -x $service");
+  $pid = &Utils::File::run_backtick ("pidof -o %PPID -x $service");
   chomp $pid;
 
   if ($pid)
   {
     $res = 1;
-    &gst_report ("service_status_running", $service);
+    &Utils::Report::do_report ("service_status_running", $service);
   }
   else
   {
     $res = 0;
-    &gst_report ("service_status_stopped", $service);
+    &Utils::Report::do_report ("service_status_stopped", $service);
   }
     
 #  ($rcd_path, $initd_path) = &gst_service_sysv_get_paths ();
@@ -361,12 +362,12 @@ sub gst_service_sysv_get_status
 #  
 #  if (-f "$initd_path/$service")
 #  {
-#    $res = &gst_file_run ("$initd_path/$service status")? 0 : 1;
-#    &gst_report ("service_status_running", $service) if $res;
-#    &gst_report ("service_status_stopped", $service) if !$res;
+#    $res = &Utils::File::run ("$initd_path/$service status")? 0 : 1;
+#    &Utils::Report::do_report ("service_status_running", $service) if $res;
+#    &Utils::Report::do_report ("service_status_stopped", $service) if !$res;
 #  }
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return $res;
 }
 
@@ -476,7 +477,7 @@ sub gst_service_sysv_install_script
 
   if (!copy ("$FILESDIR/$file", "$initd_path/$service"))
   {
-      &gst_report ("file_copy_failed", "$FILESDIR/$file", "$initd_path/$service");
+      &Utils::Report::do_report ("file_copy_failed", "$FILESDIR/$file", "$initd_path/$service");
       return -1;
   }
 
@@ -724,7 +725,7 @@ sub gst_service_bsd_get_service_info
   $script =~ s/^.*\///;
   $script =~ s/^rc\.//;
 
-  return undef if (! gst_file_exists ($service));
+  return undef if (! Utils::File::exists ($service));
 
   return undef if (&gst_service_list_service_is_forbidden ($script));
 
@@ -762,10 +763,10 @@ sub gst_service_bsd_get_services
   foreach $i (@$files)
   {
     $file = "/etc/rc.d/" . $i;
-    $fd = &gst_file_open_read_from_names ($file);
+    $fd = &Utils::File::open_read_from_names ($file);
 
     if (!$fd) {
-      &gst_report ("rc_file_read_failed", $file);
+      &Utils::Report::do_report ("rc_file_read_failed", $file);
       return undef;
     }
 
@@ -787,7 +788,7 @@ sub gst_service_bsd_get_services
       }
     }
 
-    gst_file_close ($fd);
+    Utils::File::close_file ($fd);
   }
 
   return \%ret;
@@ -809,7 +810,7 @@ sub gst_service_gentoo_get_service_status
 
 sub gst_service_gentoo_get_runlevels
 {
-  my($raw_output) = gst_file_run_backtick("rc-status -l");
+  my($raw_output) = Utils::File::run_backtick("rc-status -l");
   my(@runlevels) = split(/\n/,$raw_output);
     
   return @runlevels;
@@ -818,7 +819,7 @@ sub gst_service_gentoo_get_runlevels
 sub gst_service_gentoo_get_services_by_runlevel
 {
   my($runlevel) = @_;
-  my($raw_output) = gst_file_run_backtick("rc-status $runlevel");
+  my($raw_output) = Utils::File::run_backtick("rc-status $runlevel");
   my(@raw_lines) = split(/\n/,$raw_output);
   my(@services);
   my($line);
@@ -957,7 +958,7 @@ sub gst_service_rcng_status_by_service
   my ($service) = @_;
   my ($fd, $line, $active);
 
-  $fd = &gst_file_run_pipe_read ("/etc/rc.d/$service rcvar");
+  $fd = &Utils::File::run_pipe_read ("/etc/rc.d/$service rcvar");
 
   while (<$fd>)
   {
@@ -970,7 +971,7 @@ sub gst_service_rcng_status_by_service
     }
   }
 
-  gst_file_close ($fd);
+  Utils::File::close_file ($fd);
   return $active;
 }
 
@@ -1161,9 +1162,9 @@ sub gst_service_sysv_add_link
 
   symlink ("$relative_path/$service", "$rcd_path/rc$runlevel.d/$action$prio$service");
   
-  &gst_report_enter ();
-  &gst_report ("service_sysv_add_link", "$rcd_path/rc$runlevel.d/$action$prio$service");
-  &gst_report_leave ();
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("service_sysv_add_link", "$rcd_path/rc$runlevel.d/$action$prio$service");
+  &Utils::Report::leave ();
 }
 
 sub gst_service_sysv_remove_link
@@ -1172,9 +1173,9 @@ sub gst_service_sysv_remove_link
 	
   foreach $link (<$rcd_path/rc$runlevel.d/[SK][0-9][0-9]$script>)
   {
-    &gst_report ("service_sysv_remove_link", "$link");
+    &Utils::Report::do_report ("service_sysv_remove_link", "$link");
     unlink ("$link");
-    &gst_report_leave ();
+    &Utils::Report::leave ();
   }
 }
 
@@ -1239,8 +1240,8 @@ sub gst_service_filerc_set_services
 
   $file = "$gst_prefix/etc/runlevel.conf";
 
-  $buff = &gst_file_buffer_load ($file);
-  &gst_file_buffer_join_lines ($buff);
+  $buff = &Utils::File::load_buffer ($file);
+  &Utils::File::join_buffer_lines ($buff);
 
   $lineno = 0;
 
@@ -1316,8 +1317,8 @@ sub gst_service_filerc_set_services
   @$buff = sort @$buff;
 
   push @$buff, "\n";
-  &gst_file_buffer_clean ($buff);
-  &gst_file_buffer_save ($buff, $file);
+  &Utils::File::clean_buffer ($buff);
+  &Utils::File::save_buffer ($buff, $file);
 }
 
 sub gst_service_bsd_set_services
@@ -1334,11 +1335,11 @@ sub gst_service_bsd_set_services
 
     if ($action eq "start")
     {
-      &gst_file_run ("chmod ugo+x $script");
+      &Utils::File::run ("chmod ugo+x $script");
     }
     else
     {
-      &gst_file_run ("chmod ugo-x $script");
+      &Utils::File::run ("chmod ugo-x $script");
     }
   }
 }
@@ -1360,11 +1361,11 @@ sub gst_service_gentoo_set_services
 
       if ( $action eq "start")
       {
-        &gst_file_run ("rc-update add $script $rl");
+        &Utils::File::run ("rc-update add $script $rl");
       }
       elsif ($action eq "stop")
       {
-        &gst_file_run ("rc-update del $script $rl");
+        &Utils::File::run ("rc-update del $script $rl");
       }
     }
   }
@@ -1377,9 +1378,9 @@ sub gst_service_rcng_set_status
   my ($default_rcconf) = "/etc/defaults/rc.conf";
   my ($rcconf) = "/etc/rc.conf";
 
-  if (&gst_file_exists ("/etc/rc.d/$service"))
+  if (&Utils::File::exists ("/etc/rc.d/$service"))
   {
-    $fd = &gst_file_run_pipe_read ("/etc/rc.d/$service rcvar");
+    $fd = &Utils::File::run_pipe_read ("/etc/rc.d/$service rcvar");
 
     while (<$fd>)
     {
@@ -1401,18 +1402,18 @@ sub gst_service_rcng_set_status
       }
     }
 
-    &gst_file_close ($fd);
+    &Utils::File::close_file ($fd);
   }
-  elsif (&gst_file_exists ("/usr/local/etc/rc.d/$service.sh"))
+  elsif (&Utils::File::exists ("/usr/local/etc/rc.d/$service.sh"))
   {
     if ($action)
     {
-      gst_file_copy ("/usr/local/etc/rc.d/$service.sh.sample",
+      Utils::File::copy_file ("/usr/local/etc/rc.d/$service.sh.sample",
                      "/usr/local/etc/rc.d/$service.sh");
     }
     else
     {
-      gst_file_remove ("/usr/local/etc/rc.d/$service.sh");
+      Utils::File::remove ("/usr/local/etc/rc.d/$service.sh");
     }
   }
 }
@@ -1443,7 +1444,7 @@ sub gst_service_suse_set_services
     $runlevels = $$service{"runlevels"}[0]{"runlevel"};
     $rllist = "";
 
-    &gst_file_run ("insserv -r $script");
+    &Utils::File::run ("insserv -r $script");
 
     foreach $rl (@$runlevels)
     {
@@ -1457,7 +1458,7 @@ sub gst_service_suse_set_services
     {
       $rllist =~ s/,$//;
 
-      &gst_file_run ("insserv $script,start=$rllist");
+      &Utils::File::run ("insserv $script,start=$rllist");
     }
   }
 }
@@ -1548,7 +1549,7 @@ sub gst_service_rcng_get_status
 {
   my ($service) = @_;
 
-  $line = gst_file_run_backtick ("/etc/rc.d/$service forcestatus");
+  $line = Utils::File::run_backtick ("/etc/rc.d/$service forcestatus");
   return 1 if ($line =~ /pid [0-9]*/);
 
   # hacky as hell, we need to check services in /usr/local/etc/rc.d
@@ -1563,7 +1564,7 @@ sub gst_service_suse_get_status
 {
   my ($service) = @_;
 
-  $line = gst_file_run_backtick ("/etc/init.d/$service status");
+  $line = Utils::File::run_backtick ("/etc/init.d/$service status");
   return 1 if ($line =~ /running/);
   return 0;
 }
@@ -1622,12 +1623,12 @@ sub gst_service_sysv_run_initd_script
        "stop" => "stopped",
        "start" => "started");
 
-  &gst_report_enter ();
+  &Utils::Report::enter ();
   
   if (!exists $map{$arg})
   {
-    &gst_report ("service_sysv_op_unk", $arg);
-    &gst_report_leave ();
+    &Utils::Report::do_report ("service_sysv_op_unk", $arg);
+    &Utils::Report::leave ();
     return -1;
   }
 
@@ -1637,16 +1638,16 @@ sub gst_service_sysv_run_initd_script
 
   if (-f "$initd_path/$service")
   {
-    if (!&gst_file_run ("$initd_path/$service $arg"))
+    if (!&Utils::File::run ("$initd_path/$service $arg"))
     {
-      &gst_report ("service_sysv_op_success", $service, $str);
-      &gst_report_leave ();
+      &Utils::Report::do_report ("service_sysv_op_success", $service, $str);
+      &Utils::Report::leave ();
       return 0;
     }
   }
   
-  &gst_report ("service_sysv_op_failed", $service, $str);
-  &gst_report_leave ();
+  &Utils::Report::do_report ("service_sysv_op_failed", $service, $str);
+  &Utils::Report::leave ();
   return -1;
 }
 
@@ -1655,21 +1656,21 @@ sub gst_service_bsd_run_script
   my ($service, $arg) = @_;
   my ($chmod) = 0;
 
-  return if (!&gst_file_exists ($service));
+  return if (!&Utils::File::exists ($service));
 
   # if it's not executable then chmod it
   if (!((stat ($service))[2] & (S_IXUSR || S_IXGRP || S_IXOTH)))
   {
     $chmod = 1;
-    &gst_file_run ("chmod ugo+x $service");
+    &Utils::File::run ("chmod ugo+x $service");
   }
   
-  &gst_file_run ("$service $arg");
+  &Utils::File::run ("$service $arg");
 
   # return it to it's normal state
   if ($chmod)
   {
-    &gst_file_run ("chmod ugo-x $service");
+    &Utils::File::run ("chmod ugo-x $service");
   }
 }
 
@@ -1683,27 +1684,27 @@ sub gst_service_gentoo_run_script
      "start" => "started"
     );
 
-  &gst_report_enter ();
+  &Utils::Report::enter ();
 
   if (!exists $map{$arg})
   {
-    &gst_report ("service_sysv_op_unk", $arg);
-    &gst_report_leave ();
+    &Utils::Report::do_report ("service_sysv_op_unk", $arg);
+    &Utils::Report::leave ();
     return -1;
   }
 
   if (&gst_service_gentoo_service_exist ($service))
   {
-    if (!&gst_file_run ("/etc/init.d/$service $arg"))
+    if (!&Utils::File::run ("/etc/init.d/$service $arg"))
     {
-      &gst_report ("service_sysv_op_success", $service, $str);
-      &gst_report_leave ();
+      &Utils::Report::do_report ("service_sysv_op_success", $service, $str);
+      &Utils::Report::leave ();
 	    return 0;
 	  }
   }
 
-  &gst_report ("service_sysv_op_failed", $service, $str);
-  &gst_report_leave ();
+  &Utils::Report::do_report ("service_sysv_op_failed", $service, $str);
+  &Utils::Report::leave ();
   return -1;
 }
 
@@ -1717,26 +1718,26 @@ sub gst_service_rcng_run_script
      "start" => "forcestart"
     );
 
-  &gst_report_enter ();
+  &Utils::Report::enter ();
 
   if (!exists $map{$arg})
   {
-    &gst_report ("service_sysv_op_unk", $arg);
-    &gst_report_leave ();
+    &Utils::Report::do_report ("service_sysv_op_unk", $arg);
+    &Utils::Report::leave ();
     return -1;
   }
 
   $farg = $map {$arg};
 
-  if (!&gst_file_run ("/etc/rc.d/$service $farg"))
+  if (!&Utils::File::run ("/etc/rc.d/$service $farg"))
   {
-    &gst_report ("service_sysv_op_success", $service, $str);
-    &gst_report_leave ();
+    &Utils::Report::do_report ("service_sysv_op_success", $service, $str);
+    &Utils::Report::leave ();
     return 0;
   }
 
-  &gst_report ("service_sysv_op_failed", $service, $str);
-  &gst_report_leave ();
+  &Utils::Report::do_report ("service_sysv_op_failed", $service, $str);
+  &Utils::Report::leave ();
   return -1;
 }
 
@@ -1766,7 +1767,7 @@ sub gst_service_sysv_installed
   my ($service) = @_;
   my ($res, $rcd_path, $initd_path);
 
-  &gst_report_enter ();
+  &Utils::Report::enter ();
   
   ($rcd_path, $initd_path) = &gst_service_sysv_get_paths ();
 
@@ -1774,10 +1775,10 @@ sub gst_service_sysv_installed
   if (! -f "$initd_path/$service")
   {
     $res = 0;
-    &gst_report ("service_sysv_not_found", $service);
+    &Utils::Report::do_report ("service_sysv_not_found", $service);
   }
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return $res;
 }
 
@@ -1845,13 +1846,13 @@ sub gst_service_bsd_set_status
 
   if ($active)
   {
-    &gst_file_run ("chmod ugo+x $script");
+    &Utils::File::run ("chmod ugo+x $script");
     &gst_service_run_script ($script, "start");
   }
   else
   {
     &gst_service_run_script ($script, "stop");
-    &gst_file_run ("chmod ugo-x $script");
+    &Utils::File::run ("chmod ugo-x $script");
   }
 }
 
@@ -1862,13 +1863,13 @@ sub gst_service_gentoo_set_status
 
   if ($active)
   {
-    &gst_file_run ("rc-update add $script default");
-    &gst_file_run ("/etc/init.d/$script start") if ($force_now == 1);
+    &Utils::File::run ("rc-update add $script default");
+    &Utils::File::run ("/etc/init.d/$script start") if ($force_now == 1);
   }
   else
   {
-    &gst_file_run ("rc-update del $script default");
-    &gst_file_run ("/etc/init.d/$script stop") if ($force_now == 1);
+    &Utils::File::run ("rc-update del $script default");
+    &Utils::File::run ("/etc/init.d/$script stop") if ($force_now == 1);
   }
 }
 
@@ -1885,7 +1886,7 @@ sub gst_service_suse_set_status
   if ($active)
   {
     $rllist = join ",", @runlevels;
-    &gst_file_run ("insserv $script,start=$rllist");
+    &Utils::File::run ("insserv $script,start=$rllist");
     &gst_service_run_script ($script, "start");
   }
   else
@@ -1912,11 +1913,11 @@ sub gst_service_suse_set_status
 
     $rllist =~ s/,$//;
 
-    &gst_file_run ("insserv -r $script");
+    &Utils::File::run ("insserv -r $script");
 
     if ($rllist ne "")
     {
-      &gst_file_run ("insserv $script,start=$rllist");
+      &Utils::File::run ("insserv $script,start=$rllist");
     }
 
     &gst_service_run_script ($script, "stop");

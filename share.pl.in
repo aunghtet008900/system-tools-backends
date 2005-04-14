@@ -21,6 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::File;
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -30,7 +31,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 }
 
 require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/file.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/replace.pl$DOTIN";
 require "$SCRIPTSDIR/network.pl$DOTIN";
@@ -497,7 +497,7 @@ sub gst_share_nfs_exports_get_next_entry_line  # $infd, $outfd
     # <point> <clients>
     my @line = split /[ \t]+/, $_;
     if ($line[0] eq "") { shift @line; }
-    if (@line < 1 || &gst_ignore_line (@line)) { print $outfd $_; next; }
+    if (@line < 1 || &Utils::Util::ignore_line (@line)) { print $outfd $_; next; }
 
     return $_;
   }
@@ -652,14 +652,14 @@ sub gst_share_nfs_exports_add_entry
   my ($infd, $outfd);
   my ($line);
 
-  ($infd, $outfd) = &gst_file_open_filter_write_from_names ($file);
+  ($infd, $outfd) = &Utils::File::open_filter_write_from_names ($file);
   return undef if !$outfd;
 
   while (<$infd>) { print $outfd $_; }
-  &gst_file_close ($infd);
+  &Utils::File::close_file ($infd);
 
   print $outfd &gst_share_nfs_info_print_entry ($info) . "\n";
-  &gst_file_close ($outfd);
+  &Utils::File::close_file ($outfd);
 }
 
 sub gst_share_nfs_exports_update_entry  # filename, filesys_info
@@ -669,7 +669,7 @@ sub gst_share_nfs_exports_update_entry  # filename, filesys_info
   my ($line);
   my $replaced = 0;
 
-  ($infd, $outfd) = &gst_file_open_filter_write_from_names ($file);
+  ($infd, $outfd) = &Utils::File::open_filter_write_from_names ($file);
   return undef if !$outfd;
 
   while ($line = &gst_share_nfs_exports_get_next_entry_line ($infd, $outfd))
@@ -687,8 +687,8 @@ sub gst_share_nfs_exports_update_entry  # filename, filesys_info
     }
   }
 
-  &gst_file_close ($infd);
-  &gst_file_close ($outfd);
+  &Utils::File::close_file ($infd);
+  &Utils::File::close_file ($outfd);
 }
 
 sub gst_share_nfs_exports_remove_entry
@@ -697,7 +697,7 @@ sub gst_share_nfs_exports_remove_entry
   my ($infd, $outfd);
   my ($line);
 
-  ($infd, $outfd) = &gst_file_open_filter_write_from_names ($file);
+  ($infd, $outfd) = &Utils::File::open_filter_write_from_names ($file);
   return undef if !$outfd;
 
   while ($line = &gst_share_nfs_exports_get_next_entry_line ($infd, $outfd))
@@ -710,8 +710,8 @@ sub gst_share_nfs_exports_remove_entry
     }
   }
 
-  &gst_file_close ($infd);
-  &gst_file_close ($outfd);
+  &Utils::File::close_file ($infd);
+  &Utils::File::close_file ($outfd);
 }
 
 sub gst_share_nfs_exports_get_entry_line_point
@@ -760,7 +760,7 @@ sub gst_share_get_smbclient_list_cmd
   my ($host) = @_;
   my ($tool_smbclient);
 
-  $tool_smbclient = &gst_file_locate_tool ("smbclient");
+  $tool_smbclient = &Utils::File::locate_tool ("smbclient");
 
   return "$tool_smbclient -N -U % -L -I $host";
 }
@@ -803,7 +803,7 @@ sub gst_share_scan_smb_start
 
   foreach $host (@hosts)
   {
-    push @procs, &gst_process_fork (\&gst_share_scan_smb_host_call, $host);
+    push @procs, &Utils::Util::process_fork (\&gst_share_scan_smb_host_call, $host);
   }
 
   return \@procs;
@@ -836,7 +836,7 @@ sub gst_share_scan_nfs_start
 
   foreach $host (@hosts)
   {
-    push @procs, &gst_process_fork (\&gst_share_scan_nfs_host_call, $host);
+    push @procs, &Utils::Util::process_fork (\&gst_share_scan_nfs_host_call, $host);
   }
 
   return \@procs;
@@ -857,7 +857,7 @@ sub gst_share_scan_share_collect
       $host = shift @dirs;
       $hash{$$host2name{$host}} = [ @dirs ];
     }
-    &gst_process_kill ($proc);
+    &Utils::Util::process_kill ($proc);
   }
 
   return \%hash;
@@ -876,7 +876,7 @@ sub gst_share_scan_network
   $nfs_procs = &gst_share_scan_nfs_start (@hosts);
   $smb_procs = &gst_share_scan_smb_start (@hosts);
 
-  &gst_process_list_check_ready (10, [@$lookup_procs, @$nfs_procs, @$smb_procs]);
+  &Utils::Util::process_list_check_ready (10, [@$lookup_procs, @$nfs_procs, @$smb_procs]);
 
   @names = &gst_network_lookup_address_collect ($lookup_procs);
   # http://tlc.perlarchive.com/articles/perl/ug0001.shtml

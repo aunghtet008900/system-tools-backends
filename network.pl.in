@@ -25,6 +25,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::Util;
+use Utils::File;
 use Socket;
 
 $SCRIPTSDIR = "@scriptsdir@";
@@ -35,11 +37,9 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 }
 
 require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/file.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/replace.pl$DOTIN";
 require "$SCRIPTSDIR/service.pl$DOTIN";
-require "$SCRIPTSDIR/util.pl$DOTIN";
 require "$SCRIPTSDIR/xml.pl$DOTIN";
 require "$SCRIPTSDIR/process.pl$DOTIN";
 
@@ -71,7 +71,7 @@ sub gst_network_get_linux_wireless_ifaces
   my ($fd, $line);
   my (@ifaces, $command);
 
-  $command = &gst_file_get_cmd_path ("iwconfig");
+  $command = &Utils::File::get_cmd_path ("iwconfig");
   open $fd, "$command |";
   return @ifaces if $fd eq undef;
 
@@ -83,9 +83,9 @@ sub gst_network_get_linux_wireless_ifaces
     }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return \@ifaces;
 }
 
@@ -94,7 +94,7 @@ sub gst_network_get_freebsd_wireless_ifaces
   my ($fd, $line, $iface);
   my (@ifaces, $command);
 
-  $command = &gst_file_get_cmd_path ("iwconfig");
+  $command = &Utils::File::get_cmd_path ("iwconfig");
   open $fd, "$command |";
   return @ifaces if $fd eq undef;
 
@@ -111,8 +111,8 @@ sub gst_network_get_freebsd_wireless_ifaces
     }
   }
 
-  &gst_file_close ($fd);
-  &gst_report_leave ();
+  &Utils::File::close_file ($fd);
+  &Utils::Report::leave ();
 
   return \@ifaces;
 }
@@ -143,7 +143,7 @@ sub gst_network_config_wireless
     $command .= " $dev";
     $command .= " essid '$essid'" if ($essid);
     $command .= " key '$key'" if ($key);
-    &gst_file_run ($command);
+    &Utils::File::run ($command);
   }
 }
 
@@ -159,11 +159,11 @@ sub gst_network_enable_iface
 
   if ($bootproto eq "dhcp")
   {
-    if (&gst_file_locate_tool ("dhclient3"))
+    if (&Utils::File::locate_tool ("dhclient3"))
     {
       $command = "dhclient3 -pf /var/run/dhclient.$dev.pid $dev";
     }
-    elsif (&gst_file_locate_tool ("dhclient"))
+    elsif (&Utils::File::locate_tool ("dhclient"))
     {
       $command = "dhclient -pf /var/run/dhclient.$dev.pid -e $dev";
     }
@@ -182,7 +182,7 @@ sub gst_network_enable_iface
     $command .= " up";
   }
 
-  return &gst_file_run ($command);
+  return &Utils::File::run ($command);
 }
 
 sub gst_network_get_chat_file
@@ -196,7 +196,7 @@ sub gst_network_get_chat_file
   $external_line = $$hash{"configuration"}{"external_line"};
   $dial_command  = $$hash{"configuration"}{"dial_command"};
 
-  $filename = gst_file_get_temp_name ("network-admin-chat-script-XXXXXXXXX");
+  $filename = Utils::File::get_temp_name ("network-admin-chat-script-XXXXXXXXX");
   $tmp_file = "/tmp/$filename";
 
   $dial  = $dial_command;
@@ -231,7 +231,7 @@ sub gst_network_enable_modem
   $command .= " user " . $$config{"login"};
   $command .= " connect \'$command_chat -v -f $chat_file\'";
 
-  $ret = &gst_file_run ($command);
+  $ret = &Utils::File::run ($command);
   
   return $ret;
 }
@@ -256,7 +256,7 @@ sub gst_network_enable_isdn
   $command .= " user " . $$config{"login"};
   $command .= " number " . $$config{"phone_number"};
 
-  return &gst_file_run ($command);
+  return &Utils::File::run ($command);
 }
 
 sub drop_dhcp_connection
@@ -282,12 +282,12 @@ sub gst_network_enable_iface_with_config
   $command_ifconfig = "ifconfig";
   $command_iwconfig = "iwconfig";
   $command_pppd     = "pppd";
-  $command_chat     = gst_file_locate_tool ("chat");
+  $command_chat     = Utils::File::locate_tool ("chat");
 
   $dev = $$hash{"dev"};
 
   $command = "$command_ifconfig $dev down";
-  $ret = &gst_file_run ($command);
+  $ret = &Utils::File::run ($command);
 
   &drop_dhcp_connection ($dev);
   &drop_pppd_connection ($dev);
@@ -527,7 +527,7 @@ sub gst_network_ping_broadcast_call
   my ($cmd, %hosts, $fd);
 
   $cmd = &gst_network_get_broadcast_ping_cmd ($bcast);
-  $fd = &gst_file_run_pipe_read ($cmd);
+  $fd = &Utils::File::run_pipe_read ($cmd);
   return undef if $fd eq undef;
   while (<$fd>)
   {
@@ -538,7 +538,7 @@ sub gst_network_ping_broadcast_call
       $hosts{$1} = 1 ;
     }
   }
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   return join (':', keys (%hosts));
 }
@@ -556,11 +556,11 @@ sub gst_network_find_hosts
     $iface = $$ifaces{$dev};
     if ($$iface{"active"} && exists $$iface{"bcast"})
     {
-      push @procs, &gst_process_fork (\&gst_network_ping_broadcast_call, $$iface{"bcast"});
+      push @procs, &Utils::Util::process_fork (\&gst_network_ping_broadcast_call, $$iface{"bcast"});
     }
   }
 
-  &gst_process_list_check_ready (3, \@procs);
+  &Utils::Util::process_list_check_ready (3, \@procs);
 
   foreach $proc (@procs)
   {
@@ -608,7 +608,7 @@ sub gst_network_lookup_address_start
   # Fork a lookup for every address.
   foreach $addr (@addrs)
   {
-    $proc = &gst_process_fork (\&gst_network_address_lookup_call, $addr);
+    $proc = &Utils::Util::process_fork (\&gst_network_address_lookup_call, $addr);
     $$proc{"addr"} = $addr;
     push @procs, $proc;
   }
@@ -636,7 +636,7 @@ sub gst_network_lookup_address_collect
     {
       push @names, $$proc{"addr"};
     }
-    &gst_process_kill ($proc);
+    &Utils::Util::process_kill ($proc);
   }
 
   return @names;
@@ -656,7 +656,7 @@ sub gst_network_lookup_address
   my $procs;
 
   $procs = &gst_network_lookup_address_start (@addrs);
-  &gst_process_list_check_ready ($timeout, $procs);
+  &Utils::Util::process_list_check_ready ($timeout, $procs);
   return &gst_network_lookup_address_collect ($procs);
 }
 
@@ -695,8 +695,8 @@ sub gst_network_dialing_get
   my (%ret, @sections);
   my ($i, $j, $name, $val);
 
-  &gst_report_enter ();
-  &gst_report ("network_dialing_get");
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_dialing_get");
   
   @sections = &gst_parse_ini_sections ($file);
   foreach $i (@sections)
@@ -746,7 +746,7 @@ sub gst_network_dialing_get
     }
   }
   
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return \%ret;
 }
 
@@ -806,10 +806,10 @@ sub gst_network_freebsd_interfaces_get_info
 {
   my ($dev, %ifaces, $fd);
 
-  &gst_report_enter ();
-  &gst_report ("network_iface_active_get");
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_iface_active_get");
 
-  $fd = &gst_file_run_pipe_read ("ifconfig");
+  $fd = &Utils::File::run_pipe_read ("ifconfig");
   return {} if $fd eq undef;
   
   while (<$fd>)
@@ -832,8 +832,8 @@ sub gst_network_freebsd_interfaces_get_info
     }
   }
   
-  &gst_file_close ($fd);
-  &gst_report_leave ();
+  &Utils::File::close_file ($fd);
+  &Utils::Report::leave ();
   return \%ifaces;
 }
 
@@ -841,10 +841,10 @@ sub gst_network_linux_interfaces_get_info
 {
   my ($dev, %ifaces, $fd);
 
-  &gst_report_enter ();
-  &gst_report ("network_iface_active_get");
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_iface_active_get");
 
-  $fd = &gst_file_run_pipe_read ("ifconfig -a");
+  $fd = &Utils::File::run_pipe_read ("ifconfig -a");
   return {} if $fd eq undef;
   
   while (<$fd>)
@@ -868,8 +868,8 @@ sub gst_network_linux_interfaces_get_info
     }
   }
   
-  &gst_file_close ($fd);
-  &gst_report_leave ();
+  &Utils::File::close_file ($fd);
+  &Utils::Report::leave ();
   return \%ifaces;
 }
 
@@ -900,10 +900,10 @@ sub gst_network_active_interfaces_get
   my $fd;
   my @ret = ();
 
-  &gst_report_enter ();
-  &gst_report ("network_iface_active_get");
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_iface_active_get");
 
-  $fd = &gst_file_run_pipe_read ("ifconfig");
+  $fd = &Utils::File::run_pipe_read ("ifconfig");
   return undef if $fd eq undef;
   
   while (<$fd>)
@@ -914,9 +914,9 @@ sub gst_network_active_interfaces_get
     push @ret, $_;
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return @ret;
 }
 
@@ -924,10 +924,10 @@ sub gst_network_freebsd5_active_interfaces_get
 {
   my ($fd, @ret);
 
-  &gst_report_enter ();
-  &gst_report ("network_iface_active_get");
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_iface_active_get");
 
-  $fd = &gst_file_run_pipe_read ("ifconfig");
+  $fd = &Utils::File::run_pipe_read ("ifconfig");
   return undef if ($fd eq undef);
 
   while (<$fd>)
@@ -939,8 +939,8 @@ sub gst_network_freebsd5_active_interfaces_get
     }
   }
 
-  &gst_file_close ($fd);
-  &gst_report_leave ();
+  &Utils::File::close_file ($fd);
+  &Utils::Report::leave ();
 
   return @ret;
 }
@@ -968,8 +968,8 @@ sub gst_network_interface_active
   my ($search_iface, $proc) = @_;
   my @ifaces;
 
-  &gst_report_enter ();
-  &gst_report ("network_iface_is_active", $search_iface);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_iface_is_active", $search_iface);
 
   @ifaces = &$proc ();
   while ($ifaces[0] ne "")
@@ -977,7 +977,7 @@ sub gst_network_interface_active
     return 1 if (shift (@ifaces) eq $search_iface);
   }
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return 0;
 }
 
@@ -1029,12 +1029,12 @@ sub gst_network_sysconfig_rh72_ifaces_get_existing
   my ($ret);
   
   # This syncs /etc/sysconfig/network-scripts and /etc/sysconfig/networking
-  &gst_file_run ("redhat-config-network-cmd");
+  &Utils::File::run ("redhat-config-network-cmd");
   
   $ret = &gst_network_sysconfig_dir_ifaces_get_existing
       ("/etc/sysconfig/networking/profiles/default");
   
-  &gst_arr_merge ($ret, 
+  &Utils::Util::arr_merge ($ret, 
                   &gst_network_sysconfig_dir_ifaces_get_existing
                   ("/etc/sysconfig/networking/devices"));
   
@@ -1063,7 +1063,7 @@ sub gst_network_suse70_ifaces_get_existing
   my $file = "$gst_prefix/etc/rc.config";
   my ($i, $dev, @ret, $fd);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   return @ret if !$fd;
   
   while ($i = <$fd>)
@@ -1074,7 +1074,7 @@ sub gst_network_suse70_ifaces_get_existing
     }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return @ret;
 }
 
@@ -1094,7 +1094,7 @@ sub gst_network_slackware91_ifaces_get_existing
   my $pppscript = "/etc/ppp/pppscript";
   my ($fd, $i, @ret);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   return @ret if !$fd;
 
   while ($i = <$fd>)
@@ -1105,9 +1105,9 @@ sub gst_network_slackware91_ifaces_get_existing
     }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
-  if (&gst_file_exists ($pppscript))
+  if (&Utils::File::exists ($pppscript))
   {
     push @ret, "ppp0";
   }
@@ -1120,7 +1120,7 @@ sub gst_network_gentoo_ifaces_get_existing
   my $file = "/etc/conf.d/net";
   my ($fd, $i, @ret, $ppp);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   return @ret if !$fd;
 
   while ($i = <$fd>)
@@ -1146,7 +1146,7 @@ sub gst_network_freebsd_ifaces_get_existing
   my $file = "/etc/rc.conf";
   my ($fd, $i, @ret);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   return @ret if !$fd;
 
   while ($i = <$fd>)
@@ -1171,7 +1171,6 @@ sub gst_network_suse70_parse_iface_num
     return $i if $ret eq $dev;
   }
 
-  &gst_debug_print_string ("\n\nWarning: gst_network_suse70_parse_iface_num: num for $dev not found.\n\n");
   return -1;
 }
 
@@ -1424,19 +1423,17 @@ sub gst_network_suse70_ppp_iface_activate
 
   @paths = &gst_service_sysv_get_paths ();
   $wvdial_dod = $paths[1] . "/wvdial.dod";
-  $tool_ifconfig = &gst_file_locate_tool ("ifconfig");
+  $tool_ifconfig = &Utils::File::locate_tool ("ifconfig");
 
   if ($enabled)
   {
-    &gst_debug_print_string ("\n\nifup ppp iface $name\n\n");
-    return -1 if &gst_file_run_bg ("$wvdial_dod start \"$name\"");
+    return -1 if &Utils::File::run_bg ("$wvdial_dod start \"$name\"");
   }
   else
   {
     # Hmm... you'd  better not have more than one ppp connection active:
     # this is the only SuSE way of doing it.
-    &gst_debug_print_string ("\n\nifdown ppp iface $name\n\n");
-    return -1 if &gst_file_run ("$wvdial_dod stop");
+    return -1 if &Utils::File::run ("$wvdial_dod stop");
   }
 
   return 0;
@@ -1477,10 +1474,10 @@ sub gst_network_slackware91_create_pppgo
   my ($contents, $pppd, $chat);
   local *FILE;
 
-  if (!&gst_file_exists ($pppgo))
+  if (!&Utils::File::exists ($pppgo))
   {
-    $pppd = &gst_file_locate_tool ("pppd");
-    $chat = &gst_file_locate_tool ("chat");
+    $pppd = &Utils::File::locate_tool ("pppd");
+    $chat = &Utils::File::locate_tool ("chat");
     
     # create a simple ppp-go from scratch
     # this script is based on the one that's created by pppsetup
@@ -1489,7 +1486,7 @@ sub gst_network_slackware91_create_pppgo
     $contents .= "( $pppd connect \"$chat -v -f /etc/ppp/pppscript\") || exit 1 \n";
     $contents .= "exit 0 \n";
 
-    &gst_file_buffer_save ($contents, $pppgo);
+    &Utils::File::save_buffer ($contents, $pppgo);
     chmod 0777, "$gst_prefix/$pppgo";
   }
 }
@@ -1541,7 +1538,7 @@ sub gst_network_create_pppscript
   my ($pppscript) = @_;
   my ($contents);
 
-  if (!&gst_file_exists ($pppscript))
+  if (!&Utils::File::exists ($pppscript))
   {
     # create a template file from scratch
     $contents  = 'TIMEOUT 60' . "\n";
@@ -1558,7 +1555,7 @@ sub gst_network_create_pppscript
     $contents .= 'TIMEOUT 75' . "\n";
     $contents .= 'CONNECT' . "\n";
 
-    &gst_file_buffer_save ($contents, $pppscript);
+    &Utils::File::save_buffer ($contents, $pppscript);
   }
 }
 
@@ -1566,9 +1563,9 @@ sub gst_network_create_isdn_options
 {
   my ($file) = @_;
 
-  if (!&gst_file_exists ($file))
+  if (!&Utils::File::exists ($file))
   {
-    &gst_file_copy_from_stock ("general_isdn_ppp_options", $file);
+    &Utils::File::copy_file_from_stock ("general_isdn_ppp_options", $file);
   }
 }
 
@@ -1577,12 +1574,12 @@ sub gst_network_check_pppd_plugin
   my ($plugin) = @_;
   my ($version, $output);
 
-  $version = &gst_file_run_backtick ("pppd --version", 1);
+  $version = &Utils::File::run_backtick ("pppd --version", 1);
   $version =~ s/.*version[ \t]+//;
   chomp $version;
 
   return 0 if !version;
-  return &gst_file_exists ("/usr/lib/pppd/$version/$plugin.so");
+  return &Utils::File::exists ("/usr/lib/pppd/$version/$plugin.so");
 }
 
 sub gst_network_interfaces_get
@@ -1637,7 +1634,7 @@ sub gst_network_interfaces_get
   $dev = "ppp0" if ($$tool{"system"} eq "Linux");
   $dev = "tun0" if ($$tool{"system"} eq "FreeBSD");
 
-  if (!exists $$hash{$dev} && &gst_file_locate_tool ("pppd"))
+  if (!exists $$hash{$dev} && &Utils::File::locate_tool ("pppd"))
   {
     $$hash{$dev}{"dev"} = $dev;
     $$hash{$dev}{"enabled"} = 0;
@@ -1799,8 +1796,7 @@ sub gst_network_get_file
 
   return &$proc ($iface) if $proc;
 
-  # FIXME: should make us bail.
-  &gst_debug_print_string ("\n\nWarning: No network_get_file proc for dist $gst_dist.\n\n");
+  # FIXME: arriving here should make us bail.
   return undef;
 }
 
@@ -1808,7 +1804,7 @@ sub gst_network_get_default_gatewaydev
 {
   my ($fd, $gatewaydev);
 
-  $fd = &gst_file_run_pipe_read ("route -n");
+  $fd = &Utils::File::run_pipe_read ("route -n");
   while (<$fd>)
   {
     if (/^0\.0\.0\.0.*[ \t]([a-zA-Z0-9]*)/)
@@ -1818,7 +1814,7 @@ sub gst_network_get_default_gatewaydev
     }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return $gatewaydev;
 }
 
@@ -1830,7 +1826,7 @@ sub gst_network_route_set_default_gw
   # Just in case. This means that no static gateway is needed.
   return if $gateway eq "";
 
-  $fd = &gst_file_run_pipe_read ("route -n");
+  $fd = &Utils::File::run_pipe_read ("route -n");
   while (<$fd>)
   {
     if (/^0\.0\.0\.0[ \t]+([0-9.]+) /)
@@ -1845,13 +1841,13 @@ sub gst_network_route_set_default_gw
       last;
     }
   }
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   if (($curr_gateway    ne $gateway) ||
       ($curr_gatewaydev ne $gatewaydev))
   {
-    &gst_file_run ("route del default gw $curr_gateway");
-    &gst_file_run ("route add default gw $gateway $gatewaydev");
+    &Utils::File::run ("route del default gw $curr_gateway");
+    &Utils::File::run ("route add default gw $gateway $gatewaydev");
   }
 }
 
@@ -1859,10 +1855,10 @@ sub gst_network_run_hostname
 {
   my ($hostname) = @_;
 
-  &gst_report_enter ();
-  &gst_report ("network_hostname_set", $hostname);
-  &gst_file_run ("hostname $hostname");
-  &gst_report_leave ();
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_hostname_set", $hostname);
+  &Utils::File::run ("hostname $hostname");
+  &Utils::Report::leave ();
 }
 
 sub gst_network_dialing_get_section_name
@@ -1907,9 +1903,9 @@ sub gst_network_dialing_set
   my $ret;
   my ($i, $j);
 
-  &gst_report_enter ();
-  &gst_report ("network_dialing_set");
-  &gst_file_run ("wvdialconf $gst_prefix/$file") if (!-e "$gst_prefix/$file");
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_dialing_set");
+  &Utils::File::run ("wvdialconf $gst_prefix/$file") if (!-e "$gst_prefix/$file");
 
   # Remove those that are in old, but not in values.
   $old_hash = $$old_hash{"dialing"};
@@ -1970,7 +1966,7 @@ sub gst_network_dialing_set
     }
   }
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 
   chmod (0600, $file) if !$ret;
   
@@ -1982,20 +1978,20 @@ sub gst_network_rh62_interface_activate_by_dev
 {
   my ($dev, $enabled) = @_;
 
-  &gst_report_enter ();
+  &Utils::Report::enter ();
 
   if ($enabled)
   {
-    &gst_report ("network_iface_activate", $dev);
-    return -1 if &gst_file_run ("ifup $dev");
+    &Utils::Report::do_report ("network_iface_activate", $dev);
+    return -1 if &Utils::File::run ("ifup $dev");
   }
   else
   {
-    &gst_report ("network_iface_deactivate", $dev);
-    return -1 if &gst_file_run ("ifdown $dev");
+    &Utils::Report::do_report ("network_iface_deactivate", $dev);
+    return -1 if &Utils::File::run ("ifdown $dev");
   }
   
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 
   return 0;
 }
@@ -2049,20 +2045,20 @@ sub gst_network_suse70_interface_activate_by_dev
   @paths = &gst_service_sysv_get_paths ();
   $network = $paths[1] . "/network";
 
-  &gst_report_enter ();
+  &Utils::Report::enter ();
   
   if ($enabled)
   {
-    &gst_report ("network_iface_deactivate", $hash{"dev"});
-    return -1 if &gst_file_run_bg ("$network start $dev");
+    &Utils::Report::do_report ("network_iface_deactivate", $hash{"dev"});
+    return -1 if &Utils::File::run_bg ("$network start $dev");
   }
   else
   {
-    &gst_report ("network_iface_activate", $hash{"dev"});
-    return -1 if &gst_file_run ("$network stop $dev");
+    &Utils::Report::do_report ("network_iface_activate", $hash{"dev"});
+    return -1 if &Utils::File::run ("$network stop $dev");
   }
   
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 
   return 0;
 }
@@ -2084,22 +2080,22 @@ sub gst_network_slackware91_interface_activate_by_dev
   my ($file) = "/etc/rc.d/rc.inet1.conf";
   my ($ret) = 0;
 
-  &gst_report_enter ();
+  &Utils::Report::enter ();
 
   if ($enabled)
   {
-    &gst_report ("network_iface_activate", $dev);
+    &Utils::Report::do_report ("network_iface_activate", $dev);
 
     if ($dev =~ /^ppp/)
     {
-      $ret = &gst_file_run ("ppp-go");
+      $ret = &Utils::File::run ("ppp-go");
     }
     else
     {
       if (&gst_parse_rcinet1conf_bool ($file, $dev, USE_DHCP))
       {
         # Use DHCP
-        $ret = &gst_file_run ("dhclient $dev");
+        $ret = &Utils::File::run ("dhclient $dev");
       }
       else
       {
@@ -2107,25 +2103,25 @@ sub gst_network_slackware91_interface_activate_by_dev
         $netmask = &gst_parse_rcinet1conf   ($file, $dev, "NETMASK");
         $gateway = &gst_network_get_gateway ($file, "GATEWAY", $address, $netmask);
 
-        $ret = &gst_file_run ("ifconfig $dev $address netmask $netmask up");
+        $ret = &Utils::File::run ("ifconfig $dev $address netmask $netmask up");
 
         # Add the gateway if necessary
         if ($gateway ne undef)
         {
-          &gst_file_run ("route add default gw $gateway");
+          &Utils::File::run ("route add default gw $gateway");
         }
       }
     }
   }
   else
   {
-    &gst_report ("network_iface_deactivate", $dev);
+    &Utils::Report::do_report ("network_iface_deactivate", $dev);
 
-    $ret = &gst_file_run ("ifconfig $dev down") if ($dev =~ /^eth/);
-    $ret = &gst_file_run ("ppp-off") if ($dev =~ /^ppp/);
+    $ret = &Utils::File::run ("ifconfig $dev down") if ($dev =~ /^eth/);
+    $ret = &Utils::File::run ("ppp-off") if ($dev =~ /^ppp/);
   }
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return -1 if ($ret != 0);
   return 0;
 }
@@ -2147,7 +2143,7 @@ sub gst_network_gentoo_interface_activate_by_dev
   my $file = "/etc/init.d/net.$dev";
   my $action = ($enabled == 1)? "start" : "stop";
 
-  return &gst_file_run ("$file $action");
+  return &Utils::File::run ("$file $action");
 }
 
 sub gst_network_gentoo_interface_activate
@@ -2172,34 +2168,34 @@ sub gst_network_freebsd_interface_activate_by_dev
   if ($enabled)
   {
     # Run the /etc/start_if.$dev commands
-    $fd = &gst_file_open_read_from_names ($startif);
+    $fd = &Utils::File::open_read_from_names ($startif);
 
     while (<$fd>)
     {
       `$_`;
     }
 
-    &gst_file_close ($fd);
+    &Utils::File::close_file ($fd);
     $command = &gst_parse_sh ($file, "ifconfig_$dev");
 
     # Bring up the interface
     if ($command =~ /DHCP/i)
     {
       $dhcp_flags = &gst_parse_sh ($file, "dhcp_flags");
-      &gst_file_run ("dhclient $dhcp_flags $dev");
+      &Utils::File::run ("dhclient $dhcp_flags $dev");
     }
     else
     {
-      &gst_file_run ("ifconfig $dev $command");
+      &Utils::File::run ("ifconfig $dev $command");
     }
 
     # Add the default route
     $default_route = &gst_parse_sh ($file, "defaultrouter");
-    &gst_file_run ("route add default $default_route") if ($default_route !~ /^no$/i);
+    &Utils::File::run ("route add default $default_route") if ($default_route !~ /^no$/i);
   }
   else
   {
-    &gst_file_run ("ifconfig $dev down");
+    &Utils::File::run ("ifconfig $dev down");
   }
 }
 
@@ -2218,19 +2214,19 @@ sub gst_network_remove_pap_entry
   my ($file, $login) = @_;
   my ($i, $buff);
 
-  &gst_report_enter ();
-  &gst_report ("network_remove_pap", $file, $login);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_remove_pap", $file, $login);
   
-  $buff = &gst_file_buffer_load ($file);
+  $buff = &Utils::File::load_buffer ($file);
 
   foreach $i (@$buff)
   {
     $i = "" if ($i =~ /^[ \t]*$login[ \t]/);
   }
 
-  &gst_file_buffer_clean ($buff);
-  &gst_report_leave ();
-  return &gst_file_buffer_save ($buff, $file);
+  &Utils::File::clean_buffer ($buff);
+  &Utils::Report::leave ();
+  return &Utils::File::save_buffer ($buff, $file);
 }
 
 sub gst_network_rh62_interface_delete
@@ -2249,7 +2245,7 @@ sub gst_network_rh62_interface_delete
     &gst_network_remove_pap_entry ("/etc/ppp/chap-secrets", $login);
   }
 
-  &gst_file_remove ($file);
+  &Utils::File::remove ($file);
 }
 
 sub gst_network_rh72_interface_delete
@@ -2269,11 +2265,11 @@ sub gst_network_rh72_interface_delete
     &gst_network_remove_pap_entry ("/etc/ppp/chap-secrets", $login);
   }
 
-  &gst_file_remove ("$gst_prefix/etc/sysconfig/networking/devices/ifcfg-$filedev");
-  &gst_file_remove ("$gst_prefix/etc/sysconfig/networking/profiles/default/ifcfg-$filedev");
-  &gst_file_remove ("$gst_prefix/etc/sysconfig/network-scripts/ifcfg-$dev");
+  &Utils::File::remove ("$gst_prefix/etc/sysconfig/networking/devices/ifcfg-$filedev");
+  &Utils::File::remove ("$gst_prefix/etc/sysconfig/networking/profiles/default/ifcfg-$filedev");
+  &Utils::File::remove ("$gst_prefix/etc/sysconfig/network-scripts/ifcfg-$dev");
  
-  &gst_file_run ("redhat-config-network-cmd");
+  &Utils::File::run ("redhat-config-network-cmd");
 }
 
 sub gst_network_deb22_interface_delete
@@ -2323,9 +2319,9 @@ sub gst_network_suse90_interface_delete
 
   &gst_network_rh62_interface_activate_by_dev ($dev, 0);
 
-  &gst_file_remove ("$gst_prefix/etc/sysconfig/network/ifroute-$file");
-  &gst_file_remove ("$gst_prefix/etc/sysconfig/network/ifcfg-$file");
-  &gst_file_remove ("$gst_prefix/etc/sysconfig/network/providers/$provider");
+  &Utils::File::remove ("$gst_prefix/etc/sysconfig/network/ifroute-$file");
+  &Utils::File::remove ("$gst_prefix/etc/sysconfig/network/ifcfg-$file");
+  &Utils::File::remove ("$gst_prefix/etc/sysconfig/network/providers/$provider");
 }
 
 sub gst_network_pld10_interface_delete
@@ -2344,7 +2340,7 @@ sub gst_network_pld10_interface_delete
     &gst_network_remove_pap_entry ("/etc/ppp/chap-secrets", $login);
   }
                                                                                 
-  &gst_file_remove ($file);
+  &Utils::File::remove ($file);
 }
 
 sub gst_network_slackware91_interface_delete
@@ -2368,7 +2364,7 @@ sub gst_network_slackware91_interface_delete
   }
   elsif ($dev =~ /^ppp/)
   {
-    &gst_file_remove ($pppscript);
+    &Utils::File::remove ($pppscript);
   }
 }
 
@@ -2386,7 +2382,7 @@ sub gst_network_gentoo_interface_delete
   if ($dev =~ /^ppp/)
   {
     $netconf = "/etc/conf.d/net.$dev";
-    gst_file_remove ($netconf);
+    Utils::File::remove ($netconf);
   }
   else
   {
@@ -2404,14 +2400,14 @@ sub gst_network_freebsd_interface_delete
   my ($pppconf)  = "/etc/ppp/ppp.conf";
   my ($buff, $line_no, $end_line_no, $i);
 
-  &gst_file_run ("ifconfig $dev down");
+  &Utils::File::run ("ifconfig $dev down");
 
   if ($dev =~ /^tun[0-9]+/)
   {
     # Delete the ppp.conf section
     $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
 
-    $buff = &gst_file_buffer_load ($pppconf);
+    $buff = &Utils::File::load_buffer ($pppconf);
 
     $line_no     = &gst_parse_pppconf_find_stanza      ($buff, $section);
     $end_line_no = &gst_parse_pppconf_find_next_stanza ($buff, $line_no + 1);
@@ -2423,12 +2419,12 @@ sub gst_network_freebsd_interface_delete
       delete $$buff[$i];
     }
 
-    &gst_file_buffer_clean ($buff);
-    &gst_file_buffer_save ($buff, $pppconf);
+    &Utils::File::clean_buffer ($buff);
+    &Utils::File::save_buffer ($buff, $pppconf);
   }
   
   &gst_replace_sh  ($file, "ifconfig_$dev", "");
-  &gst_file_remove ($startif);
+  &Utils::File::remove ($startif);
 }
 
 sub gst_network_interface_changed
@@ -2437,7 +2433,7 @@ sub gst_network_interface_changed
 
     delete $$iface{"type"};
     delete $$iface_old{"type"};
-    return !&gst_util_struct_eq ($iface, $iface_old);
+    return !&Utils::Util::struct_eq ($iface, $iface_old);
 }
 
 # silly function for leveling the configuration hash
@@ -2461,8 +2457,8 @@ sub gst_network_interface_set
   my (%dist_attrib, %fn);
   my ($proc, $i, $res);
 
-  &gst_report_enter ();
-  &gst_report ("network_iface_set", $dev);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_iface_set", $dev);
   %dist_attrib = &gst_network_get_interface_replace_table ();
   $proc = $dist_attrib{"iface_set"};
   %fn = %{$dist_attrib{"fn"}};
@@ -2481,7 +2477,7 @@ sub gst_network_interface_set
   # if success saving the settings for the interface, set up immediatly.
   &$proc ($values_hash, $old_hash, $$values_hash{"enabled"}, 0) if !$res;
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 
   return $res;
 }
@@ -2496,8 +2492,8 @@ sub gst_network_interfaces_set
   my ($delete_proc, $set_proc);
   my ($was_active);
 
-  &gst_report_enter ();
-  &gst_report ("network_ifaces_set");
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_ifaces_set");
   
   %dist_attrib = &gst_network_get_interface_replace_table ();
   $old_hash = $$old_hash{"interface"};
@@ -2532,7 +2528,7 @@ sub gst_network_interfaces_set
     }
   }
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return $res;
 }
 
@@ -2557,12 +2553,12 @@ sub gst_network_get_pap_passwd
   my (@arr, $passwd);
 
   $login = '"?' . $login . '"?';
-  &gst_report_enter ();
-  &gst_report ("network_get_pap_passwd", $login, $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_get_pap_passwd", $login, $file);
   $arr = &gst_parse_split_first_array ($file, $login, "[ \t]+", "[ \t]+");
 
   $passwd = $$arr[1];
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 
   $passwd =~ s/^\"([^\"]*)\"$/$1/;
   
@@ -2587,10 +2583,10 @@ sub gst_network_get_ppp_options_re
   my ($file, $re) = @_;
   my ($fd, @res);
 
-  &gst_report_enter ();
-  &gst_report ("network_get_ppp_option", &gst_replace_regexp_to_separator ($re), $file);
-  $fd = &gst_file_open_read_from_names ("$file");
-  &gst_report_leave ();
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_get_ppp_option", &gst_replace_regexp_to_separator ($re), $file);
+  $fd = &Utils::File::open_read_from_names ("$file");
+  &Utils::Report::leave ();
   return undef if !$fd;
 
   while (($_ = &gst_parse_chomp_line_hash_comment ($fd)) != -1)
@@ -2612,10 +2608,10 @@ sub gst_network_set_ppp_options_re
   my ($buff, $line, $replaced, $ret);
   my ($pre_space, $post_comment);
 
-  &gst_report_enter ();
-  &gst_report ("network_set_ppp_option", &gst_replace_regexp_to_separator ($re), $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_set_ppp_option", &gst_replace_regexp_to_separator ($re), $file);
 
-  $buff = &gst_file_buffer_load ($file);
+  $buff = &Utils::File::load_buffer ($file);
 
   foreach $line (@$buff)
   {
@@ -2636,9 +2632,9 @@ sub gst_network_set_ppp_options_re
 
   push @$buff, "$value\n" if !$replaced;
   
-  &gst_file_buffer_clean ($buff);
-  $ret = &gst_file_buffer_save ($buff, $file);
-  &gst_report_leave ();
+  &Utils::File::clean_buffer ($buff);
+  $ret = &Utils::File::save_buffer ($buff, $file);
+  &Utils::Report::leave ();
   return $ret;
 }
 
@@ -2647,10 +2643,10 @@ sub gst_network_set_ppp_options_connect
   my ($file, $value) = @_;
   my $ret;
 
-  &gst_report_enter ();
-  &gst_report ("network_set_ppp_connect", $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_set_ppp_connect", $file);
   $ret = &gst_network_set_ppp_options_re ($file, "^connect", "connect \"/usr/sbin/chat -v -f $value\"");
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return $ret;
 }
 
@@ -2663,10 +2659,10 @@ sub gst_network_get_ppp_options_unsup
                        "remotename", "hide-password", "noauth", "noipdefault", "ipparam", "name \".*\"");
 
   $res = "";
-  &gst_report_enter ();
-  &gst_report ("network_get_ppp_unsup", $file);
-  $fd = &gst_file_open_read_from_names ("$file");
-  &gst_report_leave ();
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_get_ppp_unsup", $file);
+  $fd = &Utils::File::open_read_from_names ("$file");
+  &Utils::Report::leave ();
   return undef if !$fd;
 
   GET_LINE: while (($line = &gst_parse_chomp_line_hash_comment ($fd)) != -1)
@@ -2699,9 +2695,9 @@ sub gst_network_set_ppp_options_unsup
   # The options in the last row are those that are on by default in pppd and we don't handle,
   # so we ignore them, as they are set implicitly if not specified.
 
-  &gst_report_enter ();
-  &gst_report ("network_set_ppp_unsup", $file);
-  $buff = &gst_file_buffer_load ($file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_set_ppp_unsup", $file);
+  $buff = &Utils::File::load_buffer ($file);
 
   GET_LINE: foreach $line (@$buff)
   {
@@ -2720,9 +2716,9 @@ sub gst_network_set_ppp_options_unsup
   $value =~ s/[ \t]+([^0-9])/\n$1/g;
   push @$buff, $value . "\n";
   
-  &gst_file_buffer_clean ($buff);
-  $ret = &gst_file_buffer_save ($buff, $file);
-  &gst_report_leave ();
+  &Utils::File::clean_buffer ($buff);
+  $ret = &Utils::File::save_buffer ($buff, $file);
+  &Utils::Report::leave ();
   return $ret;
 }
 
@@ -2741,7 +2737,7 @@ sub gst_network_rh62_parse_bootproto
   
   if (!exists $rh62_to_proto_name{$ret})
   {
-    &gst_report ("network_bootproto_unsup", $file, $ret);
+    &Utils::Report::do_report ("network_bootproto_unsup", $file, $ret);
     $ret = "none";
   }
   return $rh62_to_proto_name{$ret};
@@ -2773,7 +2769,7 @@ sub gst_network_deb22_parse_bootproto
        "static"   => "none"
        );
 
-  &gst_report_enter ();
+  &Utils::Report::enter ();
   @stanzas = &gst_parse_interfaces_stanzas ($file, "iface");
 
   foreach $stanza (@stanzas)
@@ -2792,10 +2788,10 @@ sub gst_network_deb22_parse_bootproto
   else
   {
     $bootproto = "none";
-    &gst_report ("network_bootproto_unsup", $method, $iface);
+    &Utils::Report::do_report ("network_bootproto_unsup", $method, $iface);
   }
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return $bootproto;
 }
 
@@ -2868,7 +2864,7 @@ sub gst_network_suse70_parse_bootproto
   $ret = &gst_network_suse70_parse_iface_sh ($file, $iface, "IFCONFIG");
   if (!exists $suse70_to_proto_name {$ret})
   {
-    &gst_report ("network_bootproto_unsup", $iface, $ret);
+    &Utils::Report::do_report ("network_bootproto_unsup", $iface, $ret);
     return "none";
   }
   
@@ -2906,7 +2902,7 @@ sub gst_network_pld10_parse_bootproto
   
   if (!exists $pld10_to_proto_name{$ret})
   {
-    &gst_report ("network_bootproto_unsup", $file, $ret);
+    &Utils::Report::do_report ("network_bootproto_unsup", $file, $ret);
     $ret = "none";
   }
   return $pld10_to_proto_name{$ret};
@@ -3151,12 +3147,12 @@ sub gst_network_debian_parse_remote_address
   my ($file, $iface) = @_;
   my ($str, @tuples, $tuple, @res);
 
-  &gst_report_enter ();
-  &gst_report ("network_get_remote", $iface);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_get_remote", $iface);
   
   @tuples = &gst_parse_interfaces_option_tuple ($file, $iface, "up", 1);
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   
   foreach $tuple (@tuples)
   {
@@ -3172,13 +3168,13 @@ sub gst_network_debian_replace_remote_address
   my ($file, $iface, $value) = @_;
   my ($ifconfig, $ret);
   
-  &gst_report_enter ();
-  &gst_report ("network_set_remote", $iface);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_set_remote", $iface);
   
-  $ifconfig = &gst_file_locate_tool ("ifconfig");
+  $ifconfig = &Utils::File::locate_tool ("ifconfig");
 
   $ret = &gst_replace_interfaces_option_str ($file, $iface, "up", "$ifconfig $iface pointopoint $value");
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return $ret;
 }
 
@@ -3212,8 +3208,8 @@ sub gst_network_debian_woody_set_auto
   my ($file, $iface, $value) = @_;
   my ($buff, $line_no, $found);
 
-  $buff = &gst_file_buffer_load ($file);
-  &gst_file_buffer_join_lines ($buff);
+  $buff = &Utils::File::load_buffer ($file);
+  &Utils::File::join_buffer_lines ($buff);
   $line_no = 0;
 
   while (($found = &gst_replace_interfaces_get_next_stanza ($buff, \$line_no, "auto")) != -1)
@@ -3222,7 +3218,7 @@ sub gst_network_debian_woody_set_auto
     {
       if ($$buff[$line_no] =~ /[ \t]$iface([\# \t\n])/)
       {
-        return &gst_file_buffer_save ($buff, $file);
+        return &Utils::File::save_buffer ($buff, $file);
       }
     }
     else
@@ -3251,7 +3247,7 @@ sub gst_network_debian_woody_set_auto
     $$buff[$line_no] =~ s/auto[ \t]*$//;
   }
   
-  return &gst_file_buffer_save ($buff, $file);
+  return &Utils::File::save_buffer ($buff, $file);
 }
 
 # looks for eth_up $eth_iface_number
@@ -3263,8 +3259,8 @@ sub gst_network_slackware91_get_auto
 
   if ($iface =~ /^eth/)
   {
-    $buff = &gst_file_buffer_load ($file);
-    &gst_file_buffer_join_lines ($buff);
+    $buff = &Utils::File::load_buffer ($file);
+    &Utils::File::join_buffer_lines ($buff);
 
     $iface =~ s/eth//;
 
@@ -3302,8 +3298,8 @@ sub gst_network_slackware91_set_auto
 
   if ($iface =~ /^eth/)
   {
-    $buff = &gst_file_buffer_load ($file);
-    &gst_file_buffer_join_lines ($buff);
+    $buff = &Utils::File::load_buffer ($file);
+    &Utils::File::join_buffer_lines ($buff);
 
     $iface =~ s/eth//;
 
@@ -3338,7 +3334,7 @@ sub gst_network_slackware91_set_auto
       $nline++;
     }
 
-    return &gst_file_buffer_save ($buff, $file);
+    return &Utils::File::save_buffer ($buff, $file);
   }
   elsif ($iface =~ /^ppp/)
   {
@@ -3366,7 +3362,7 @@ sub gst_network_freebsd5_set_auto
   my ($val);
 
   $val  = &gst_parse_sh ($file, "network_interfaces");
-  $val = &gst_file_run_backtick ("ifconfig -l") if ($val =~ /auto/);
+  $val = &Utils::File::run_backtick ("ifconfig -l") if ($val =~ /auto/);
   $val .= " ";
 
   if ($active && ($val !~ /$iface /))
@@ -3610,15 +3606,15 @@ sub gst_network_gentoo_create_files
 
   if ($dev =~ /ppp/)
   {
-    &gst_file_copy ("/etc/init.d/net.ppp0", $init) if (!&gst_file_exists ($init));
+    &Utils::File::copy_file ("/etc/init.d/net.ppp0", $init) if (!&Utils::File::exists ($init));
 
     # backup the ppp config file
-    &gst_file_copy ("/etc/conf.d/net.ppp0", $backup) if (!&gst_file_exists ($backup));
-    &gst_file_copy ($backup, $conf) if (!&gst_file_exists ($conf));
+    &Utils::File::copy_file ("/etc/conf.d/net.ppp0", $backup) if (!&Utils::File::exists ($backup));
+    &Utils::File::copy_file ($backup, $conf) if (!&Utils::File::exists ($conf));
   }
   else
   {
-    &gst_file_copy ("/etc/init.d/net.eth0", $init) if (!&gst_file_exists ($init));
+    &Utils::File::copy_file ("/etc/init.d/net.eth0", $init) if (!&Utils::File::exists ($init));
   }
 
   chmod 0755, "$gst_prefix/$init";
@@ -3632,7 +3628,7 @@ sub gst_network_freebsd5_replace_essid
   if ($essid =~ /[ \t]/)
   {
     # It's multiword
-    &gst_file_buffer_save ("ifconfig $iface ssid \"$essid\"", $startif);
+    &Utils::File::save_buffer ("ifconfig $iface ssid \"$essid\"", $startif);
     &gst_replace_sh_re ($file, "ifconfig_$iface", "ssid[ \t]+([^ \t]*)", "");
   }
   else
@@ -3651,8 +3647,8 @@ sub gst_network_freebsd_create_ppp_startif
     $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
     $section = $dev if ($section eq undef);
 
-    return &gst_file_buffer_save ("ppp -ddial $section", $startif) if ($persist eq 1);
-    return &gst_file_buffer_save ("ppp -auto  $section", $startif);
+    return &Utils::File::save_buffer ("ppp -ddial $section", $startif) if ($persist eq 1);
+    return &Utils::File::save_buffer ("ppp -auto  $section", $startif);
   }
 }
 
@@ -3716,7 +3712,7 @@ sub gst_network_suse9_get_dev_name
 
   if ($dev eq undef)
   {
-    $fd = &gst_file_run_backtick ("getcfg-interface $iface");
+    $fd = &Utils::File::run_backtick ("getcfg-interface $iface");
   }
 
   if ($dev eq undef)
@@ -3759,8 +3755,8 @@ sub gst_network_detect_essids
   my ($fd, @arr, $encrypted);
 
   # some wireless cards need to be up before scanning
-  &gst_file_run ("ifconfig $iface up");
-  $fd = &gst_file_run_pipe_read ("iwlist $iface scanning");
+  &Utils::File::run ("ifconfig $iface up");
+  $fd = &Utils::File::run_pipe_read ("iwlist $iface scanning");
   return undef if (!$fd);
 
   while (<$fd>)
@@ -3900,13 +3896,13 @@ sub gst_network_ensure_loopback
   my $hostname = $$values_hash{"hostname"};
   my $statichost = $$values_hash{"statichost"};
 
-  &gst_report_enter ();
-  &gst_report ("network_ensure_lo");
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_ensure_lo");
 
   &gst_network_ensure_loopback_statichost ($statichost, $hostname, $lo_ip);
   &gst_network_ensure_loopback_interface ($interface, $lo_ip);
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 }
 
 sub gst_network_get_parse_table
@@ -4314,7 +4310,7 @@ sub gst_network_get_parse_table
   my $dist = $dist_map{$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -5131,7 +5127,7 @@ sub gst_network_get_interface_parse_table
   my $dist = $dist_map{$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -5526,7 +5522,7 @@ sub gst_network_get_replace_table
   my $dist = $dist_map{$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -6300,7 +6296,7 @@ sub gst_network_get_interface_replace_table
   my $dist = $dist_map{$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 

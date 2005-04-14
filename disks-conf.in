@@ -41,6 +41,9 @@
 # For debuging
 # use Data::Dumper;
 
+use Utils::Util;
+use Utils::File;
+
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
   if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -51,8 +54,6 @@ BEGIN {
   
   require "$SCRIPTSDIR/general.pl$DOTIN";
   require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/util.pl$DOTIN";
-  require "$SCRIPTSDIR/file.pl$DOTIN";
   require "$SCRIPTSDIR/xml.pl$DOTIN";
   require "$SCRIPTSDIR/filesys.pl$DOTIN";
   require "$SCRIPTSDIR/partition.pl$DOTIN";
@@ -71,8 +72,6 @@ $version = "@VERSION@";
 $description =<<"end_of_description;";
        Configures locally mounted partitioned media.
 end_of_description;
-
-$progress_max = 16;
 
 
 # --- System config file locations --- #
@@ -427,7 +426,7 @@ sub read_fstab
 
   # Find the file.
 
-  $fstab_file = &gst_file_open_read_from_names(@fstab_names);
+  $fstab_file = &Utils::File::open_read_from_names(@fstab_names);
   if (not $fstab_file) { return; }  # We didn't find it.
   *FSTAB_FILE = $fstab_file;
 
@@ -441,7 +440,7 @@ sub read_fstab
 
     if ($line[0] eq "") { shift @line; }
     if ($line[0] eq "") { next; }
-    if (&gst_ignore_line($line[0])) { next; }
+    if (&Utils::Util::ignore_line($line[0])) { next; }
     ($device, $point, $fs, $options, $dump, $check) = @line;
 
     if ($device =~ /$LABEL=(.*)/) { 
@@ -533,7 +532,7 @@ sub write_fstab
   my ($ifh, $ofh);
   local (*INFILE, *OUTFILE);
 
-  ($ifh, $ofh) = &gst_file_open_filter_write_from_names(@fstab_names);
+  ($ifh, $ofh) = &Utils::File::open_filter_write_from_names(@fstab_names);
   if (not $ofh) { return; }  # No point if we can't write.
   *INFILE = $ifh; *OUTFILE = $ofh;
 
@@ -546,7 +545,7 @@ sub write_fstab
 
     if ($line[0] eq "") { shift @line; }
     if ($line[0] eq "") { print OUTFILE; next; }
-    if (&gst_ignore_line($line[0])) { print OUTFILE; next; }
+    if (&Utils::Util::ignore_line($line[0])) { print OUTFILE; next; }
     ($device, $point, $fs, $options, $dump, $check) = @line;
 
     if ($fs eq "nfs" || $fs eq "smbfs" || $fs eq "proc" || $fs eq "devpts" ||
@@ -646,7 +645,7 @@ sub write_fstab
       {
         my $part = $cf_disks[$i]->{partitions}[$j];
 
-        &gst_report ("disks_fstab_add", $cf_disks[$i]->{partitions}[$j]->{device});
+        &Utils::Report::do_report ("disks_fstab_add", $cf_disks[$i]->{partitions}[$j]->{device});
         
         # Write record.
 
@@ -756,7 +755,7 @@ sub scan_scsi_bus
 
    my $proc_scsi_file;
    local *PROC_SCSI_FILE;
-   $proc_scsi_file = &gst_file_open_read_from_names ("/proc/scsi/scsi");
+   $proc_scsi_file = &Utils::File::open_read_from_names ("/proc/scsi/scsi");
    if (not $proc_scsi_file) { return; }
    *PROC_SCSI_FILE = $proc_scsi_file;
   
@@ -883,7 +882,7 @@ sub get_fs_type
 
    #$cmd = "mount $device $point";
    
-   #$fd = &gst_file_run_pipe_read_with_stderr ($cmd);
+   #$fd = &Utils::File::run_pipe_read_with_stderr ($cmd);
    
    #if (!$fd) {
       #   my $err = `umount $device`;
@@ -902,7 +901,7 @@ sub get_fs_type
 #     }
 #  }
 
-#  &gst_file_close ($fd);
+#  &Utils::File::close_file ($fd);
 
    if ($ret eq "error")
    {
@@ -1044,7 +1043,7 @@ sub xml_parse_state
 
   # Check attribute; 'yes', 'true', 'no', 'false'.
 
-  return(&gst_util_read_boolean($$tree[0]->{state}));
+  return(&Utils::Util::read_boolean($$tree[0]->{state}));
 }
 
 
@@ -1197,7 +1196,7 @@ sub get
   &get_fdisk ();
   &read_fstab;
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ();
 }
 
@@ -1210,8 +1209,8 @@ sub set_immediate
   my $mount_tool;
   my $umount_tool;
 
-  $mount_tool = &gst_file_locate_tool("mount");
-  $umount_tool = &gst_file_locate_tool("umount");
+  $mount_tool = &Utils::File::locate_tool("mount");
+  $umount_tool = &Utils::File::locate_tool("umount");
 
   # Count partitions.
 
@@ -1239,27 +1238,24 @@ sub set_immediate
       {
         if ($cf_disks[$i]->{partitions}[$j]->{mounted})
         {
-          &gst_report ("disks_mount", $cf_disks[$i]->{partitions}[$j]->{device});
+          &Utils::Report::do_report ("disks_mount", $cf_disks[$i]->{partitions}[$j]->{device});
           system "$mount_tool " . $cf_disks[$i]->{partitions}[$j]->{device} . " " .
                  $cf_disks[$i]->{partitions}[$j]->{point} . " >/dev/null 2>/dev/null";
         }
         else
         {
-          &gst_report ("disks_umount", $cf_disks[$i]->{partitions}[$j]->{device});
+          &Utils::Report::do_report ("disks_umount", $cf_disks[$i]->{partitions}[$j]->{device});
           system "$umount_tool " . $cf_disks[$i]->{partitions}[$j]->{device} . " >/dev/null 2>/dev/null";
         }
 	
         $num_done++;
-        &gst_progress(10 + (80 / ($num_partitions - $num_done + 1)));
       }
     }
   }
   else
   {
-    &gst_report ("disks_mount_error");
+    &Utils::Report::do_report ("disks_mount_error");
   }
-  
-  &gst_progress(90);
 }
 
 
@@ -1267,14 +1263,14 @@ sub set
 {
   &xml_parse ();
 
-  &write_fstab; &gst_progress(10);
+  &write_fstab;
 
   if ($gst_do_immediate)
   {
     &set_immediate;
   }
   
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 
@@ -1284,7 +1280,7 @@ sub set
 sub filter
 {
   &xml_parse ();
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ();
 }
 
@@ -1293,8 +1289,7 @@ sub test_xml
 {
     my ($tool, $file) = @_;
 
-    &gst_report_end ();
-    &gst_progress(100);
+    &Utils::Report::end ();
     # lazy boy - acs
     system ("cat $file");
 }
@@ -1524,7 +1519,7 @@ sub cdrom_disc_info
    my $cdrom;
    
    $cdrom = &get_cdrom_disc_info ($device, $alias);
-   &gst_report_end ();
+   &Utils::Report::end ();
    &gst_xml_print_begin ("disc_info");
    &gst_xml_print_state_tag ("empty", %$cdrom->{'empty'});
    if (%$cdrom->{'empty'} == 0) {
@@ -1587,7 +1582,7 @@ sub disk_info
    my ($tool, $device, $present) = @_;
    
    my ($is_present, $disk) = &get_disk_info ($device, $present);
-   &gst_report_end ();
+   &Utils::Report::end ();
    &gst_xml_print_begin ("disk_info");
    
    if ($disk) {
@@ -1655,7 +1650,7 @@ sub dev_speed
    my ($tool, $device) = @_;
    my ($speed) = &get_dev_speed ($device);
 
-   &gst_report_end ();
+   &Utils::Report::end ();
    &gst_xml_print_begin ("dev_speed");
    &gst_xml_print_pcdata ("speed", $speed) if ($speed ne undef);
    &gst_xml_print_end ("dev_speed");
@@ -1684,7 +1679,7 @@ sub mount_fs
 {
    my ($tool, $device, $media, $typefs, $point, $mounted, $listed, $uid) = @_;
 
-   &gst_report_end ();
+   &Utils::Report::end ();
    &gst_xml_print_begin ("mount");
 
    my $error;
@@ -1786,7 +1781,7 @@ sub format
    &gst_format_partition ($command, $device, $type, $options);
    my $typefs = &get_fs_type ($device);
    
-   &gst_report_end ();
+   &Utils::Report::end ();
    &gst_xml_print_begin ("format");
    
    if ($typefs ne "none" && $typefs ne "unknown") {

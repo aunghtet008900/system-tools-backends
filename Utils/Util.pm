@@ -27,25 +27,19 @@
 
 # --- Utilities for strings, arrays and other data structures --- #
 
+package Utils::Util;
 
-$SCRIPTSDIR = "@scriptsdir@";
-if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
-{
-    $SCRIPTSDIR = ".";
-    $DOTIN = ".in";
-}
-
-sub gst_max
+sub max
 {
   return ($_[0] > $_[1])? $_[0]: $_[1];
 }
 
 # Boolean <-> strings conversion.
 
-sub gst_util_read_boolean
+sub read_boolean
 {
   my ($v) = @_;
-    
+
   return 1 if ($v =~ "true" ||
                $v =~ "yes"  ||
                $v =~ "YES"  ||
@@ -55,21 +49,21 @@ sub gst_util_read_boolean
 }
 
 
-sub gst_print_boolean_yesno
+sub print_boolean_yesno
 {
   if ($_[0] == 1) { return "yes"; }
   return "no";
 }
 
 
-sub gst_print_boolean_truefalse
+sub print_boolean_truefalse
 {
   if ($_[0] == 1) { return "true"; }
   return "false";
 }
 
 
-sub gst_print_boolean_onoff
+sub print_boolean_onoff
 {
   if ($_[0] == 1) { return "on"; }
   return "off";
@@ -80,7 +74,7 @@ sub gst_print_boolean_onoff
 # I'm sure there's a smarter way to do this. Should only be used for small
 # lists, as it's O(N^2). Larger lists with unique members should use a hash.
 
-sub gst_push_unique
+sub push_unique
 {
   my $arr = $_[0];
   my $found;
@@ -104,7 +98,7 @@ sub gst_push_unique
 
 
 # Merges scr array into dest array.
-sub gst_arr_merge
+sub arr_merge
 {
   my ($dest, $src) = @_;
   my (%h, $i);
@@ -120,7 +114,7 @@ sub gst_arr_merge
 
 # Given an array and a pattern, it returns the index of the
 # array that contains it
-sub gst_array_find_index
+sub find_array_index
 {
     my($arrayRef, $pattern) = @_;
     my(@array)              = @{$arrayRef};
@@ -133,8 +127,7 @@ sub gst_array_find_index
 }
 
     
-
-sub gst_ignore_line
+sub ignore_line
 {
   if (($_[0] =~ /^[ \t]*\#/) || ($_[0] =~ /^[ \t\n\r]*$/)) { return 1; }
   return 0;
@@ -148,7 +141,7 @@ sub gst_ignore_line
 #   * An array.
 # this function will return 1 if the scalar value is in the array, 0 otherwise.
 
-sub gst_item_is_in_list
+sub item_is_in_list
 {
   my ($value, @arr) = @_;
   my ($item);
@@ -165,7 +158,7 @@ sub gst_item_is_in_list
 # Recursively compare a structure made of nested arrays and hashes, diving
 # into references, if necessary. Circular references will cause a loop.
 # Watch it: arrays must have elements in the same order to be equal.
-sub gst_util_struct_eq
+sub struct_eq
 {
   my ($a1, $a2) = @_;
   my ($type1, $type2);
@@ -189,17 +182,17 @@ sub gst_util_struct_eq
 
     for ($i = 0; $i <= $#$a1; $i++)
     {
-      return 0 if !&gst_util_struct_eq ($$a1[$i], $$a2[$i]);
+      return 0 if !&struct_eq ($$a1[$i], $$a2[$i]);
     }
   }
   elsif ($type1 eq "HASH") {
     @keys1 = sort keys (%$a1);
     @keys2 = sort keys (%$a2);
 
-    return 0 if !&gst_util_struct_eq (\@keys1, \@keys2);
+    return 0 if !&struct_eq (\@keys1, \@keys2);
     foreach $i (@keys1)
     {
-      return 0 if !&gst_util_struct_eq ($$a1{$i}, $$a2{$i});
+      return 0 if !&struct_eq ($$a1{$i}, $$a2{$i});
     }
   }
   else
@@ -221,7 +214,7 @@ sub gst_util_struct_eq
 # sub-hash-table) seeing if one of them matches up with an item in the
 # match_list.  If so, the key will be returned.
 
-sub gst_get_key_for_subkeys
+sub get_key_for_subkeys
 {
   my %hash = %{$_[0]};
   my @match_list = @{$_[1]};
@@ -252,7 +245,7 @@ sub gst_get_key_for_subkeys
 #   * sub-key equals match_key.
 #   * sub-key associated sub-value is contained in the match_list.
 
-sub gst_get_key_for_subkey_and_subvalues
+sub get_key_for_subkey_and_subvalues
 {
   my %hash = %{$_[0]};
   my $key;
@@ -279,11 +272,11 @@ sub gst_get_key_for_subkey_and_subvalues
 # --- IP calculation --- #
 
 
-# &gst_ip_calc_network (<IP>, <netmask>)
+# ip_calc_network (<IP>, <netmask>)
 #
 # Calculates the network address and returns it as a string.
 
-sub gst_ip_calc_network
+sub ip_calc_network
 {
   my @ip_reg1;
   my @ip_reg2;
@@ -300,11 +293,11 @@ sub gst_ip_calc_network
 }
 
 
-# &gst_ip_calc_network (<IP>, <netmask>)
+# ip_calc_broadcast (<IP>, <netmask>)
 #
 # Calculates the broadcast address and returns it as a string.
 
-sub gst_ip_calc_broadcast
+sub ip_calc_broadcast
 {
   my @ip_reg1;
   my @ip_reg2;
@@ -325,7 +318,7 @@ sub gst_ip_calc_broadcast
 # Forks a process, running $proc with @args in the child, and
 # printing the returned value of $proc in the pipe. Parent
 # returns a structure with useful data about the process.
-sub gst_process_fork
+sub process_fork
 {
   my ($proc, @args) = @_;
   my $pid;
@@ -365,18 +358,18 @@ sub gst_process_fork
 
 
 # Close pipe, kill process, wait for it to finish.
-sub gst_process_kill
+sub process_kill
 {
   my ($proc) = @_;
   
-  &gst_file_close ($$proc{"fd"});
+  &Utils::File::close_file ($$proc{"fd"});
   kill 2, $$proc{"pid"};
   waitpid ($$proc{"pid"}, undef);
 }
 
 
 # Populate a bitmap of the used file descriptors.
-sub gst_process_list_build_fd_bitmap
+sub process_list_build_fd_bitmap
 {
   my ($procs) = @_;
   my ($bits, $proc);
@@ -395,13 +388,13 @@ sub gst_process_list_build_fd_bitmap
 # set the "ready" key to true in all the procs that are ready
 # to return values, false otherwise. Returns time left before
 # timeout.
-sub gst_process_list_check_ready
+sub process_list_check_ready
 {
   my ($timeout, $procs) = @_;
   my ($bits, $bitsleft, $bitsready, $timestamp, $timeleft);
 
   $procs = [ $procs ] if ref ($procs) ne 'ARRAY';
-  $bits = &gst_process_list_build_fd_bitmap ($procs);
+  $bits = &process_list_build_fd_bitmap ($procs);
   
   # Check with timeout which descriptors are ready with info.
   $timeout = undef if $timeout == 0;
@@ -430,7 +423,7 @@ sub gst_process_list_check_ready
 }
 
 
-sub gst_process_result_collect
+sub process_result_collect
 {
   my ($proc, $func, @args) = @_;
   my ($value, $tmp, $lines);
@@ -454,7 +447,7 @@ sub gst_process_result_collect
   }
 
  PROC_KILL:
-  &gst_process_kill ($proc);
+  &process_kill ($proc);
 
   return $value;
 }

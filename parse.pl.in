@@ -22,17 +22,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-
-$SCRIPTSDIR = "@scriptsdir@";
-if ($SCRIPTSDIR =~ /^@scriptsdir[@]/){
-
-    $SCRIPTSDIR = ".";
-    $DOTIN = ".in";
-}
-
-require "$SCRIPTSDIR/util.pl$DOTIN";
-require "$SCRIPTSDIR/file.pl$DOTIN";
-require "$SCRIPTSDIR/debug.pl$DOTIN";
+use Utils::Util;
+use Utils::File;
 
 
 # The concept of keyword (kw) here is a key, normaly in its own line, whose
@@ -94,7 +85,6 @@ sub gst_parse_replace_hash_values
       }
       else
       {
-        &gst_debug_print_line ("Warning: gst_parse_replace_hash_values: key $replace_key doesn't exist.");
         return 0;
       }
     }
@@ -157,9 +147,9 @@ sub gst_parse_run_entry
   
   return undef if (!&gst_parse_replace_hash_values ($cp, $hash));
 
-  &gst_report_enter ();
-  &gst_report ("parse_table", "$key");
-  &gst_report_leave ();
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_table", "$key");
+  &Utils::Report::leave ();
   
   $$hash{$key} = &$proc (@$cp);
   return $$hash{$key};
@@ -219,9 +209,9 @@ sub gst_parse_trivial
 {
   my (@res) = @_;
 
-  &gst_report_enter ();
-  &gst_report ("parse_trivial", "@res");
-  &gst_report_leave ();
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_trivial", "@res");
+  &Utils::Report::leave ();
 
   return $res[0] if (scalar @res) <= 1;
   return \@res;
@@ -314,12 +304,12 @@ sub gst_parse_split_ref
   my ($file, $key, $re, $all, $line_read_proc) = @_;
   my ($fd, @line, @res);
 
-  &gst_report_enter ();
-  &gst_report ("parse_split", $key, $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_split", $key, $file);
 
   $proc = $line_read_proc? $line_read_proc : \&gst_parse_chomp_line_std;
   
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   $all = 0 if !$fd;
 
   while (($line = &$proc ($fd)) != -1)
@@ -336,15 +326,15 @@ sub gst_parse_split_ref
       }
       else
       {
-        &gst_report_leave ();
-        &gst_file_close ($fd);
+        &Utils::Report::leave ();
+        &Utils::File::close_file ($fd);
         return \$line[0];
       }
     }
   }
 
-  &gst_report_leave ();
-  &gst_file_close ($fd);
+  &Utils::Report::leave ();
+  &Utils::File::close_file ($fd);
   return \@res if ($all);
   return -1;
 }
@@ -433,7 +423,7 @@ sub gst_parse_split_first_bool
   $ret = &gst_parse_split_first_str ($file, $key, $re, $line_read_proc);
 
   return undef if ($ret eq undef);
-  return (&gst_util_read_boolean ($ret)? 1: 0);
+  return (&Utils::Util::read_boolean ($ret)? 1: 0);
 }
 
 # After getting the first field, split the result with $sep matching separators. (ie order hosts,bind)
@@ -488,10 +478,10 @@ sub gst_parse_split_hash
   my ($file, $key_re, $value_re) = @_;
   my ($fd, @line, %res, $key);
 
-  &gst_report_enter ();
-  &gst_report ("parse_split_hash", $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_split_hash", $file);
   
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   
   while (<$fd>)
   {
@@ -506,8 +496,8 @@ sub gst_parse_split_hash
     push @{$res{$key}}, split ($value_re, $line[0]);
   }
 
-  &gst_file_close ($fd);
-  &gst_report_leave ();
+  &Utils::File::close_file ($fd);
+  &Utils::Report::leave ();
   return undef if (scalar keys (%res) == 0);
   return \%res;
 }
@@ -518,10 +508,10 @@ sub gst_parse_split_hash_with_continuation
   my ($file, $key_re, $value_re) = @_;
   my ($fd, $l, @line, %res, $key);
 
-  &gst_report_enter ();
-  &gst_report ("parse_split_hash_cont", $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_split_hash_cont", $file);
   
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   
   while (($l = &gst_parse_ini_line_read ($fd)) != -1)
   {
@@ -537,8 +527,8 @@ sub gst_parse_split_hash_with_continuation
     $res{$key} = [ split ($value_re, $line[0]) ];
   }
 
-  &gst_file_close ($fd);
-  &gst_report_leave ();
+  &Utils::File::close_file ($fd);
+  &Utils::Report::leave ();
   return undef if (scalar keys (%res) == 0);
   return \%res;
 }
@@ -577,11 +567,11 @@ sub gst_parse_sh
   my ($file, $key) = @_;
   my $ret;
 
-  &gst_report_enter ();
-  &gst_report ("parse_sh", $key, $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_sh", $key, $file);
   $ret = &gst_parse_split_first_str ($file, $key, "[ \t]*=[ \t]*",
                                      \&gst_parse_chomp_line_hash_comment);
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 
   return &gst_parse_shell_unescape ($ret);
 }
@@ -595,7 +585,7 @@ sub gst_parse_sh_bool
   $ret = &gst_parse_sh ($file, $key);
 
   return undef if ($ret eq undef);
-  return (&gst_util_read_boolean ($ret)? 1: 0);
+  return (&Utils::Util::read_boolean ($ret)? 1: 0);
 }
 
 # Get an sh value and then split with $re, returning ref to resulting array.
@@ -640,11 +630,11 @@ sub gst_parse_sh_export
   my ($file, $key) = @_;
   my $ret;
 
-  &gst_report_enter ();
-  &gst_report ("parse_sh", $key, $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_sh", $key, $file);
   $ret = &gst_parse_split_first_str ($file, $key, "[ \t]*=[ \t]*",
                                      \&gst_parse_chomp_line_sh_export);
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 
   return &gst_parse_shell_unescape ($ret);
 }
@@ -658,7 +648,7 @@ sub gst_parse_sh_export_bool
   $ret = &gst_parse_sh_export ($file, $key);
 
   return undef if ($ret eq undef);
-  return (&gst_util_read_boolean ($ret)? 1: 0);
+  return (&Utils::Util::read_boolean ($ret)? 1: 0);
 }
 
 # Same, but accepting a regexp and returning the value between the paren operator
@@ -681,22 +671,22 @@ sub gst_parse_kw
   my ($file, $keyword, $re, $line_read_proc) = @_;
   my $res;
 
-  &gst_report_enter ();
-  &gst_report ("parse_kw", $keyword, $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_kw", $keyword, $file);
   
   if (! -f "$gst_prefix/$file")
   {
-    &gst_report_enter ();
-    &gst_report ("file_open_read_failed", $file);
-    &gst_report_leave ();
-    &gst_report_leave ();
+    &Utils::Report::enter ();
+    &Utils::Report::do_report ("file_open_read_failed", $file);
+    &Utils::Report::leave ();
+    &Utils::Report::leave ();
     return undef;
   }
   
   $re = " " if $re eq undef;
   $res = &gst_parse_split_ref ($file, $keyword, $re, 0, $line_read_proc);
 
-  &gst_report_leave ();
+  &Utils::Report::leave ();
   return 0 if $res == -1;
   return 1;
 }
@@ -707,15 +697,15 @@ sub gst_parse_line_first
   my ($file) = @_;
   my ($fd, $res);
 
-  &gst_report_enter ();
-  &gst_report ("parse_line_first", $file);
-  $fd = &gst_file_open_read_from_names ($file);
-  &gst_report_leave ();
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_line_first", $file);
+  $fd = &Utils::File::open_read_from_names ($file);
+  &Utils::Report::leave ();
   
   return undef if !$fd;
 
   chomp ($res = <$fd>);
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return $res;
 }
 
@@ -726,10 +716,10 @@ sub gst_parse_chat
   my ($file, $re) = @_;
   my ($fd, $found);
 
-  &gst_report_enter ();
-  &gst_report ("parse_chat", $file);
-  $fd = &gst_file_open_read_from_names ("$file");
-  &gst_report_leave ();
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_chat", $file);
+  $fd = &Utils::File::open_read_from_names ("$file");
+  &Utils::Report::leave ();
   return undef if !$fd;
 
   while (<$fd>)
@@ -753,13 +743,13 @@ sub gst_parse_chat
       # If it looks like what we're looking for, return what matched the parens.
       if ($found =~ /$re/i)
       {
-        &gst_file_close ($fd);
+        &Utils::File::close_file ($fd);
         return $1;
       }
     }
   }
   
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   # Oops: not found.
   return undef;
 }
@@ -805,7 +795,7 @@ sub gst_parse_ini_sections
   my ($file) = @_;
   my (@sections, $line);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   
   while (($line = &gst_parse_ini_line_read ($fd)) != -1)
   {
@@ -814,7 +804,7 @@ sub gst_parse_ini_sections
     push @sections, $1 if (/\[([^\]]+)\]/i);
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   return @sections;
 }
@@ -826,10 +816,10 @@ sub gst_parse_ini
   my ($fd, $res, $line);
   my $found_section_flag = 0;
 
-  &gst_report_enter ();
-  &gst_report ("parse_ini", $var, $file, $section);
-  $fd = &gst_file_open_read_from_names ($file);
-  &gst_report_leave ();
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_ini", $var, $file, $section);
+  $fd = &Utils::File::open_read_from_names ($file);
+  &Utils::Report::leave ();
   $res = undef;
   
   while (($line = &gst_parse_ini_line_read ($fd)) != -1)
@@ -858,7 +848,7 @@ sub gst_parse_ini
     }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   return $res;
 }
@@ -872,7 +862,7 @@ sub gst_parse_ini_bool
   $ret = &gst_parse_ini ($file, $section, $var);
   
   return undef if ($ret eq undef);
-  return (&gst_util_read_boolean ($ret)? 1: 0);
+  return (&Utils::Util::read_boolean ($ret)? 1: 0);
 }
 
 sub gst_parse_cap_line_clean
@@ -911,7 +901,7 @@ sub gst_parse_cap_sections
   my ($file) = @_;
   my (@sections, $line);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   
   while (($line = &gst_parse_cap_line_read ($fd)) != -1)
   {
@@ -920,7 +910,7 @@ sub gst_parse_cap_sections
     push @sections, $1 if (/^([^:|]+)/i);
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return @sections;
 }
 
@@ -930,7 +920,7 @@ sub gst_parse_cap
   my ($fd, $res, $line);
   my $found_section_flag = 0;
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   $res = undef;
   
   while (($line = &gst_parse_ini_line_read ($fd)) != -1)
@@ -956,7 +946,7 @@ sub gst_parse_cap
 #    }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return $res;
 }
 
@@ -966,7 +956,7 @@ sub gst_parse_cap_bool
   my ($fd, $res, $line);
   my $found_section_flag = 0;
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   $res = 0;
   
   while (($line = &gst_parse_ini_line_read ($fd)) != -1)
@@ -985,7 +975,7 @@ sub gst_parse_cap_bool
     }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return $res;
 }
 
@@ -996,8 +986,8 @@ sub gst_parse_printcap_buffer_load
   my ($file) = @_;
   my ($inbuf, @outbuf);
 
-  $inbuf = &gst_file_buffer_load ($file);
-  &gst_file_buffer_join_lines ($inbuf);
+  $inbuf = &Utils::File::load_buffer ($file);
+  &Utils::File::join_buffer_lines ($inbuf);
 
   for $i (@$inbuf)
   {
@@ -1257,7 +1247,7 @@ sub gst_parse_interfaces_stanzas
   my ($file, $stanza_type) = @_;
   my ($fd, @res);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   $res = undef;
   
   while (($_ = &gst_parse_interfaces_get_next_stanza ($fd, $stanza_type)) != -1)
@@ -1265,7 +1255,7 @@ sub gst_parse_interfaces_stanzas
     push @res, $_;
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   return @res;
 }
@@ -1277,7 +1267,7 @@ sub gst_parse_interfaces_option_tuple
   my ($file, $iface, $key, $all) = @_;
   my ($fd, @res);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
 
   while (($stanza = &gst_parse_interfaces_get_next_stanza ($fd, "iface")) != -1)
   {
@@ -1307,14 +1297,14 @@ sub gst_parse_interfaces_option_kw
   my ($file, $iface, $kw) = @_;
   my $tuple;
 
-  &gst_report_enter ();
-  &gst_report ("parse_ifaces_kw", $kw, $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_ifaces_kw", $kw, $file);
   $tuple = &gst_parse_interfaces_option_tuple ($file, $iface, $kw);
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 
   if ($tuple != -1)
   {
-    &gst_report ("parse_ifaces_kw_strange", $iface, $file) if ($$tuple[1] ne "");
+    &Utils::Report::do_report ("parse_ifaces_kw_strange", $iface, $file) if ($$tuple[1] ne "");
 
     return 1;
   }
@@ -1337,10 +1327,10 @@ sub gst_parse_interfaces_option_str
   my ($file, $iface, $key) = @_;
   my $tuple;
 
-  &gst_report_enter ();
-  &gst_report ("parse_ifaces_str", $kw, $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("parse_ifaces_str", $kw, $file);
   $tuple = &gst_parse_interfaces_option_tuple ($file, $iface, $key);
-  &gst_report_leave ();
+  &Utils::Report::leave ();
 
   if ($tuple != -1)
   {
@@ -1392,7 +1382,7 @@ sub gst_parse_pump_get_iface_option_ref
   my ($file, $iface, $key) = @_;
   my ($fd, $opt, $ret);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
 
   if (&gst_parse_pump_get_device ($fd, $iface))
   {
@@ -1574,7 +1564,7 @@ sub gst_parse_rcinet1conf_bool
   $ret = &gst_parse_rcinet1conf ($file, $iface, $kw);
   
   return undef if ($ret eq undef);
-  return (&gst_util_read_boolean ($ret)? 1: 0);
+  return (&Utils::Util::read_boolean ($ret)? 1: 0);
 }
 
 sub gst_parse_wireless_opts
@@ -1593,7 +1583,7 @@ sub gst_parse_wireless_opts
 
   return undef if (!$found);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   while (<$fd>)
   {
     $line = $_;
@@ -1621,7 +1611,7 @@ sub gst_parse_wireless_opts
     }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return $val;
 }
 
@@ -1631,7 +1621,7 @@ sub gst_parse_startif
   my ($file, $regex) = @_;
   my ($fd, $line, $val);
 
-  $fd  = &gst_file_open_read_from_names ($file);
+  $fd  = &Utils::File::open_read_from_names ($file);
   $val = undef;
 
   return undef if ($fd eq undef);
@@ -1697,7 +1687,7 @@ sub gst_parse_pppconf_common
   my ($file, $section, $key) = @_;
   my ($fd, $val);
 
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   return undef if ($fd eq undef);
 
   $val = undef;
@@ -1736,7 +1726,7 @@ sub gst_parse_pppconf_common
     $val .= $_;
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   if ($val eq undef)
   {
@@ -1788,3 +1778,5 @@ sub gst_parse_pppconf_re
     return $1;
   }
 }
+
+1;

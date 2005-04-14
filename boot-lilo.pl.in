@@ -21,6 +21,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::Util;
+use Utils::File;
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -30,8 +32,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 }
 
 require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/util.pl$DOTIN";
-require "$SCRIPTSDIR/file.pl$DOTIN";
 require "$SCRIPTSDIR/xml.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/replace.pl$DOTIN";
@@ -83,7 +83,7 @@ sub gst_boot_lilo_known_var
   return 0 if ($key eq "key" && $from_xml); # "key" is valid in xml only.
   return 0 if ($key eq "type" && $from_xml); # "key" is valid in xml only.
 
-  return &gst_item_is_in_list ($key, @$list);
+  return &Utils::Util::item_is_in_list ($key, @$list);
 }
 
 sub gst_boot_lilo_parse_global_kw
@@ -92,10 +92,10 @@ sub gst_boot_lilo_parse_global_kw
   my $fd;
 
   return undef unless &gst_boot_lilo_known_var ($key, \@lilo_global_vars, 0);
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   if (! $fd)
   {
-    &gst_report ("boot_conf_read_failed", $file);
+    &Utils::Report::do_report ("boot_conf_read_failed", $file);
     return undef;
   }
 
@@ -108,12 +108,12 @@ sub gst_boot_lilo_parse_global_kw
 
     if ($key eq $_)
     {
-      &gst_file_close ($fd);
+      &Utils::File::close_file ($fd);
       return 1;
     }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return undef;
 }
 
@@ -126,10 +126,10 @@ sub gst_boot_lilo_parse_global
   return undef unless &gst_boot_lilo_known_var ($key, \@lilo_global_vars, 0);
   
   $re = "[ \t]*=[ \t]*";
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   if (! $fd)
   {
-    &gst_report ("boot_conf_read_failed", $file);
+    &Utils::Report::do_report ("boot_conf_read_failed", $file);
     return undef;
   }
 
@@ -145,12 +145,12 @@ sub gst_boot_lilo_parse_global
 
     if (shift (@line) eq $key)
     {
-      &gst_file_close ($fd);
+      &Utils::File::close_file ($fd);
       return $line[0];
     }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
   return undef;
 }
 
@@ -178,10 +178,10 @@ sub gst_boot_lilo_parse_entries
 
   $found = -1;
   
-  $fd = &gst_file_open_read_from_names ($file);
+  $fd = &Utils::File::open_read_from_names ($file);
   if (! $fd)
   {
-    &gst_report ("boot_conf_read_failed", $file);
+    &Utils::Report::do_report ("boot_conf_read_failed", $file);
     return undef;
   }
 
@@ -232,7 +232,7 @@ sub gst_boot_lilo_parse_entries
     }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   foreach $entry (@entries)
   {
@@ -251,12 +251,12 @@ sub gst_boot_lilo_replace_global_kw
 
   return 0 unless &gst_boot_lilo_known_var ($key, \@lilo_global_vars, 0);
   
-  $buff = &gst_file_buffer_load ($file);
+  $buff = &Utils::File::load_buffer ($file);
   $found = 0;
 
   foreach $i (@$buff)
   {
-    if (&gst_ignore_line ($i))
+    if (&Utils::Util::ignore_line ($i))
     {
       $lineno++;
       next;
@@ -288,8 +288,8 @@ sub gst_boot_lilo_replace_global_kw
     $$buff[$lineno] .= $key . "\n";
   } 
   
-  &gst_file_buffer_clean ($buff);
-  return &gst_file_buffer_save ($buff, $file);
+  &Utils::File::clean_buffer ($buff);
+  return &Utils::File::save_buffer ($buff, $file);
 }
 
 sub gst_boot_lilo_replace_global
@@ -304,12 +304,12 @@ sub gst_boot_lilo_replace_global
   $val = "\"$val\"" if ($val =~ /[ \t]/ && (! ($val =~ /^\".+\"$/)));
   $val = "\"$val\"" if ($val =~ /\=/ && (!($val =~ /^\".+\"$/)));
   
-  $buff = &gst_file_buffer_load ($file);
+  $buff = &Utils::File::load_buffer ($file);
   $found = 0;
 
   foreach $i (@$buff)
   {
-    if (&gst_ignore_line ($i))
+    if (&Utils::Util::ignore_line ($i))
     {
       $lineno++;
       next;
@@ -349,8 +349,8 @@ sub gst_boot_lilo_replace_global
     $$buff[$lineno] .= $key . " = " . $val . "\n";
   }
   
-  &gst_file_buffer_clean ($buff);
-  return &gst_file_buffer_save ($buff, $file);
+  &Utils::File::clean_buffer ($buff);
+  return &Utils::File::save_buffer ($buff, $file);
 }
 
 
@@ -361,7 +361,7 @@ sub gst_boot_lilo_del_global
 
   return 0 unless &gst_boot_lilo_known_var ($key, \@lilo_global_vars, 0);
   
-  $buff = &gst_file_buffer_load ($file);
+  $buff = &Utils::File::load_buffer ($file);
 
   foreach $i (@$buff)
   {
@@ -374,8 +374,8 @@ sub gst_boot_lilo_del_global
     }
   }
   
-  &gst_file_buffer_clean ($buff);
-  return &gst_file_buffer_save ($buff, $file);
+  &Utils::File::clean_buffer ($buff);
+  return &Utils::File::save_buffer ($buff, $file);
 }
 
 
@@ -550,8 +550,8 @@ sub gst_boot_lilo_entries_set
 
   return if (scalar @$entries <= 0);
   
-  $buff = &gst_file_buffer_load ($file);
-  &gst_file_buffer_join_lines ($buff);
+  $buff = &Utils::File::load_buffer ($file);
+  &Utils::File::join_buffer_lines ($buff);
 
   my $entry_nr = -1;
   $lineno = &gst_boot_lilo_find_entry ($buff, 0);
@@ -591,7 +591,7 @@ sub gst_boot_lilo_entries_set
     &gst_boot_lilo_add_entry ($entry, $buff);
   }
 
-  &gst_file_buffer_clean ($buff);
-  return &gst_file_buffer_save ($buff, $file);
+  &Utils::File::clean_buffer ($buff);
+  return &Utils::File::save_buffer ($buff, $file);
 }
 

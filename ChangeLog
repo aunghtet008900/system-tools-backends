@@ -1,3 +1,26 @@
+2005-04-14  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* created the experimental DBus branch
+	* file.pl.in, report.pl.in, util.pl.in: First step in modulization,
+	they've been converted to perl modules and put in Utils/*
+	* Utils/File.pm, Report.pm, Util.pm: these are the previous files with
+	some function renaming, due to the fact that modules are already
+	namespaced
+	* debug.pl.in: deleted, was barely used, and things have been quite
+	stable for a good time
+	* boot-conf.in, boot-grub.pl.in, boot-lilo.pl.in, boot-yaboot.pl.in,
+	boot.pl.in, dhcpd-conf.in, dhcpd.pl.in, disks-conf, display-conf,
+	filesys.pl.in, font-conf.in, font.pl.in, general.pl.in,
+	hardware-conf.in, internetshareing-conf.in, ishare.pl.in,
+	memory-conf.in, mouse-conf.in, network-conf.in, network.pl.in,
+	package-conf.in, parse.pl.in, partition.pl.in, platform.pl.in,
+	print-conf.in, print.pl.in, process.pl.in, replace.pl.in,
+	service.pl.in, services-conf.in, share.pl.in, shares-conf.in,
+	time-conf.in, tokenizer.pl.in, users-conf.in, x.pl.in, xml.pl.in:
+	Use these modules instead of the old files
+	* replace-func: silly shellscript for renaming function names in perl
+	files, is helping a lot in the backends modulization task
+
 2005-04-13  Scott J. Harmon  <harmon@ksu.edu>
 
 	* network-conf.in, network.pl.in, platform.pl.in, service.pl.in,

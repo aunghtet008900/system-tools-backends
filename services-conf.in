@@ -73,7 +73,7 @@ sub xml_parse
   while ($elem = shift @$tree)
   {
     if   ($elem eq "services") { &xml_parse_services (shift @$tree, \%hash); }
-    else {&gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else {&Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   return (\%hash);
@@ -91,7 +91,7 @@ sub xml_parse_services
   {
     if ($elem eq "runlevels") { $runlevel = &xml_parse_runlevel_list (shift @$tree)}
     elsif ($elem eq "services") { push @$services, &xml_parse_service_list (shift @$tree); }
-    else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   $$hash{"services"} = $services;
@@ -116,7 +116,7 @@ sub xml_parse_runlevel_list
         $runlevel = $rl;
       }
     }
-    else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   return $runlevel;
@@ -134,7 +134,7 @@ sub xml_parse_runlevel
     if ($elem eq "default") {  $default = 1; shift @$tree }
     elsif ($elem eq "number") { $runlevel = &gst_xml_get_pcdata (shift @$tree); }
     elsif ($elem eq "description") { shift @$tree; }
-    else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   if ($default eq 1)
@@ -153,7 +153,7 @@ sub xml_parse_service_list
   while ($elem = shift @$tree)
   {
     if ($elem eq "service") { push @$service, &xml_parse_service (shift @$tree); }
-	else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+	else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   $$hash{"service"} = $service unless scalar @$service == 0;
@@ -175,7 +175,7 @@ sub xml_parse_service
     elsif ($elem eq "priority") { $$hash{"priority"} = &gst_xml_get_pcdata (shift @$tree); }
     elsif ($elem eq "runlevels") { push @$runlevels, &xml_parse_runlevels (shift @$tree); }
     elsif ($elem eq "script") { $$hash{"script"} = &gst_xml_get_pcdata (shift @$tree); }
-    else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
   
   $$hash{"actions"} = $actions unless $actions eq undef;
@@ -194,7 +194,7 @@ sub xml_parse_actions
   while ($elem = shift @$tree)
   {
     if ($elem eq "action") { push @$action, &gst_xml_get_pcdata (shift @$tree); }
-	else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+	else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
   
   if (scalar @$action != 0)
@@ -214,7 +214,7 @@ sub xml_parse_runlevels
   while ($elem = shift @$tree)
   {
     if ($elem eq "runlevel") { push @$runlevel, &xml_parse_single_runlevel (shift @$tree); }
-	else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+	else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   if (scalar @$runlevel != 0)
@@ -236,7 +236,7 @@ sub xml_parse_single_runlevel
   {
     if ($elem eq "number") { $number = &gst_xml_get_pcdata (shift @$tree); }
   	elsif ($elem eq "action") { $action = &gst_xml_get_pcdata (shift @$tree); }
-    else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
   
   return { "number" => $number,
@@ -311,7 +311,7 @@ sub get
   $hash{"services"} = &gst_service_get_services ();
   $hash{"runlevel"} = &gst_service_get_default_runlevel ();
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print (\%hash);
 }
 
@@ -326,7 +326,7 @@ sub set
     &gst_service_set_conf ($hash);
   }
 
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 # --- Filter config: XML in, XML out --- #
@@ -334,7 +334,7 @@ sub filter
 {
   my $hash = &xml_parse ();
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 
@@ -344,7 +344,7 @@ sub throw_service
   my ($tool, $service, $parameter) = @_;
 
   &gst_service_run_script ($service, $parameter);
-  &gst_report_end ();
+  &Utils::Report::end ();
 
   &gst_xml_print_begin ("throw_service");
   &gst_xml_print_end ("throw_service");
@@ -358,7 +358,7 @@ sub get_status
 
   $active = &gst_service_get_status ($service);
 
-  &gst_report_end ();
+  &Utils::Report::end ();
 
   &gst_xml_print_begin ("get_status");
   &gst_xml_print_state_tag ("active", $active) if ($active ne undef);

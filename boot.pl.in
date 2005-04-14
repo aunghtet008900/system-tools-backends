@@ -22,6 +22,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::Util;
+use Utils::File;
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -31,10 +33,7 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 }
 
 require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/util.pl$DOTIN";
-require "$SCRIPTSDIR/file.pl$DOTIN";
 require "$SCRIPTSDIR/xml.pl$DOTIN";
-require "$SCRIPTSDIR/util.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/replace.pl$DOTIN";
 require "$SCRIPTSDIR/boot-grub.pl$DOTIN";
@@ -176,7 +175,7 @@ sub gst_boot_bootloader_get
   my ($current_tool, $current_date, $bootl, $date);
 
   $current_date = 0;
-  $bootl = gst_file_locate_tool ("lilo");
+  $bootl = Utils::File::locate_tool ("lilo");
   if ($bootl ne "")
   {
     $date = (stat ($bootl)) [8];
@@ -187,7 +186,7 @@ sub gst_boot_bootloader_get
     }
   }
   
-  $bootl = gst_file_locate_tool ("grub-install");
+  $bootl = Utils::File::locate_tool ("grub-install");
   if ($bootl ne "")
   {
     $date = (stat ($bootl)) [8];
@@ -198,7 +197,7 @@ sub gst_boot_bootloader_get
     }
   }
 
-  $bootl = gst_file_locate_tool ("ybin");
+  $bootl = Utils::File::locate_tool ("ybin");
   if ($bootl ne "")
   {
     $date = (stat ($bootl)) [8];
@@ -211,7 +210,7 @@ sub gst_boot_bootloader_get
   
   if ($current_date eq 0)
   {
-    &gst_report ("platform_no_bootloader", $main::gst_dist);
+    &Utils::Report::do_report ("platform_no_bootloader", $main::gst_dist);
     return undef;
   }
   return $current_tool;
@@ -364,7 +363,7 @@ sub gst_boot_get_entry_parse_table
 
   return %tool_tables;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -398,7 +397,7 @@ sub gst_boot_entries_set
   $proc = $dist_attrib{"entries_get"};
   @old = &$proc (\%fn);
   
-  for ($i = 0; $i < &gst_max (scalar @old, scalar @$entries); $i++)
+  for ($i = 0; $i < &Utils::Util::max (scalar @old, scalar @$entries); $i++)
   {
     if ($new[$i] ne undef)
     {

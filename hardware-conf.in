@@ -223,7 +223,7 @@ sub xml_parse_swapinfo
 	elsif ($$tree[0] eq 'enabled') 
 	  {
 	    $node = $$tree[1];
-	    $entry->{enabled} = &gst_util_read_boolean ($$node[0]->{state});
+	    $entry->{enabled} = &Utils::Util::read_boolean ($$node[0]->{state});
 	  }
 	elsif ($$tree[0] eq 'priority') 
 	  { 
@@ -236,12 +236,12 @@ sub xml_parse_swapinfo
 	elsif ($$tree[0] eq 'isfile') 
 	  { 
 	    $node = $$tree[1];
-	    $entry->{is_file} = &gst_util_read_boolean ($$node[0]->{state});
+	    $entry->{is_file} = &Utils::Util::read_boolean ($$node[0]->{state});
 	  }
 	elsif ($$tree[0] eq 'isnew') 
 	  { 
 	    $node = $$tree[1];
-	    $entry->{is_new} = &gst_util_read_boolean ($$node[0]->{state});
+	    $entry->{is_new} = &Utils::Util::read_boolean ($$node[0]->{state});
 	  }
 	
 	shift @$tree;
@@ -346,7 +346,7 @@ sub read_conf_modules
     local (*CONF_MODULES_FILE);
     my (%real_names);
 
-    *CONF_MODULES_FILE = &gst_file_open_read_from_names (@conf_modules_names);
+    *CONF_MODULES_FILE = &Utils::File::open_read_from_names (@conf_modules_names);
 
   LINE: while (<CONF_MODULES_FILE>)
       {
@@ -406,7 +406,7 @@ sub read_XF86Config
     my (%section_handler_table) = 
       ( 'InputDevice' => \&handle_input_device );
 
-    *XF86CONFIG_FILE = &gst_file_open_read_from_names (@XF86Config_names);
+    *XF86CONFIG_FILE = &Utils::File::open_read_from_names (@XF86Config_names);
 
     while (<XF86CONFIG_FILE>)
       {
@@ -578,7 +578,7 @@ sub get_network_interfaces
 {
   my ($fd);
 
-  $fd = &gst_file_run_pipe_read ("ifconfig -a");
+  $fd = &Utils::File::run_pipe_read ("ifconfig -a");
   
   while (<$fd>)
   {
@@ -592,7 +592,7 @@ sub get_network_interfaces
 	  }
   }
 
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 }
 
 # Find the record in the io ports list that contains a given I/O
@@ -727,7 +727,7 @@ sub combine
 
     foreach $entry (@cf_ioports)
       {
-	&gst_push_unique ($hardware{$entry->{device}}->{ports}, $entry)
+	&Utils::Util::push_unique ($hardware{$entry->{device}}->{ports}, $entry)
 	  if exists $hardware{$entry->{device}};
       }
 
@@ -735,7 +735,7 @@ sub combine
       {
 	foreach $device (@$devices)
 	  {
-	    &gst_push_unique ($hardware{$device}->{interrupts}, $irq)
+	    &Utils::Util::push_unique ($hardware{$device}->{interrupts}, $irq)
 	      if exists $hardware{$device};
 	  }
       }
@@ -744,7 +744,7 @@ sub combine
       {
 	foreach $device (@$devices)
 	  {
-	    &gst_push_unique ($hardware{$device}->{dma}, $channel)
+	    &Utils::Util::push_unique ($hardware{$device}->{dma}, $channel)
 	      if exists $hardware{$device};
 	  }
       }

@@ -41,6 +41,9 @@
 # nmbd
 # ifconfig: check current interfaces and activate/deactivate.
 
+use Utils::Util;
+use Utils::File;
+
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
   if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -51,8 +54,6 @@ BEGIN {
   
   require "$SCRIPTSDIR/general.pl$DOTIN";
   require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/util.pl$DOTIN";
-  require "$SCRIPTSDIR/file.pl$DOTIN";
   require "$SCRIPTSDIR/xml.pl$DOTIN";
   require "$SCRIPTSDIR/network.pl$DOTIN";
 }
@@ -101,7 +102,7 @@ sub xml_parse
   while ($elem = shift @$tree)
   {
     if ($elem eq "network") { &xml_parse_network (shift @$tree, \%hash); }
-    else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   return(\%hash);
@@ -157,7 +158,7 @@ sub xml_parse_network
     elsif ($elem eq "gwdevunsup")    { shift @$tree; }
     elsif ($elem eq "wireless_device") { shift @$tree; }
     elsif ($elem eq "profiledb")     { &xml_parse_profiledb (shift @$tree, $hash); }
-    else                             { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else                             { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   $$hash{"order"} = \@order unless $#order < 0;
@@ -180,7 +181,7 @@ sub xml_parse_statichost
   {
     if    ($elem eq "ip")    { $ip = &gst_xml_get_pcdata (shift @$tree); }
     elsif ($elem eq "alias") { push(@alias, &gst_xml_get_pcdata (shift @$tree)); }
-    else                     { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else                     { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   # common regexp for IPv4 and IPv6
@@ -298,7 +299,7 @@ sub xml_parse_profiledb
     if ($$tree[0] eq "profile") { &xml_parse_profile ($$tree[1], $hash); }
     else
     {
-		  &gst_report ("xml_unexp_tag", $$tree[0]);
+		  &Utils::Report::do_report ("xml_unexp_tag", $$tree[0]);
     }
 
     shift @$tree;
@@ -396,7 +397,7 @@ sub read_profiledb
   my ($path);
   my ($tree);
 
-  $path = gst_file_get_data_path () . "/" . $main::tool->{"name"} . "/";
+  $path = Utils::File::get_data_path () . "/" . $main::tool->{"name"} . "/";
   chmod (0755, $path);
   chmod (0644, $path .  $profile_file);
 
@@ -409,7 +410,7 @@ sub read_profiledb
     }
     else
     {
-      gst_report ('xml_unexp_tag', $$tree[0]);
+      Utils::Report::do_report ('xml_unexp_tag', $$tree[0]);
     }
   }
 }
@@ -419,12 +420,12 @@ sub write_profiledb
 {
   my ($hash) = @_;
   my $profiledb = $hash->{'profiledb'};
-  my $path = &gst_file_get_data_path () . "/" . $main::tool->{'name'} . "/";
+  my $path = &Utils::File::get_data_path () . "/" . $main::tool->{'name'} . "/";
   chmod (0755, $path);
 
   if ($profiledb) {
     # Write our profiles.
-    my $fh = &gst_file_open_write_from_names ($path . $profile_file);
+    my $fh = &Utils::File::open_write_from_names ($path . $profile_file);
     if ($fh)
     {
       local *STDOUT = $fh;
@@ -436,7 +437,7 @@ sub write_profiledb
   }
   else
   {
-    gst_file_remove ($path . $profile_file);
+    Utils::File::remove ($path . $profile_file);
   }
 
   chmod (0644, $path . $profile_file);
@@ -453,7 +454,7 @@ sub get
   &read_profiledb (\%$hash);
   &gst_network_ensure_loopback ($hash);
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 
@@ -465,7 +466,7 @@ sub set
   $hash = &xml_parse ();
   &write_profiledb ($hash);
   &gst_network_conf_set ($hash);
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 sub set_profile
@@ -484,7 +485,7 @@ sub set_profile
     }
   }
 
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 sub save_profiles
@@ -493,7 +494,7 @@ sub save_profiles
 
   $hash = &xml_parse ();
   &write_profiledb ($hash);
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 
@@ -505,7 +506,7 @@ sub filter
   my $hash;
   
   $hash = &xml_parse ();
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 
@@ -523,13 +524,13 @@ sub enable_iface
   # when messing ifup/ifdown/ifconfig calls
   if ($enabled == 0)
   {
-    gst_file_run ("ifconfig $iface down");
+    Utils::File::run ("ifconfig $iface down");
     &drop_dhcp_connection ($iface);
     &drop_pppd_connection ($iface);
   }
   
   # Don't forget to do gst_end when the reports are over!
-  &gst_report_end ();
+  &Utils::Report::end ();
   # XML output would come here, but this directive returns no XML.
 }
 
@@ -547,7 +548,7 @@ sub enable_iface_with_config
   }
 
   $ret = &gst_network_enable_iface_with_config ($hash);
-  &gst_report_end ();
+  &Utils::Report::end ();
 
   &gst_xml_print_begin  ("enable-iface");
   &gst_xml_print_pcdata ("success", ($ret == 0) ? "1" : "0");
@@ -566,7 +567,7 @@ sub list_ifaces
     push @arr, $$ifaces{$iface};
   }
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &gst_xml_print_begin ("network-ifaces");
   &gst_xml_print_structure (\@arr, "interface");
   &gst_xml_print_end ("network-ifaces");
@@ -578,7 +579,7 @@ sub detect_modem
   my ($device);
 
   $device = &gst_network_autodetect_modem ();
-  &gst_report_end ();
+  &Utils::Report::end ();
   
   &gst_xml_print_begin  ("network-modem-device");
   &gst_xml_print_pcdata ("device", $device) if ($device ne undef);
@@ -591,7 +592,7 @@ sub detect_essids
   my (@essids);
 
   $essids = &gst_network_detect_essids ($iface);
-  &gst_report_end ();
+  &Utils::Report::end ();
 
   &gst_xml_print_begin ("essids");
   &gst_xml_print_structure ($essids, "network");
@@ -603,7 +604,7 @@ sub set_gateway
   my ($tool, $iface, $address) = @_;
 
   &gst_network_route_set_default_gw ($iface, $address);
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 # --- Main --- #

@@ -155,7 +155,7 @@ sub get
 
   &x_config_fix ($config, 1);
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($config);
 }
 
@@ -166,14 +166,14 @@ sub set
   &x_config_fix ($xml_config, 0);
   
   &x_config_set (&distro_file (), $config, $xml_config);
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 sub filter
 {
   my $config = &xml_parse ();
   
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($config);
 }
 
@@ -194,10 +194,10 @@ sub test
 
   &x_config_set ($tmp_file, $config, $xml_config);
 
-  $res = &gst_file_run ("$testX_cmd --config=$tmp_file");
+  $res = &Utils::File::run ("$testX_cmd --config=$tmp_file");
   unlink ($tmp_file);
 
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 sub probe

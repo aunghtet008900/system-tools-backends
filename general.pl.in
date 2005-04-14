@@ -21,6 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::Report;
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -29,7 +30,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/report.pl$DOTIN";
 require "$SCRIPTSDIR/platform.pl$DOTIN";
 require "$SCRIPTSDIR/xml.pl$DOTIN";
 
@@ -80,7 +80,6 @@ $gst_prefix = "";
 $gst_do_verbose = 0;
 $gst_do_report = 0;
 
-$gst_debug = 0;
 $gst_do_immediate = 1;
 
 
@@ -105,7 +104,7 @@ sub gst_print_usage_synopsis
   print STDERR "             [--disable-immediate] [--prefix <location>]\n";
 
   print STDERR " " x length $$tool{"name"};
-  print STDERR "             [--progress] [--report] [--verbose]\n\n";
+  print STDERR "             [--report] [--verbose]\n\n";
 }
 
 sub gst_print_usage_generic
@@ -150,10 +149,6 @@ end_of_usage_generic;
        -p --prefix <location>  Specifies a directory prefix where the
                       configuration is looked for or stored. When storing
                       (with --set), directories and files may be created.
-
-          --progress  Prints machine-readable progress information to standard
-                      output, before any XML, consisting of three-digit
-                      percentages always starting with \'0\'.
 
           --report    Prints machine-readable diagnostic messages to standard
                       output, before any XML. Each message has a unique
@@ -357,19 +352,17 @@ sub gst_init
     elsif ($arg eq "--version")                   { &gst_print_version (\%tool, 0); }
     elsif ($arg eq "--prefix"    || $arg eq "-p") { &gst_set_prefix    (\%tool, shift @args); }
     elsif ($arg eq "--platform")                  { &gst_set_dist      (\%tool, shift @args); }
-    elsif ($arg eq "--progress")                  { $tool{"progress"} = $gst_progress = 1; }
     elsif ($arg eq "--location")                  { &gst_set_location  (\%tool, shift @args); }
     elsif ($arg eq "--no-archive")                { $tool{"no_archive"} = $gst_no_archive = 1; }
-    elsif ($arg eq "--debug")                     { $tool{"debug"} = $gst_debug = 1; }
     elsif ($arg eq "--verbose"   || $arg eq "-v")
     {
       $tool{"do_verbose"} = $gst_do_verbose = 1;
-      &gst_report_set_threshold (99);
+      &Utils::Report::set_threshold (99);
     }
     elsif ($arg eq "--report")
     {
       $tool{"do_report"} = $gst_do_report = 1;
-      &gst_report_set_threshold (99);
+      &Utils::Report::set_threshold (99);
     }
     else
     {
@@ -378,23 +371,18 @@ sub gst_init
     }
   }
   
-  # See if debug requested in env.
-  
-  $tool{"debug"} = $gst_debug = 1 if ($ENV{"SET_ME_UP_HARDER"});
-  
   # Set up subsystems.
 
   &gst_platform_get_system (\%tool);
   &gst_platform_guess (\%tool) if !$tool{"platform"};
-  &gst_report_begin ();
+  &Utils::Report::begin ();
 
   return \%tool;
 }
 
 sub gst_terminate
 {
-  &gst_report_set_threshold (-1);
-  &gst_debug_close_all ();
+  &Utils::Report::set_threshold (-1);
   exit (0);
 }
 
@@ -402,7 +390,7 @@ sub gst_end_directive
 {
   my ($tool) = @_;
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &gst_xml_print_request_end ();
   &gst_terminate ();
 }
@@ -464,7 +452,7 @@ sub gst_interface_print
       {
         my $tmp = $arg;
 
-        &gst_report ("directive_invalid", $key) if ($#args != -1);
+        &Utils::Report::do_report ("directive_invalid", $key) if ($#args != -1);
         chop $tmp;
         &gst_xml_print_line ("<var-arguments>$tmp</var-arguments>");
       }
@@ -486,7 +474,7 @@ sub gst_interface_directive
 {
   my ($tool) = @_;
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &gst_interface_print ($tool);
 }
 
@@ -495,10 +483,9 @@ sub gst_directive_fail
 {
   my (@report_args) = @_;
   
-  &gst_report (@report_args);
-  &gst_report_end ();
+  &Utils::Report::do_report (@report_args);
+  &Utils::Report::end ();
   &gst_xml_print_request_end ();
-  &gst_debug_close_all ();
 }
 
 # This sepparates a line in args by the directive line format,
@@ -569,7 +556,7 @@ sub gst_directive_run
   ($key, @args) = &gst_directive_parse_line ($line);
   $directives = $$tool{"directives"};
 
-  &gst_report_begin ();
+  &Utils::Report::begin ();
 
   if (!exists $$directives{$key})
   {
@@ -597,13 +584,12 @@ sub gst_directive_run
     return;
   }
 
-  &gst_report ("directive_run", $key, join (',', @args));
+  &Utils::Report::do_report ("directive_run", $key, join (',', @args));
 
   $proc = $ {$$directives{$key}}[0];
   &$proc ($tool, @args);
 
   &gst_xml_print_request_end ();
-  &gst_debug_close_all ();
 }
 
 
@@ -627,7 +613,7 @@ sub gst_run
     }
   }
 
-  &gst_report_end ();
+  &Utils::Report::end ();
 
   if ($$tool{"directive"})
   {

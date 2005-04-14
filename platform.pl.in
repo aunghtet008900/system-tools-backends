@@ -405,7 +405,7 @@ sub check_freebsd
 {
   my ($sysctl_cmd, @output);
 
-  $sysctl_cmd = &gst_file_locate_tool ("sysctl");
+  $sysctl_cmd = &Utils::File::locate_tool ("sysctl");
   @output = (readpipe("$sysctl_cmd -n kern.version"));
   foreach (@output)
   {
@@ -433,10 +433,10 @@ sub check_solaris
   # Solaris 7:   unknown, assume 7.0
   # Solaris 8:   unknown, assume 8.0
   #
-  $fd = &gst_file_run_pipe_read ("uname -r");
+  $fd = &Utils::File::run_pipe_read ("uname -r");
   return -1 if $fd eq undef;
   chomp ($dist = <$fd>);
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   if ($dist =~ /^5\.(\d)/) { return "solaris-2.$1" }
   else { if ($dist =~ /^([78])\.\d/) { return "solaris-$1.0" } }
@@ -448,7 +448,7 @@ sub gst_platform_get_system
   my ($tool) = @_;
 
   # get the output of 'uname -s', it returns the system we are running
-  $$tool{"system"} = &gst_file_run_backtick ("uname -s");
+  $$tool{"system"} = &Utils::File::run_backtick ("uname -s");
   chomp ($$tool{"system"});
 }
 
@@ -510,7 +510,7 @@ sub gst_platform_ensure_supported
   {
     if ($platform eq $$tool{"platform"})
     {
-      &gst_report ("platform_success", $platform, $$PLATFORM_INFO{$platform});
+      &Utils::Report::do_report ("platform_success", $platform, $$PLATFORM_INFO{$platform});
       return;
     }
   }
@@ -518,11 +518,11 @@ sub gst_platform_ensure_supported
   # Not supported.
   if (exists $$tool{"platform"})
   {
-    &gst_report ("platform_unsup", $$tool{"platform"});
+    &Utils::Report::do_report ("platform_unsup", $$tool{"platform"});
   }
   else
   {
-    &gst_report ("platform_undet");
+    &Utils::Report::do_report ("platform_undet");
   }
 }
 
@@ -538,14 +538,14 @@ sub gst_platform_set
     if ($p eq $platform)
     {
       $$tool{"platform"} = $gst_dist = $platform;
-      &gst_report ("platform_success", $platform, $$PLATFORM_INFO{$platform});
-      &gst_report_end ();
+      &Utils::Report::do_report ("platform_success", $platform, $$PLATFORM_INFO{$platform});
+      &Utils::Report::end ();
       return;
     }
   }
 
-  &gst_report ("platform_unsup", $platform);
-  &gst_report_end ();
+  &Utils::Report::do_report ("platform_unsup", $platform);
+  &Utils::Report::end ();
 }
 
 sub gst_platform_print_list
@@ -570,7 +570,7 @@ sub gst_platform_list
 {
   my ($tool) = @_;
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &gst_platform_print_list ($$tool{"platforms"});
 }
 

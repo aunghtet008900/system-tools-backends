@@ -40,7 +40,7 @@ sub gst_ishare_ipchains_configured
   
   if ($tools && $kerneltool)
   {
-    $fd = &gst_file_run_pipe_read ("ipchains-save");
+    $fd = &Utils::File::run_pipe_read ("ipchains-save");
     if ($fd ne undef)
     {
       $ret = 0;
@@ -53,7 +53,7 @@ sub gst_ishare_ipchains_configured
         }
       }
       
-      &gst_file_close ($fd);
+      &Utils::File::close_file ($fd);
     }
   }
 
@@ -78,9 +78,9 @@ sub gst_ishare_ipchains_save
 
   return 0 if !$overwrite;
   
-  $fd = &gst_file_run_pipe_read ("ipchains-save");
+  $fd = &Utils::File::run_pipe_read ("ipchains-save");
   @buff = (<$fd>);
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   foreach $line (@buff)
   {
@@ -95,8 +95,8 @@ sub gst_ishare_ipchains_save
     push @buff, "-A forward -s $network/$netmask -d 0.0.0.0/0.0.0.0 -j MASQ\n";
   }
 
-  &gst_file_buffer_clean (\@buff);
-  return &gst_file_buffer_save (\@buff, $ipchains_conf);
+  &Utils::File::clean_buffer (\@buff);
+  return &Utils::File::save_buffer (\@buff, $ipchains_conf);
 }
 
 
@@ -118,7 +118,7 @@ sub gst_ishare_dhcp_conf_add_interface
   my ($buff, $address, $netmask, $hwaddr) = @_;
   my ($network, $broadcast, $min, $max, $hostname);
 
-  $hostname = &gst_file_run_backtick ("hostname");
+  $hostname = &Utils::File::run_backtick ("hostname");
   chomp $hostname;
   $hostname = "server" if $hostname eq "";
 
@@ -163,8 +163,8 @@ sub gst_ishare_dhcp_set_conf
                                          $ {$$info{$$iface{"dev"}}}{"hwaddr"});
   }
 
-  &gst_file_buffer_clean (\@buff);
-  &gst_file_buffer_save (\@buff, $dhcpd_conf);
+  &Utils::File::clean_buffer (\@buff);
+  &Utils::File::save_buffer (\@buff, $dhcpd_conf);
 }
 
 
@@ -283,7 +283,7 @@ sub gst_ishare_conf_get_parse_table
   my $dist = $dist_map {$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -324,7 +324,7 @@ sub gst_ishare_fwrules_get_parse_table
   my $dist = $dist_map {$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -378,7 +378,7 @@ sub gst_ishare_dhcp_get_parse_table
   my $dist = $dist_map {$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -411,7 +411,7 @@ sub gst_ishare_conf_get_replace_table
   my $dist = $dist_map {$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -469,7 +469,7 @@ sub gst_ishare_fwrules_get_replace_table
   my $dist = $dist_map {$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -521,6 +521,6 @@ sub gst_ishare_dhcp_get_replace_table
   my $dist = $dist_map {$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }

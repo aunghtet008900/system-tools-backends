@@ -21,6 +21,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::File;
+
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 {
@@ -29,7 +31,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 }
 
 require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/file.pl$DOTIN";
 
 sub gst_process_kill_by_pidfile
 {
@@ -42,12 +43,12 @@ sub gst_process_kill_by_pidfile
     $pidfile = "/var/run/" . $pidfile;
   }
 
-  if (&gst_file_exists ($pidfile))
+  if (&Utils::File::exists ($pidfile))
   {
-    $buf = &gst_file_buffer_load ($pidfile);
+    $buf = &Utils::File::load_buffer ($pidfile);
     $pid = $$buf[0];
 
-    &gst_file_run ("kill -9 $pid");
+    &Utils::File::run ("kill -9 $pid");
   }
 }
 

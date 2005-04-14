@@ -24,7 +24,6 @@
 
 # --- Common stuff --- #
 
-
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
   if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -35,7 +34,6 @@ BEGIN {
   
 # require "$SCRIPTSDIR/general.pl$DOTIN";
 # require "$SCRIPTSDIR/platform.pl$DOTIN";
-# require "$SCRIPTSDIR/util.pl$DOTIN";
 # require "$SCRIPTSDIR/file.pl$DOTIN";
   require "$SCRIPTSDIR/xml.pl$DOTIN";
 }
@@ -57,7 +55,7 @@ end_of_description;
 
 # Where are the tools?
 
-$cmd_pack = &gst_file_locate_tool ("rpm");
+$cmd_pack = &Utils::File::locate_tool ("rpm");
 
 # --- Internal configuration variables --- #
 
@@ -147,7 +145,7 @@ sub get_package
 
   ($distributor) = split /-/, $gst_dist;
 
-  $fd = &gst_file_run_pipe_read ("$dist_map{$distributor}");
+  $fd = &Utils::File::run_pipe_read ("$dist_map{$distributor}");
   die "Could not execute the package query command" if $fd eq undef;
 
   while (<$fd>)
@@ -161,16 +159,16 @@ sub get_package
       "dist"     => $dist,
     };
   }
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 }
 
 sub get
 {
-  &gst_report ("get_packages");
+  &Utils::Report::do_report ("get_packages");
 
   &get_package; &gst_print_progress();
   
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ();
 }
 

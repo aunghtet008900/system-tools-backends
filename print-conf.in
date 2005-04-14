@@ -40,6 +40,7 @@
 # nmbd
 # ifconfig: check current printers and activate/deactivate.
 
+use Utils::Util;
 
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
@@ -51,7 +52,6 @@ BEGIN {
   
   require "$SCRIPTSDIR/general.pl$DOTIN";
   require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/util.pl$DOTIN";
   require "$SCRIPTSDIR/file.pl$DOTIN";
   require "$SCRIPTSDIR/xml.pl$DOTIN";
   require "$SCRIPTSDIR/print.pl$DOTIN";
@@ -216,7 +216,7 @@ sub get
   my $hash;
 
   $hash = &gst_print_conf_get ();
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 
@@ -227,7 +227,7 @@ sub set
   
   $hash = &xml_parse ();
   &gst_print_conf_set ($hash);
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 
@@ -239,7 +239,7 @@ sub filter
   my $hash;
   
   $hash = &xml_parse ();
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 

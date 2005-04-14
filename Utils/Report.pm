@@ -21,6 +21,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+# --- Report printing --- #
+
+package Utils::Report;
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -31,80 +34,32 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 
 require "$SCRIPTSDIR/general.pl$DOTIN";
 
-# --- Progress printing --- #
+my $report_threshold = 0;
+my $report_table = \%gst_report_message;
 
-
-$gst_progress_current = 0;  # Compat with old $progress_max use.
-$gst_progress_last_percentage = 0;
-
-
-sub gst_progress
-{
-  my $prc = $_[0];
-
-  # /* Don't go backwards. */
-  $prc = $gst_progress_last_percentage if ($prc < $gst_progress_last_percentage);
-
-  # /* Don't go above 99%. */
-  $prc = 99 if ($prc >= 100);
-
-  if ($gst_progress && (int $prc > int $gst_progress_last_percentage))
-  {
-    &gst_report ("progress", $prc);
-    $gst_progress_last_percentage = $prc;
-  }
-}
-
-
-sub gst_progress_begin
-{
-  &gst_progress (0);
-}
-
-
-sub gst_progress_end
-{
-  &gst_progress (99);
-}
-
-
-sub gst_print_progress  # Compat with old $progress_max use.
-{
-  my $prc;
-
-  $gst_progress_current++;
-  &gst_progress (($gst_progress_current * 100) / $progress_max);
-}
-
-
-# --- Report printing --- #
-
-
-sub gst_report_begin
+sub begin
 {
   my ($tool) = @_;
   
-  &gst_report ("begin");
-  &gst_report_enter ();
-  &gst_progress_begin ();
+  &do_report ("begin");
+  &enter ();
 }
 
 
-sub gst_report_end
+sub end
 {
-  &gst_progress_end ();
-  &gst_report_leave ();
-  &gst_report ("end");
+  &leave ();
+  &do_report ("end");
 }
 
 
-sub gst_report_set_threshold
+sub set_threshold
 {
-  $gst_report_threshold = $_[0];
+  $report_threshold = $_[0];
 }
 
 
-sub gst_report_enter
+sub enter
 {
   # This has been trivialized because it is not working
   # correctly at the moment and is causing some trouble.
@@ -116,7 +71,7 @@ sub gst_report_enter
 }
 
 
-sub gst_report_leave
+sub leave
 {
 #  $gst_report_level --;
   $gst_report_level = 0;
@@ -124,7 +79,7 @@ sub gst_report_leave
 
 
 # Escapes a report using the report line format.
-sub gst_report_escape
+sub escape_report
 {
   my ($args) = @_;
   my ($arg);
@@ -141,26 +96,26 @@ $gst_report_level = 0;
 $gst_report_started = 0;
 
 # Just to trap these errors with the debugger easily.
-sub gst_report_stderr
+sub do_report_stderr
 {
   my ($major, $key, $res) = @_;
   
   print STDERR "$gst_name - $major::${key}::$res";
 }
 
-sub gst_report
+sub do_report
 {
   my (@args) = @_;
   my ($key, $major, $minor, $str, $format, $res);
-  my $report_message = &gst_report_table ();
+  my $report_message = $report_table;
 
-  &gst_report_escape (\@args);
+  &escape_report (\@args);
 
   $key = shift @args;
 
   if (! (exists $$report_message{$key}))
   {
-      &gst_report ("report_minor_unk", $key);
+      &do_report ("report_minor_unk", $key);
       return;
   }
 
@@ -168,7 +123,7 @@ sub gst_report
 
   if (! (exists $gst_report_valid_majors{$major}))
   {
-      &gst_report ("report_major_unk", $major, join ("::", $key, @args));
+      &do_report ("report_major_unk", $major, join ("::", $key, @args));
       return;
   }
 
@@ -182,12 +137,7 @@ sub gst_report
       $major eq "error" ||
       $major eq "debug")
   {
-    &gst_report_stderr ($major, $key, $res);
-  }
-
-  if ($key ne "progress")
-  {
-    return if ($gst_report_level >= $gst_report_threshold || !$gst_report_started);
+    &do_report_stderr ($major, $key, $res);
   }
 
   # Report (--report) output is machine-readable.
@@ -195,34 +145,23 @@ sub gst_report
   {
     print STDOUT join ("::", $major, $key, $str, @args) . "\n";
   }
-
-  &gst_debug_print_indented_string ($gst_report_level, "report $major:$key: $res");
 }
 
-# Internal
+sub add
 {
-  my $report_table = \%gst_report_message;
-  sub gst_report_table
+  my $table = shift @_;
+
+  if ($table) # Add
   {
-    my $table = shift @_;
-
-    if ($table) # Add
+    foreach my $key (keys %$table)
     {
-      foreach my $key (keys %$table)
-      {
-        $$report_table{$key} = $$table{$key} unless exists $$report_table{$key};
-      }
-    }
-
-    else # Get
-    {
-      return $report_table;
+      $$report_table{$key} = $$table{$key} unless exists $$report_table{$key};
     }
   }
 }
 
 # This disables reporting.
-&gst_report_set_threshold (0);
+&set_threshold (0);
 
 %gst_report_valid_majors = (
     "sys"   => 1,
@@ -236,7 +175,6 @@ sub gst_report
     (
      "begin"    => ["sys", "Start of work report."],
      "end"      => ["sys", "End of work report."],
-     "progress" => ["sys", "%d"],
      "compat"   => ["info", "%s."],
 
      "report_major_unk"         => ["error", "Unknown major [%s] in report [%s]."],

@@ -217,9 +217,9 @@ sub gst_font_info_get_from_ttf2pt1
   my ($key, $value, @buff, $info);
   my $fd;
   
-  $fd = &gst_file_run_pipe_read ("ttf2pt1 -A $file -");
+  $fd = &Utils::File::run_pipe_read ("ttf2pt1 -A $file -");
   @buff = <$fd>;
-  &gst_file_close ($fd);
+  &Utils::File::close_file ($fd);
 
   $info = &gst_font_info_get_from_afm_buff (\@buff);
   $$info{"file"} = $file;
@@ -464,13 +464,13 @@ sub xfs_parse
   my $config = {};
   return unless $fname;
 
-  my $buf = &gst_file_buffer_load ($fname);
+  my $buf = &Utils::File::load_buffer ($fname);
   return unless $buf;
 
   while (@$buf)
   {
     my $line = shift @$buf;
-    next if &gst_ignore_line ($line);
+    next if &Utils::Util::ignore_line ($line);
 
     chomp ($line);
     my ($kw, $val) = split (/[ \t]*=[ \t]*/, $line, 2);
@@ -506,7 +506,7 @@ sub xfs_parse
 ################################
 
 BEGIN {
-  &gst_report_table ({
+  &Utils::Report::add ({
     'font_install_success'    => ['info',  _('Font [%s] installed successfully.')],
     'font_install_fail'       => ['warn',  _('File [%s] not installed.')],
     'font_remove_success'     => ['info',  _('Font [%s] removed successfully.')],
@@ -560,7 +560,7 @@ sub font_list
   {
     my $func = $$list[$i];
 
-    &gst_report ("font_list", $$names[$i]);
+    &Utils::Report::do_report ("font_list", $$names[$i]);
 
     my $tmp = &$func ();
     $fonts->{$$names[$i]} = $tmp if $tmp;
@@ -648,7 +648,7 @@ sub font_file_copy
       next unless &font_file_copy_need ($path);
 
       my $new_path = "$GST_FONT_DIR/$type/";
-      &gst_file_create_path ($new_path, 0755) unless (-d $new_path);
+      &Utils::File::create_path ($new_path, 0755) unless (-d $new_path);
       $new_path .= lc (basename ($path));
 
       unless (-f $new_path)
@@ -841,9 +841,9 @@ sub gp_invoke
   my $set = shift;
   my $user = $UID; # Used as a boolean here, we care only for root (uid 0, false) or other (!0, true).
 
-  my $proc = &gst_process_fork (\&gp_run, $dir, $user, $set);
-  &gst_process_list_check_ready (60, $proc);
-  my $list = &gst_process_result_collect ($proc, \&gp_run_collect);
+  my $proc = &Utils::Util::process_fork (\&gp_run, $dir, $user, $set);
+  &Utils::Util::process_list_check_ready (60, $proc);
+  my $list = &Utils::Util::process_result_collect ($proc, \&gp_run_collect);
 
   return $list;
 }
@@ -999,7 +999,7 @@ sub gp_font_set
 
 sub xfs_get_fontpath
 {
-  my $cmd = &gst_file_locate_tool ('chkfontpath');
+  my $cmd = &Utils::File::locate_tool ('chkfontpath');
   return unless $cmd;
 
   my $fh = IO::File->new ("$cmd |");
@@ -1024,11 +1024,11 @@ sub xfs_get_fontpath
 sub xfs_add_fontpath
 {
   my $paths = shift || return;
-  my $cmd = &gst_file_locate_tool ('chkfontpath');
+  my $cmd = &Utils::File::locate_tool ('chkfontpath');
 
   foreach my $path (@$paths)
   {
-    &gst_file_run ("$cmd -a $path");
+    &Utils::File::run ("$cmd -a $path");
   }
 }
 
@@ -1057,10 +1057,10 @@ push @{$font_map->{'set'}}, \&x_font_set;
 
 sub x_fontpath_get
 {
-  my $cmd = &gst_file_locate_tool ('xset');
+  my $cmd = &Utils::File::locate_tool ('xset');
   return unless $cmd;
 
-  my $output = &gst_file_run_backtick ("$cmd q");
+  my $output = &Utils::File::run_backtick ("$cmd q");
   return unless $output;
 
   $output = $1 if $output =~ /Font Path:\n\s+(.+)/;
@@ -1109,7 +1109,7 @@ sub x_fontpath_add
 sub x_fonts_refresh
 {
   &xfs_reload ();
-  &gst_file_run ("xset fp rehash");
+  &Utils::File::run ("xset fp rehash");
 }
 
 sub x_fonts_dir_parse
@@ -1150,7 +1150,7 @@ sub x_fonts_dir_modify
   return unless $path;
   my $file = shift || 'fonts.dir';
 
-  my $buf = &gst_file_buffer_load ("$path/$file");
+  my $buf = &Utils::File::load_buffer ("$path/$file");
   return unless $buf;
 
   # Find files which are to be removed
@@ -1168,23 +1168,23 @@ sub x_fonts_dir_modify
     my $line = $$buf[$i];
     my ($fname, $xname) = split ('/ /', $line);
 
-    if (&gst_item_is_in_list ($fname, @del_files))
+    if (&Utils::Util::item_is_in_list ($fname, @del_files))
     {
       $line = '';
       $$buf[0]--;
     }
   }
 
-  &gst_file_buffer_save ($buf, $file);
+  &Utils::File::save_buffer ($buf, $file);
   
   # Add:
   # Bad bad hack, FIXME.
   my $cmd = "type1inst -nolog -q -d " .
       "$GST_FONT_DIR/type1/";
-  &gst_file_run ($cmd);
+  &Utils::File::run ($cmd);
 
-  $cmd = &gst_file_locate_tool ('ttmkfdir');
-  &gst_file_run ("$cmd -d $GST_FONT_DIR/truetype/ -o $GST_FONT_DIR/truetype/fonts.scale");
+  $cmd = &Utils::File::locate_tool ('ttmkfdir');
+  &Utils::File::run ("$cmd -d $GST_FONT_DIR/truetype/ -o $GST_FONT_DIR/truetype/fonts.scale");
 }
 
 sub x_get_fonts
@@ -1237,9 +1237,9 @@ sub x_font_dirs
 sub x_add_font
 {
   my $add = shift;
-  my $type1_tool = &gst_file_locate_tool ("$SCRIPTSDIR/type1inst");
-  my $true_tool  = &gst_file_locate_tool ("ttmkfdir");
-  my $true_tool2 = &gst_file_locate_tool ("mkfontdir");
+  my $type1_tool = &Utils::File::locate_tool ("$SCRIPTSDIR/type1inst");
+  my $true_tool  = &Utils::File::locate_tool ("ttmkfdir");
+  my $true_tool2 = &Utils::File::locate_tool ("mkfontdir");
   my $tmp;
 
   my $type1 = [];
@@ -1262,7 +1262,7 @@ sub x_add_font
   push @$path, @$tmp if $tmp;
   foreach my $dir (@$tmp)
   {
-    &gst_file_run ("$type1_tool -q -d $dir");
+    &Utils::File::run ("$type1_tool -q -d $dir");
   }
 
   # Install TrueType fonts.
@@ -1270,8 +1270,8 @@ sub x_add_font
   push @$path, @$tmp if $tmp;  
   foreach my $dir (@$tmp)
   {
-    &gst_file_run ("$true_tool -d $dir -o $dir/fonts.scale");
-    &gst_file_run ("$true_tool2 $dir");
+    &Utils::File::run ("$true_tool -d $dir -o $dir/fonts.scale");
+    &Utils::File::run ("$true_tool2 $dir");
   }
 
   &x_fontpath_add ($path);

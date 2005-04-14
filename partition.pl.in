@@ -22,6 +22,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::Report;
+use Utils::File;
+use Errno;
+
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 {
@@ -29,11 +33,8 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-use Errno;
-
 require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/report.pl$DOTIN";
-require "$SCRIPTSDIR/file.pl$DOTIN";
+
 
 @DEVICE_NAMES = (
     {
@@ -108,11 +109,11 @@ sub gst_partition_scan_freebsd_info
           close (DEV);
         }
 
-        $fd = &gst_file_run_pipe ("fdisk -s " . $dev);
+        $fd = &Utils::File::run_pipe ("fdisk -s " . $dev);
 
         if ($fd eq undef)
         {
-          &gst_report ("fdisk_failed");
+          &Utils::Report::do_report ("fdisk_failed");
           return undef;
         }
 
@@ -136,7 +137,7 @@ sub gst_partition_scan_freebsd_info
           }
         }
 
-        &gst_file_close ($fd);
+        &Utils::File::close_file ($fd);
       }
     }
   }
@@ -152,10 +153,10 @@ sub gst_partition_scan_linux_info
   my (%hash);
   my (@table);
   
-  $fd = &gst_file_run_pipe ("sfdisk -d");
+  $fd = &Utils::File::run_pipe ("sfdisk -d");
   if ($fd eq undef)
   {
-    &gst_report ("sfdisk_failed");
+    &Utils::Report::do_report ("sfdisk_failed");
     return undef;
   }
   
@@ -404,15 +405,15 @@ sub get_fdisk
      }
   }
 
-  $fdisk_tool = &gst_file_locate_tool("fdisk");
+  $fdisk_tool = &Utils::File::locate_tool("fdisk");
 
   for $dev (@check_devs)
   {
     my ($disk, $device, $point, $fs, $options, $check, $size, $bootable, $fd);
    
-    &gst_report ("disks_partition_probe", $dev);
+    &Utils::Report::do_report ("disks_partition_probe", $dev);
 
-    $fd = &gst_file_run_pipe_read ("fdisk -l $dev");
+    $fd = &Utils::File::run_pipe_read ("fdisk -l $dev");
     # We want to cache fdisk work!
     
     my @fdisk_data = <$fd>; 
@@ -640,11 +641,9 @@ sub get_fdisk
        }
     }
     
-    &gst_file_close ($fd);
+    &Utils::File::close_file ($fd);
 
-    &gst_report ("disks_size_query", $dev);
-    
-    &gst_print_progress ();
+    &Utils::Report::do_report ("disks_size_query", $dev);
   }
 }
 
@@ -691,7 +690,7 @@ sub gst_partition_mount_temp
    mkdir ($point);
 
    $cmd = "mount $device $point";
-   $fd = &gst_file_run_pipe_read_with_stderr ($cmd);
+   $fd = &Utils::File::run_pipe_read_with_stderr ($cmd);
 
    if (!$fd) 
    {
@@ -706,27 +705,27 @@ sub gst_partition_mount_temp
       if (/not supported/) 
       {
 	 #($filesys) = ($_ =~ /^mount: fs type (.*) not supported by kernel$/);
-	 &gst_file_close ($fd);
+	 &Utils::File::close_file ($fd);
 	 rmdir ($point);
 	 return "not_supported::$_";
       }
       elsif (/looks like swapspace/) 
       {
 	 #$filesys = "swap";
-	 &gst_file_close ($fd);
+	 &Utils::File::close_file ($fd);
 	 rmdir ($point);
 	 return "swap";
       }
       elsif (/you must specify the filesystem type/)
       {
 	 #$filesys = "none";
-	 &gst_file_close ($fd);
+	 &Utils::File::close_file ($fd);
 	 rmdir ($point);
 	 return "none";
       }
    }
 
-   &gst_file_close ($fd);
+   &Utils::File::close_file ($fd);
 
    return $point;
 }
@@ -759,7 +758,7 @@ sub gst_format_partition
 
    $cmd = "$command $device $options";
    
-   $fd = &gst_file_run_pipe_read_with_stderr ($cmd);
+   $fd = &Utils::File::run_pipe_read_with_stderr ($cmd);
    if (!$fd) 
    {
       # TODO
@@ -771,10 +770,10 @@ sub gst_format_partition
 #      print"DBG: $_\n";
    }
 
-   &gst_file_close ($fd);
+   &Utils::File::close_file ($fd);
 
 
-   &gst_report_leave ();
+   &Utils::Report::leave ();
    
 }
 	

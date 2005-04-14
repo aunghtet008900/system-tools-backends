@@ -76,7 +76,7 @@ sub get
 {
   my $font_list = &font_get_all ();
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($font_list);
 }
 
@@ -85,14 +85,14 @@ sub set
   my $font_list = &font_xml_parse ();
 
   &font_set ($font_list);
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 sub filter
 {
   my $font_list = &font_xml_parse ();
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($font_list);
 }
 
@@ -101,7 +101,7 @@ sub test
   my ($tool, @dir) = @_;
   my $font_list = &font_test (\@dir);
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($font_list);
 }
 

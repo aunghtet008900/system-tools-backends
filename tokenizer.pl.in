@@ -66,7 +66,7 @@ sub gst_tokenizer_test
         }
     }
 
-    &gst_file_buffer_save ($out, $file . ".new");
+    &Utils::File::save_buffer ($out, $file . ".new");
 
     printf STDERR "Tested tokenizer with $file. Output in $file.new\n";
     printf STDERR "You can :\n";
@@ -275,7 +275,7 @@ sub gst_tokenize_remove_till
 sub gst_tokenize
 {
     my ($file) = @_;
-    my $buf = &gst_file_buffer_load ($file);
+    my $buf = &Utils::File::load_buffer ($file);
 
     my @out;
     my $out_index;
@@ -284,7 +284,7 @@ sub gst_tokenize
         my $line = $$buf[0];
         my $i = 0;
 
-        if (&gst_ignore_line ($line)) {
+        if (&Utils::Util::ignore_line ($line)) {
             $out[$out_index++] = $line;
             shift @$buf;
             next;

@@ -21,6 +21,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use Utils::Util;
+
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 {
@@ -33,7 +35,6 @@ require "$SCRIPTSDIR/file.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/replace.pl$DOTIN";
 require "$SCRIPTSDIR/service.pl$DOTIN";
-require "$SCRIPTSDIR/util.pl$DOTIN";
 require "$SCRIPTSDIR/xml.pl$DOTIN";
 require "$SCRIPTSDIR/tokenizer.pl$DOTIN";
 
@@ -161,14 +162,14 @@ sub gst_dhcpd_get_subnet
 #                    @$in = (pop @$out, @$in);
                 }
             }
-            elsif (defined &gst_array_find_index (\@known_options, $value)) {
+            elsif (defined &Utils::Util::find_array_index (\@known_options, $value)) {
  #               printf STDERR "in array\n";
                 # remove elements as we read them to avoid duplicates
                 @known_options = grep ($_ ne $value, @known_options);
                 $options{$value}=$pair;
                 &gst_tokenize_verify_token ($in, ";", $out);
             }
-            elsif (defined &gst_array_find_index (\@ignore_options, $value)) {
+            elsif (defined &Utils::Util::find_array_index (\@ignore_options, $value)) {
                 &gst_tokenize_advance_till ($in, ";", $out);
             }
             else {
@@ -302,7 +303,7 @@ sub gst_dhcpd_xml_parse_subnet
     elsif ($elem eq "host")        { &gst_dhcpd_xml_parse_host  (shift @$tree, \%hosts); }
     elsif ($elem eq "range")       { &gst_dhcpd_xml_parse_range (shift @$tree, \%ranges); }
     
-    else  { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else  { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   $$subnet{"options"} = \%options unless scalar keys %options == 0;
@@ -598,7 +599,7 @@ sub gst_dhcpd_replace_subnet_real
             elsif ("domain-name-servers" eq $token) {
                 &gst_tokenize_replace_dns ($in, $out, $options);
             }
-            elsif (defined &gst_array_find_index (\@ignore_options, $value)) {
+            elsif (defined &Utils::Util::find_array_index (\@ignore_options, $value)) {
                 &gst_tokenize_advance_till ($in, ";", $out);
                 &gst_tokenize_undo ($in, $out, 1);
             }
@@ -625,7 +626,7 @@ sub gst_dhcpd_replace_subnet_real
         elsif ("host" eq $token) {
             &gst_dhcpd_replace_host ($in, $out, $hosts);
         }
-        elsif (defined &gst_array_find_index (\@ignore_keywords, $value)) {
+        elsif (defined &Utils::Util::find_array_index (\@ignore_keywords, $value)) {
             &gst_tokenize_advance_till ($in, ";", $out);
         }
         elsif ("}" eq $token) {
@@ -654,7 +655,7 @@ sub gst_dhcpd_replace_subnet
   
   $in = &gst_tokenize ($file);
 
-  &gst_file_buffer_save ($out, $file . ".1");
+  &Utils::File::save_buffer ($out, $file . ".1");
   
   while (defined (my $token = &gst_tokenize_get_token ($in, $out))) {
 
@@ -671,8 +672,8 @@ sub gst_dhcpd_replace_subnet
       }
   }
 
-#  &gst_file_buffer_save ($out, $file . ".new");
-  &gst_file_buffer_save ($out, $file);
+#  &Utils::File::save_buffer ($out, $file . ".new");
+  &Utils::File::save_buffer ($out, $file);
 }
 
 sub gst_dhcpd_subnets_match_dump
@@ -751,7 +752,7 @@ sub gst_dhcpd_conf_get_parse_table
   my $dist = $dist_map {$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 
@@ -795,7 +796,7 @@ sub gst_dhcpd_conf_get_replace_table
   my $dist = $dist_map {$gst_dist};
   return %{$dist_tables{$dist}} if $dist;
 
-  &gst_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $gst_dist);
   return undef;
 }
 

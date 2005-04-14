@@ -31,6 +31,7 @@
 #
 # /etc/X11/X
 
+use Utils::Util;
 
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
@@ -42,7 +43,6 @@ BEGIN {
   
   require "$SCRIPTSDIR/general.pl$DOTIN";
   require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/util.pl$DOTIN";	
   require "$SCRIPTSDIR/file.pl$DOTIN";	
   require "$SCRIPTSDIR/xml.pl$DOTIN";	
   require "$SCRIPTSDIR/parse.pl$DOTIN";
@@ -71,7 +71,7 @@ sub gst_mouse_conf_get
     my $config_file;
     local *CONFIG_FILE;
 
-    $config_file = &gst_file_open_read_from_names (@conf_files);
+    $config_file = &Utils::File::open_read_from_names (@conf_files);
     if (not $config_file) { return; }
     *CONFIG_FILE = $config_file;
 
@@ -129,7 +129,7 @@ sub set
 {
     print "Not implemented yet! \n";
     
-    &gst_report_end ();
+    &Utils::Report::end ();
     
 }
 
@@ -143,7 +143,7 @@ sub get
     $hash = &gst_mouse_conf_get ();
     
     &xml_print ($hash);
-    &gst_report_end ();
+    &Utils::Report::end ();
 
 }
 
@@ -154,7 +154,7 @@ sub filter
 {
     print "Not implemented yet! \n";
     
-    &gst_report_end ();
+    &Utils::Report::end ();
 }
 
 # --- Main --- #

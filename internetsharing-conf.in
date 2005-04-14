@@ -24,6 +24,7 @@
 
 # Best viewed with 100 columns of width.
 
+use Utils::Util;
 
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
@@ -36,7 +37,6 @@ BEGIN {
   require "$SCRIPTSDIR/ishare.pl$DOTIN";
   require "$SCRIPTSDIR/general.pl$DOTIN";
   require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/util.pl$DOTIN";
   require "$SCRIPTSDIR/file.pl$DOTIN";
   require "$SCRIPTSDIR/xml.pl$DOTIN";
 }
@@ -76,7 +76,7 @@ sub xml_parse
   while ($elem = shift @$tree)
   {
     if   ($elem eq "internetsharing") { &xml_parse_internetsharing (shift @$tree, \%hash); }
-    else { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+    else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   return (\%hash);
@@ -95,7 +95,7 @@ sub xml_parse_internetsharing
       if    ($elem eq "fwrules")   { $$hash{"fwrules"} = &xml_parse_fwrules (shift @$tree);        }
       elsif ($elem eq "dhcp")      { $$hash{"dhcp"}    = &xml_parse_dhcp    (shift @$tree);        }
       elsif ($elem eq "interface") { &gst_network_xml_parse_interface (shift @$tree, \%interface); }
-      else  { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+      else  { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
   
   $$hash{"interface"} = \%interface unless scalar keys %interface == 0;
@@ -121,7 +121,7 @@ sub xml_parse_fwrules
       elsif ($elem eq "overwrite")    { $$hash{"overwrite"}    = &gst_xml_get_pcdata (shift @$tree); }
       elsif ($elem eq "active")       { $$hash{"active"}       = &gst_xml_get_pcdata (shift @$tree); }
       elsif ($elem eq "landev")       { push @$landevs, &gst_xml_get_pcdata (shift @$tree); }
-      else  { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+      else  { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   $$hash{"landev"} = $landevs;
@@ -146,7 +146,7 @@ sub xml_parse_dhcp
       elsif ($elem eq "overwrite")    { $$hash{"overwrite"}  = &gst_xml_get_pcdata (shift @$tree); }
       elsif ($elem eq "active")       { $$hash{"active"}     = &gst_xml_get_pcdata (shift @$tree); }
       elsif ($elem eq "dev")          { push @$devs, &gst_xml_get_pcdata (shift @$tree); }
-      else  { &gst_report ("xml_unexp_tag", $elem); shift @$tree; }
+      else  { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
   $$hash{"dev"} = $devs;
@@ -177,7 +177,7 @@ sub get
   
   $hash = &gst_ishare_conf_get ();
 
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 
@@ -188,7 +188,7 @@ sub get_interfaces
 
   $hash = &gst_network_interfaces_get ();
   
-  &gst_report_end ();
+  &Utils::Report::end ();
   &gst_xml_print_begin ();
   &gst_xml_print_hash_hash ($hash, "interface");
   &gst_xml_print_end ();
@@ -201,7 +201,7 @@ sub set
 
   $hash = &xml_parse ();
   &gst_ishare_conf_set ($hash);
-  &gst_report_end ();
+  &Utils::Report::end ();
 }
 
 
@@ -213,7 +213,7 @@ sub filter
   my $hash;
 
   $hash = &xml_parse ();
-  &gst_report_end ();
+  &Utils::Report::end ();
   &xml_print ($hash);
 }
 
