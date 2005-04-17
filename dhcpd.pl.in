@@ -260,7 +260,7 @@ sub gst_dhcpd_xml_parse_host
   
   while ($elem = shift @$tree)
   {
-    $hash{$elem} = &gst_xml_get_pcdata (shift @$tree);
+    $hash{$elem} = &Utils::XML::get_pcdata (shift @$tree);
   }
 
   $name = $hash{"host_name"};
@@ -276,7 +276,7 @@ sub gst_dhcpd_xml_parse_range
   
   while ($elem = shift @$tree)
   {
-    $hash{$elem} = &gst_xml_get_pcdata (shift @$tree);
+    $hash{$elem} = &Utils::XML::get_pcdata (shift @$tree);
   }
 
   $name = $hash{"start"};
@@ -293,12 +293,12 @@ sub gst_dhcpd_xml_parse_subnet
   
   while ($elem = shift @$tree)
   {
-    if    ($elem eq "ip")          { $options{"ip"}          = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "netmask")     { $options{"netmask"}     = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "domain-name") { $options{"domain-name"} = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "dns1")        { $options{"dns1"}        = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "dns2")        { $options{"dns2"}        = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "routers")     { $options{"routers"}     = &gst_xml_get_pcdata (shift @$tree); }
+    if    ($elem eq "ip")          { $options{"ip"}          = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "netmask")     { $options{"netmask"}     = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "domain-name") { $options{"domain-name"} = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "dns1")        { $options{"dns1"}        = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "dns2")        { $options{"dns2"}        = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "routers")     { $options{"routers"}     = &Utils::XML::get_pcdata (shift @$tree); }
 
     elsif ($elem eq "host")        { &gst_dhcpd_xml_parse_host  (shift @$tree, \%hosts); }
     elsif ($elem eq "range")       { &gst_dhcpd_xml_parse_range (shift @$tree, \%ranges); }
@@ -743,7 +743,7 @@ sub gst_dhcpd_conf_get_parse_table
             [
               [ "active",      \&gst_service_sysv_get_status, DHCPD_SERVICE ],
               [ "installed",   \&gst_service_sysv_installed,  DHCPD_SERVICE ],
-              [ "configured",  \&gst_file_exists,             DHCPD_CONF    ],
+              [ "configured",  \&Utils::File::exists,             DHCPD_CONF    ],
               [ "subnets",     \&gst_dhcpd_get_subnets,       DHCPD_CONF],
             ]
               }
@@ -810,7 +810,7 @@ sub gst_dhcpd_conf_set
   %dist_attrib = &gst_dhcpd_conf_get_replace_table ();
 
   $old_hash = &gst_dhcpd_conf_get ();
-  $res = &gst_replace_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
+  $res = &Utils::Replace::set_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
                                   $values_hash, $old_hash);
 
   return $res;

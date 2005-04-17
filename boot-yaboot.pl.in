@@ -21,7 +21,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-use Utils::Util;
 use Utils::File;
 
 $SCRIPTSDIR = "@scriptsdir@";
@@ -31,10 +30,7 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/xml.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
-require "$SCRIPTSDIR/replace.pl$DOTIN";
 require "$SCRIPTSDIR/partition.pl$DOTIN";
 
 my @yaboot_global_vars = qw (default prompt delay timeout append boot root);

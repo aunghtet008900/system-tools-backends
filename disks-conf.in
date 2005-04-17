@@ -43,6 +43,9 @@
 
 use Utils::Util;
 use Utils::File;
+use Utils::XML;
+use Utils::Backend;
+use Utils::Platform;
 
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
@@ -52,9 +55,6 @@ BEGIN {
       $DOTIN = ".in";
   }
   
-  require "$SCRIPTSDIR/general.pl$DOTIN";
-  require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/xml.pl$DOTIN";
   require "$SCRIPTSDIR/filesys.pl$DOTIN";
   require "$SCRIPTSDIR/partition.pl$DOTIN";
 }
@@ -950,7 +950,7 @@ sub xml_parse
 {
   # Scan XML to tree.
 
-  $tree = &gst_xml_scan;
+  $tree = &Utils::XML::scan;
 
   # Walk the tree recursively and extract configuration parameters.
   # This is the top level - find and enter the toplevel tag.
@@ -994,8 +994,8 @@ sub xml_parse_disk
 
   while (@$tree)
   {
-    if ($$tree[0] eq "device") { %disk->{device} = &gst_xml_get_word($$tree[1]); }
-    elsif ($$tree[0] eq "size") { %disk->{size} = &gst_xml_get_word($$tree[1]); }
+    if ($$tree[0] eq "device") { %disk->{device} = &Utils::XML::get_word($$tree[1]); }
+    elsif ($$tree[0] eq "size") { %disk->{size} = &Utils::XML::get_word($$tree[1]); }
     elsif ($$tree[0] eq "partition")
     {
       my %partition = &xml_parse_partition($$tree[1]);
@@ -1019,11 +1019,11 @@ sub xml_parse_partition
 
   while (@$tree)
   {
-    if ($$tree[0] eq "device") { %partition->{device} = &gst_xml_get_word($$tree[1]); }
-    elsif ($$tree[0] eq "type") { %partition->{type} = &gst_xml_get_word($$tree[1]); }
-    elsif ($$tree[0] eq "point") { %partition->{point} = &gst_xml_get_word($$tree[1]); }
-    elsif ($$tree[0] eq "label") { %partition->{label} = &gst_xml_get_word($$tree[1]); }
-    elsif ($$tree[0] eq "size") { %partition->{size} = &gst_xml_get_word($$tree[1]); }
+    if ($$tree[0] eq "device") { %partition->{device} = &Utils::XML::get_word($$tree[1]); }
+    elsif ($$tree[0] eq "type") { %partition->{type} = &Utils::XML::get_word($$tree[1]); }
+    elsif ($$tree[0] eq "point") { %partition->{point} = &Utils::XML::get_word($$tree[1]); }
+    elsif ($$tree[0] eq "label") { %partition->{label} = &Utils::XML::get_word($$tree[1]); }
+    elsif ($$tree[0] eq "size") { %partition->{size} = &Utils::XML::get_word($$tree[1]); }
     elsif ($$tree[0] eq "bootable") { %partition->{bootable} = &xml_parse_state($$tree[1]); }
     elsif ($$tree[0] eq "integritycheck") { %partition->{check} = &xml_parse_state($$tree[1]); }
     elsif ($$tree[0] eq "mounted") { %partition->{mounted} = &xml_parse_state($$tree[1]); }
@@ -1072,29 +1072,29 @@ sub xml_print_common
 {
    my ($disk) = @_;
 
-   &gst_xml_print_line ("<device>" . %$disk->{device} . "</device>\n");
-   if (%$disk->{alias}) { &gst_xml_print_line ("<alias>" . %$disk->{alias} . "</alias>\n"); }
+   &Utils::XML::print_line ("<device>" . %$disk->{device} . "</device>\n");
+   if (%$disk->{alias}) { &Utils::XML::print_line ("<alias>" . %$disk->{alias} . "</alias>\n"); }
    if (%$disk->{size}) {
       # The frontend wants KB
-      &gst_xml_print_line ("<size>" . %$disk->{size}*(%$disk->{block_size}/1024) . "</size>\n");
+      &Utils::XML::print_line ("<size>" . %$disk->{size}*(%$disk->{block_size}/1024) . "</size>\n");
    }
-   if (%$disk->{media}) { &gst_xml_print_line ("<media>" . %$disk->{media} . "</media>\n"); }
-   if (%$disk->{model}) { &gst_xml_print_line ("<model>" . %$disk->{model} . "</model>\n"); }
-   &gst_xml_print_state_tag ("present", %$disk->{present}); 
-   if (%$disk->{type})  { &gst_xml_print_line ("<type>" .  %$disk->{type} . "</type>\n"); }
-   if (%$disk->{point}) { &gst_xml_print_line ("<point>" . %$disk->{point} . "</point>\n"); }
+   if (%$disk->{media}) { &Utils::XML::print_line ("<media>" . %$disk->{media} . "</media>\n"); }
+   if (%$disk->{model}) { &Utils::XML::print_line ("<model>" . %$disk->{model} . "</model>\n"); }
+   &Utils::XML::print_state_tag ("present", %$disk->{present}); 
+   if (%$disk->{type})  { &Utils::XML::print_line ("<type>" .  %$disk->{type} . "</type>\n"); }
+   if (%$disk->{point}) { &Utils::XML::print_line ("<point>" . %$disk->{point} . "</point>\n"); }
 }
 
 sub xml_print_cdrom
 {
    my ($disk) = @_;
 
-   &gst_xml_print_state_tag ("play-audio",   %$disk->{"play-audio"});
-   &gst_xml_print_state_tag ("write-cdr",    %$disk->{"write-cdr"});
-   &gst_xml_print_state_tag ("write-cdrw",   %$disk->{"write-cdrw"});
-   &gst_xml_print_state_tag ("read-dvd",     %$disk->{"read-dvd"});
-   &gst_xml_print_state_tag ("write-dvdr",   %$disk->{"write-dvdr"});
-   &gst_xml_print_state_tag ("write-dvdram", %$disk->{"write-dvdram"});
+   &Utils::XML::print_state_tag ("play-audio",   %$disk->{"play-audio"});
+   &Utils::XML::print_state_tag ("write-cdr",    %$disk->{"write-cdr"});
+   &Utils::XML::print_state_tag ("write-cdrw",   %$disk->{"write-cdrw"});
+   &Utils::XML::print_state_tag ("read-dvd",     %$disk->{"read-dvd"});
+   &Utils::XML::print_state_tag ("write-dvdr",   %$disk->{"write-dvdr"});
+   &Utils::XML::print_state_tag ("write-dvdram", %$disk->{"write-dvdram"});
 }
 
 sub xml_print_partitions
@@ -1105,36 +1105,36 @@ sub xml_print_partitions
    {
       my $partition = $$partitions[0];
 
-      &gst_xml_print_vspace ();
-      &gst_xml_print_line ("<partition>\n");
-      &gst_xml_enter ();
+      &Utils::XML::print_vspace ();
+      &Utils::XML::print_line ("<partition>\n");
+      &Utils::XML::enter ();
 
-      &gst_xml_print_line ("<device>" . %$partition->{device} . "</device>\n");
-      if (%$partition->{alias}) { &gst_xml_print_line ("<alias>" . %$partition->{alias} . "</alias>\n"); }
-      if (%$partition->{type})  { &gst_xml_print_line ("<type>" .  %$partition->{type} .  "</type>\n"); }
-      if (%$partition->{point}) { &gst_xml_print_line ("<point>" . %$partition->{point} . "</point>\n"); }
-      if (%$partition->{label}) { &gst_xml_print_line ("<label>" . %$partition->{label} . "</label>\n"); }
+      &Utils::XML::print_line ("<device>" . %$partition->{device} . "</device>\n");
+      if (%$partition->{alias}) { &Utils::XML::print_line ("<alias>" . %$partition->{alias} . "</alias>\n"); }
+      if (%$partition->{type})  { &Utils::XML::print_line ("<type>" .  %$partition->{type} .  "</type>\n"); }
+      if (%$partition->{point}) { &Utils::XML::print_line ("<point>" . %$partition->{point} . "</point>\n"); }
+      if (%$partition->{label}) { &Utils::XML::print_line ("<label>" . %$partition->{label} . "</label>\n"); }
       if (%$partition->{size}) {
 	 # The frontend wants KB 
-	 &gst_xml_print_line ("<size>" . %$partition->{size}*(%$disk->{block_size}/1024) . "</size>\n");
+	 &Utils::XML::print_line ("<size>" . %$partition->{size}*(%$disk->{block_size}/1024) . "</size>\n");
       }
 
-      if (%$partition->{start}) { &gst_xml_print_line ("<start>" . %$partition->{start} . "</start>\n"); }
-      if (%$partition->{end}) { &gst_xml_print_line ("<end>" . %$partition->{end} . "</end>\n"); }
+      if (%$partition->{start}) { &Utils::XML::print_line ("<start>" . %$partition->{start} . "</start>\n"); }
+      if (%$partition->{end}) { &Utils::XML::print_line ("<end>" . %$partition->{end} . "</end>\n"); }
 
-      #&gst_xml_print_state_tag ("bootable", %$partition->{bootable});
-      #&gst_xml_print_state_tag ("integritycheck", %$partition->{check});
+      #&Utils::XML::print_state_tag ("bootable", %$partition->{bootable});
+      #&Utils::XML::print_state_tag ("integritycheck", %$partition->{check});
 	
-      &gst_xml_print_state_tag ("mounted", %$partition->{mounted});
+      &Utils::XML::print_state_tag ("mounted", %$partition->{mounted});
       if (%$partition->{free}) {
 	 # The frontend wants KB
-         &gst_xml_print_line ("<free>" . %$partition->{free}*(%$disk->{block_size}/1024) . "</free>\n");
+         &Utils::XML::print_line ("<free>" . %$partition->{free}*(%$disk->{block_size}/1024) . "</free>\n");
       }        
-      &gst_xml_print_state_tag ("listed", %$partition->{listed});
-      #&gst_xml_print_state_tag ("detected", %$partition->{detected});
+      &Utils::XML::print_state_tag ("listed", %$partition->{listed});
+      #&Utils::XML::print_state_tag ("detected", %$partition->{detected});
 
-      &gst_xml_leave ();
-      &gst_xml_print_line ("</partition>\n");
+      &Utils::XML::leave ();
+      &Utils::XML::print_line ("</partition>\n");
         
       shift @$partitions;
    }
@@ -1144,10 +1144,10 @@ sub xml_print
 {
   # print Dumper (@cf_disks);
   
-  &gst_xml_print_begin ();
+  &Utils::XML::print_begin ();
 
-  &gst_xml_print_line ("<!-- Local fixed media and partitions -->\n");
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_line ("<!-- Local fixed media and partitions -->\n");
+  &Utils::XML::print_vspace ();
 
   my @disks = sort sort_by_media (@cf_disks);
 
@@ -1157,30 +1157,30 @@ sub xml_print
     {
       my $disk = $disks[0];
       
-      &gst_xml_print_vspace ();
-      &gst_xml_print_line ("<disk>\n");
-      &gst_xml_enter ();
+      &Utils::XML::print_vspace ();
+      &Utils::XML::print_line ("<disk>\n");
+      &Utils::XML::enter ();
 
       &xml_print_common ($disk);
       
       if (%$disk->{media} =~ /cdrom/) { 
 	 &xml_print_cdrom ($disk);
       }
-      if (%$disk->{dma}) { &gst_xml_print_state_tag ("dma", %$disk->{dma}); }
+      if (%$disk->{dma}) { &Utils::XML::print_state_tag ("dma", %$disk->{dma}); }
       
       my $partitions = %$disk->{partitions};
 
       &xml_print_partitions ($disk, $partitions);
       
-      &gst_xml_leave ();
-      &gst_xml_print_line ("</disk>\n");
-      &gst_xml_print_vspace ();
+      &Utils::XML::leave ();
+      &Utils::XML::print_line ("</disk>\n");
+      &Utils::XML::print_vspace ();
     }
   
     shift @disks;
   }
 
-  &gst_xml_print_end ();
+  &Utils::XML::print_end ();
 }
 
 
@@ -1520,25 +1520,25 @@ sub cdrom_disc_info
    
    $cdrom = &get_cdrom_disc_info ($device, $alias);
    &Utils::Report::end ();
-   &gst_xml_print_begin ("disc_info");
-   &gst_xml_print_state_tag ("empty", %$cdrom->{'empty'});
+   &Utils::XML::print_begin ("disc_info");
+   &Utils::XML::print_state_tag ("empty", %$cdrom->{'empty'});
    if (%$cdrom->{'empty'} == 0) {
-      &gst_xml_print_line ("<type-content>" . %$cdrom->{'cdtype'}  . "</type-content>\n");
+      &Utils::XML::print_line ("<type-content>" . %$cdrom->{'cdtype'}  . "</type-content>\n");
       
       if (%$cdrom->{'cdtype'} eq "audio" || %$cdrom->{'cdtype'} eq "mixed") {
-	 &gst_xml_print_line ("<audio-tracks>" . %$cdrom->{'atracks'} . "</audio-tracks>\n");
-	 &gst_xml_print_line ("<duration>" . %$cdrom->{'duration'} . "</duration>\n");
-	 &gst_xml_print_line ("<data-tracks>" . %$cdrom->{'dtracks'} . "</data-tracks>\n");
+	 &Utils::XML::print_line ("<audio-tracks>" . %$cdrom->{'atracks'} . "</audio-tracks>\n");
+	 &Utils::XML::print_line ("<duration>" . %$cdrom->{'duration'} . "</duration>\n");
+	 &Utils::XML::print_line ("<data-tracks>" . %$cdrom->{'dtracks'} . "</data-tracks>\n");
       }
 
       if (%$cdrom->{'cdtype'} eq "data" || %$cdrom->{'cdtype'} eq "mixed") {
-	 &gst_xml_print_state_tag ("mounted", %$cdrom->{'mounted'});
-	 if (%$cdrom->{'point'}) { &gst_xml_print_line ("<point>" . %$cdrom->{'point'} . "</point>\n"); }
-	 if (%$cdrom->{'size'}) { &gst_xml_print_line ("<size>" . %$cdrom->{'size'} . "</size>\n"); }
+	 &Utils::XML::print_state_tag ("mounted", %$cdrom->{'mounted'});
+	 if (%$cdrom->{'point'}) { &Utils::XML::print_line ("<point>" . %$cdrom->{'point'} . "</point>\n"); }
+	 if (%$cdrom->{'size'}) { &Utils::XML::print_line ("<size>" . %$cdrom->{'size'} . "</size>\n"); }
       }
    }
       
-   &gst_xml_print_end ("disc_info");
+   &Utils::XML::print_end ("disc_info");
 }	       
 
 sub get_disk_info
@@ -1583,7 +1583,7 @@ sub disk_info
    
    my ($is_present, $disk) = &get_disk_info ($device, $present);
    &Utils::Report::end ();
-   &gst_xml_print_begin ("disk_info");
+   &Utils::XML::print_begin ("disk_info");
    
    if ($disk) {
       &xml_print_common ($disk);
@@ -1592,11 +1592,11 @@ sub disk_info
 	 &xml_print_partitions ($disk, $partitions);
       }
    } else {
-      &gst_xml_print_line ("<device>" . $device . "</device>\n");
-      &gst_xml_print_state_tag ("present", $is_present);
+      &Utils::XML::print_line ("<device>" . $device . "</device>\n");
+      &Utils::XML::print_state_tag ("present", $is_present);
    }
    
-   &gst_xml_print_end ("disk_info");
+   &Utils::XML::print_end ("disk_info");
 }
    
 # --- Calculates the speed of a device in human readable Kib/sec, Mib/sec, etc.--- #
@@ -1651,9 +1651,9 @@ sub dev_speed
    my ($speed) = &get_dev_speed ($device);
 
    &Utils::Report::end ();
-   &gst_xml_print_begin ("dev_speed");
-   &gst_xml_print_pcdata ("speed", $speed) if ($speed ne undef);
-   &gst_xml_print_end ("dev_speed");
+   &Utils::XML::print_begin ("dev_speed");
+   &Utils::XML::print_pcdata ("speed", $speed) if ($speed ne undef);
+   &Utils::XML::print_end ("dev_speed");
 }
 
 sub do_mount
@@ -1680,7 +1680,7 @@ sub mount_fs
    my ($tool, $device, $media, $typefs, $point, $mounted, $listed, $uid) = @_;
 
    &Utils::Report::end ();
-   &gst_xml_print_begin ("mount");
+   &Utils::XML::print_begin ("mount");
 
    my $error;
 
@@ -1695,7 +1695,7 @@ sub mount_fs
 	 my $error;
 	 $error = &do_mount ($device, $typefs, $point, $mounted, $listed);
 	 if ($error ne "") {
-	    &gst_xml_print_line ("<error>" . $error  . "</error>\n");
+	    &Utils::XML::print_line ("<error>" . $error  . "</error>\n");
 	 }
       
 	 exit (0);
@@ -1708,7 +1708,7 @@ sub mount_fs
    if ($is_mounted && $mounted == 1) {
       # umount failed
       if ($error ne "") {
-	 &gst_xml_print_line ("<error>" . $error  . "</error>\n");
+	 &Utils::XML::print_line ("<error>" . $error  . "</error>\n");
       } 
       $mounted = 1;
    } elsif (!$is_mounted && $mounted == 0) {
@@ -1722,13 +1722,13 @@ sub mount_fs
 	 } else {
 	    # mount failed again
 	    if ($error ne "") {
-	       &gst_xml_print_line ("<error>" . $error  . "</error>\n");
+	       &Utils::XML::print_line ("<error>" . $error  . "</error>\n");
 	    }
 	    $mounted = 0;
 	 }
       } else {
 	 if ($error ne "") {
-	    &gst_xml_print_line ("<error>" . $error  . "</error>\n");
+	    &Utils::XML::print_line ("<error>" . $error  . "</error>\n");
 	 }
 	 $mounted = 0;
       }
@@ -1741,14 +1741,14 @@ sub mount_fs
    }
   
    if ($error ne "") { 
-      &gst_xml_print_line ("<error>" . $error  . "</error>\n"); 
+      &Utils::XML::print_line ("<error>" . $error  . "</error>\n"); 
    }
 
    if ($media eq "disk") {
-      &gst_xml_print_line ("<partition>\n");
-      &gst_xml_enter ();
+      &Utils::XML::print_line ("<partition>\n");
+      &Utils::XML::enter ();
 
-      &gst_xml_print_state_tag ("mounted", $mounted);
+      &Utils::XML::print_state_tag ("mounted", $mounted);
    
       if ($mounted) {
 	 ($point, $typefs) = `mount | grep $device` =~ /^$device on (.*) type (.*) .*$/;
@@ -1757,21 +1757,21 @@ sub mount_fs
          $free = `df $device | grep $device | awk  '/\\/dev/ {print \$4}'`;	 
       }
       
-      if ($typefs) { &gst_xml_print_line ("<typefs>" . $typefs . "</typefs>\n"); }
-      if ($point ) { &gst_xml_print_line ("<point>" . $point . "</point>\n"); }
-      if ($free) { &gst_xml_print_line ("<free>" . $free . "</free>\n"); }
+      if ($typefs) { &Utils::XML::print_line ("<typefs>" . $typefs . "</typefs>\n"); }
+      if ($point ) { &Utils::XML::print_line ("<point>" . $point . "</point>\n"); }
+      if ($free) { &Utils::XML::print_line ("<free>" . $free . "</free>\n"); }
 
-      &gst_xml_leave ();
-      &gst_xml_print_line ("</partition>\n");
+      &Utils::XML::leave ();
+      &Utils::XML::print_line ("</partition>\n");
    } elsif ($media eq "cdrom") {
-      &gst_xml_print_line ("<cdrom>\n");
-      &gst_xml_enter ();
+      &Utils::XML::print_line ("<cdrom>\n");
+      &Utils::XML::enter ();
       &get_cdrom_disc_info ($device);
-      &gst_xml_leave ();
-      &gst_xml_print_line ("</cdrom>\n");
+      &Utils::XML::leave ();
+      &Utils::XML::print_line ("</cdrom>\n");
    }
 
-   &gst_xml_print_end ("mount");
+   &Utils::XML::print_end ("mount");
 }
 
 sub format
@@ -1782,16 +1782,16 @@ sub format
    my $typefs = &get_fs_type ($device);
    
    &Utils::Report::end ();
-   &gst_xml_print_begin ("format");
+   &Utils::XML::print_begin ("format");
    
    if ($typefs ne "none" && $typefs ne "unknown") {
-      &gst_xml_print_line ("<type>" . $typefs . "</type>\n");
+      &Utils::XML::print_line ("<type>" . $typefs . "</type>\n");
    } else {
       # TODO: manage errors
-      &gst_xml_print_line ("<error> Unknown error</error>\n");
+      &Utils::XML::print_line ("<error> Unknown error</error>\n");
    }
    
-   &gst_xml_print_end ("format");
+   &Utils::XML::print_end ("format");
 }
 
 # --- Main --- #
@@ -1817,6 +1817,6 @@ $directives = {
                        "Format a partition"],
 };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);

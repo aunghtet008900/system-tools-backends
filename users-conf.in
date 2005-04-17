@@ -46,24 +46,13 @@
 # chfn: modifying finger information - Name, Office, Office phone, Home phone.
 # pw: modifying users/groups and user/group data on FreeBSD.
 
-
-BEGIN {
-  $SCRIPTSDIR = "@scriptsdir@";
-  if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
-  {
-      $SCRIPTSDIR = ".";
-      $DOTIN = ".in";
-  }
-  
-  require "$SCRIPTSDIR/general.pl$DOTIN";
-  require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/xml.pl$DOTIN";
-  require "$SCRIPTSDIR/replace.pl$DOTIN";
-}
-
 use Utils::Util;
 use Utils::Report;
 use Utils::File;
+use Utils::XML;
+use Utils::Backend;
+use Utils::Platform;
+use Utils::Replace;
 
 # --- Tool information --- #
 
@@ -566,7 +555,7 @@ sub read_profiledb
   $$hash{'profiledb'} = $profiles;
 
   $path = &Utils::File::get_data_path () . "/" . $main::tool->{'name'} . "/" . $profile_file;
-  my $tree = &gst_xml_scan ($path, $tool);
+  my $tree = &Utils::XML::scan ($path, $tool);
 
   if ($tree && scalar @$tree)
   {
@@ -620,7 +609,7 @@ sub read_passwd_shadow
     chomp;
     # FreeBSD allows comments in the passwd file.
     next if &Utils::Util::ignore_line ($_);
-    $_ = &gst_xml_quote ($_);
+    $_ = &Utils::XML::quote ($_);
 
     @line = split ':', $_, -1;
     unshift @line, sprintf ("%06d", $i);
@@ -644,7 +633,7 @@ sub read_passwd_shadow
       chomp;
       # FreeBSD allows comments in the shadow passwd file.
       next if &Utils::Util::ignore_line ($_);
-      $_ = &gst_xml_quote ($_);
+      $_ = &Utils::XML::quote ($_);
 
       @line = split ':', $_, -1;
       push @line, 1;
@@ -700,7 +689,7 @@ sub read_group
 
     # FreeBSD allows comments in the group file. */
     next if &Utils::Util::ignore_line ($_);
-    $_ = &gst_xml_unquote ($_);
+    $_ = &Utils::XML::unquote ($_);
 
     @line = split ':', $_, -1;
     unshift @line, sprintf ("%06d", $i);
@@ -924,7 +913,7 @@ sub add_user
      " -s \'" . $$data[$users_prop_map{"shell"}] . "\'" .
      " -H 0"; # pw(8) reads password from STDIN
 
-    $pwdpipe = &Utils::File::run_pipe($command, $GST_FILE_WRITE);
+    $pwdpipe = &Utils::File::run_pipe_write ($command);
     print $pwdpipe $$data[$users_prop_map{"password"}];
     &Utils::File::close_file ($pwdpipe);
   }
@@ -962,7 +951,7 @@ sub change_user
      " -s \'" . $$new_data[$users_prop_map{"shell"}] . "\'" .
      " -H 0"; # pw(8) reads password from STDIN
 
-    $pwdpipe = &Utils::File::run_pipe($command, $GST_FILE_WRITE);
+    $pwdpipe = &Utils::File::run_pipe_write ($command);
     print $pwdpipe $$data[$users_prop_map{"password"}];
     &Utils::File::close_file ($pwdpipe);
   }
@@ -1116,7 +1105,7 @@ sub write_logindefs
     # Write ONLY login.defs values.
     if (exists ($login_defs_prop_map{$key}))
     {
-      &gst_replace_split ($file, $login_defs_prop_map{$key}, "[ \t]+", $$login_defs{$key});
+      &Utils::Replace::split ($file, $login_defs_prop_map{$key}, "[ \t]+", $$login_defs{$key});
     }
   }
 }
@@ -1164,7 +1153,7 @@ sub xml_parse
 	
   # Scan XML to tree.
 
-  $tree = &gst_xml_scan (undef, $tool);
+  $tree = &Utils::XML::scan (undef, $tool);
 
   $hash{"users"} = [];
   $hash{"users_hash"} = {};
@@ -1265,7 +1254,7 @@ sub xml_parse_user
 	{
 		if ($users_prop_map{$$tree[0]} ne undef)
 		{
-		  $line[$users_prop_map{$$tree[0]}] = &gst_xml_unquote($$tree[1][2]);
+		  $line[$users_prop_map{$$tree[0]}] = &Utils::XML::unquote($$tree[1][2]);
 		}
 		else
 		{
@@ -1433,30 +1422,30 @@ sub xml_print_profiledb
 
   return unless scalar @$profiledb;
 
-  &gst_xml_container_enter ('profiledb');
+  &Utils::XML::container_enter ('profiledb');
 
   foreach my $profile (@$profiledb)
   {
     my $key;
-    &gst_xml_container_enter ('profile');
+    &Utils::XML::container_enter ('profile');
     foreach $key (keys %$profile)
     {
       if ($key eq "groups")
       {
-        &gst_xml_container_enter ('groups');
-        &gst_xml_print_array ($profile->{$key}, "group");
-        &gst_xml_container_leave ('groups');
+        &Utils::XML::container_enter ('groups');
+        &Utils::XML::print_array ($profile->{$key}, "group");
+        &Utils::XML::container_leave ('groups');
       }
       else
       {
-        &gst_xml_print_pcdata ($key, $profile->{$key});
+        &Utils::XML::print_pcdata ($key, $profile->{$key});
       }
     }
-    &gst_xml_container_leave ();
+    &Utils::XML::container_leave ();
   }
 
-  &gst_xml_container_leave ();
-	&gst_xml_print_vspace ();
+  &Utils::XML::container_leave ();
+	&Utils::XML::print_vspace ();
 }
 
 sub xml_print_shells
@@ -1467,14 +1456,14 @@ sub xml_print_shells
   $shells = $$hash{"shelldb"};
   return unless scalar @$shells;
 
-  &gst_xml_container_enter ('shelldb');
+  &Utils::XML::container_enter ('shelldb');
 
   foreach $i (@$shells) {
-    &gst_xml_print_pcdata ('shell', $i);
+    &Utils::XML::print_pcdata ('shell', $i);
   }
 
-  &gst_xml_container_leave ();
-	&gst_xml_print_vspace ();
+  &Utils::XML::container_leave ();
+	&Utils::XML::print_vspace ();
 }
 
 sub xml_print
@@ -1488,75 +1477,75 @@ sub xml_print
   $group_last_modified = $$hash{"group_last_modified"};
   $groups = $$hash{"groups"};
 
-  &gst_xml_print_begin ();
+  &Utils::XML::print_begin ();
 
-  &gst_xml_print_pcdata ("use_md5", $$hash{"use_md5"});
+  &Utils::XML::print_pcdata ("use_md5", $$hash{"use_md5"});
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_comment ('Profiles configuration starts here');
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_comment ('Profiles configuration starts here');
+  &Utils::XML::print_vspace ();
 
   &xml_print_profiledb ($hash);
   &xml_print_shells ($hash);
 
-  &gst_xml_print_comment ('Now the users');
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_comment ('Now the users');
+  &Utils::XML::print_vspace ();
 
-  &gst_xml_print_comment ('When was the passwd file last modified (since the epoch)?');
-  &gst_xml_print_vspace ();
-  &gst_xml_print_pcdata ('passwd_last_modified', $passwd_last_modified);
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_comment ('When was the passwd file last modified (since the epoch)?');
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_pcdata ('passwd_last_modified', $passwd_last_modified);
+  &Utils::XML::print_vspace ();
 
-  &gst_xml_container_enter ('userdb');
+  &Utils::XML::container_enter ('userdb');
 	foreach $i (@$users)
 	{
-    &gst_xml_print_vspace ();
-	  &gst_xml_container_enter ('user');
+    &Utils::XML::print_vspace ();
+	  &Utils::XML::container_enter ('user');
 		for ($j = 0; $j < ($#users_prop_array - 1) / 2; $j++)
     {
-      &gst_xml_print_pcdata ($users_prop_map{$j}, $$i[$j]);
+      &Utils::XML::print_pcdata ($users_prop_map{$j}, $$i[$j]);
 		}
-		&gst_xml_container_leave ();
+		&Utils::XML::container_leave ();
 	}
-	&gst_xml_container_leave ();
-  &gst_xml_print_vspace ();
+	&Utils::XML::container_leave ();
+  &Utils::XML::print_vspace ();
 	
-  &gst_xml_print_comment ('Now the groups');
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_comment ('Now the groups');
+  &Utils::XML::print_vspace ();
 	
-  &gst_xml_print_comment ('When was the group file last modified (since the epoch)?');
-  &gst_xml_print_vspace ();
-  &gst_xml_print_pcdata ('group_last_modified', $group_last_modified);
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_comment ('When was the group file last modified (since the epoch)?');
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_pcdata ('group_last_modified', $group_last_modified);
+  &Utils::XML::print_vspace ();
 	
-	&gst_xml_container_enter ('groupdb');
+	&Utils::XML::container_enter ('groupdb');
 	foreach $i (@$groups)
 	{
-    &gst_xml_print_vspace ();
-	  &gst_xml_container_enter ('group');
+    &Utils::XML::print_vspace ();
+	  &Utils::XML::container_enter ('group');
 		for ($j = 0; $j < ($#groups_prop_array - 1) / 2 - 1; $j++)
     {
-      &gst_xml_print_pcdata ($groups_prop_map{$j}, $$i[$j]);
+      &Utils::XML::print_pcdata ($groups_prop_map{$j}, $$i[$j]);
 		}
 
 		# Add the description based on the group name
 		$desc = $groups_desc_map{$$i[1]};
-		&gst_xml_print_pcdata ("allows_to", $desc) if ($desc ne undef);
+		&Utils::XML::print_pcdata ("allows_to", $desc) if ($desc ne undef);
 
-		&gst_xml_container_enter ('users');
+		&Utils::XML::container_enter ('users');
 		$k = $$i[$groups_prop_map{"users"}];
 		foreach $j (@$k)
 		{
-			&gst_xml_print_pcdata ('user', $j);
+			&Utils::XML::print_pcdata ('user', $j);
 		}
-		&gst_xml_container_leave ();
+		&Utils::XML::container_leave ();
 
-		&gst_xml_container_leave ();
+		&Utils::XML::container_leave ();
 	}
-	&gst_xml_container_leave ();
-  &gst_xml_print_vspace ();
+	&Utils::XML::container_leave ();
+  &Utils::XML::print_vspace ();
 
-  &gst_xml_print_end ();
+  &Utils::XML::print_end ();
 }
 
 
@@ -1619,10 +1608,10 @@ $directives = {
   "filter" => [ \&filter, [], "" ]
     };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
 
 &get_login_defs_prop_array ();
 &get_profiles_prop_array   ();
 
-&gst_run ($tool);
+&Utils::Backend::run ($tool);

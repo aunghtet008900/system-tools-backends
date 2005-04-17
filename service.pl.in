@@ -1393,11 +1393,11 @@ sub gst_service_rcng_set_status
 
         if ($res == $action)
         {
-          &gst_replace_sh ($rcconf, $key);
+          &Utils::Replace::set_sh ($rcconf, $key);
         }
         else
         {
-          &gst_replace_sh_bool ($rcconf, $key, "YES", "NO", $action);
+          &Utils::Replace::set_sh_bool ($rcconf, $key, "YES", "NO", $action);
         }
       }
     }

@@ -23,15 +23,6 @@
 
 use Utils::File;
 
-$SCRIPTSDIR = "@scriptsdir@";
-if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
-{
-  $SCRIPTSDIR = ".";
-  $DOTIN = ".in";
-}
-
-require "$SCRIPTSDIR/general.pl$DOTIN";
-
 sub gst_process_kill_by_pidfile
 {
   my ($pidfile) = @_;

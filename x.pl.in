@@ -502,13 +502,13 @@ sub x_xml_parse_unique
   my $hash = shift;
   my $kw = shift;
 
-  $hash->{$kw} = &gst_xml_get_text (shift @_);
+  $hash->{$kw} = &Utils::XML::get_text (shift @_);
 }
 
 sub x_xml_print_unique
 {
   my ($key, $val) = @_;
-  &gst_xml_print_pcdata ($key, $val);
+  &Utils::XML::print_pcdata ($key, $val);
 }
 
 sub x_update_unique_string
@@ -630,7 +630,7 @@ sub x_xml_parse_list
   my $kw = shift;
   my $values = shift;
   my $i = 1;
-  while (defined (my $tmp = &gst_xml_get_attribute ($values, 'arg' . $i))) {
+  while (defined (my $tmp = &Utils::XML::get_attribute ($values, 'arg' . $i))) {
     push @{$hash->{$kw}}, $tmp;
     $i++;
   }
@@ -647,7 +647,7 @@ sub x_xml_print_list
     $str .= ' arg' . $i . "=\"$_\"";
     $i++;
   }
-  &gst_xml_print_line ("<$str/>");
+  &Utils::XML::print_line ("<$str/>");
 }
 
 sub x_update_list_string
@@ -852,8 +852,8 @@ sub x_xml_parse_serverlayout_screen
 
   $hash->{$kw} = {} unless exists $hash->{$kw};
 
-  my $number = &gst_xml_get_attribute ($tag, "number");
-  my $screen = { 'Identifier' => &gst_xml_get_attribute ($tag, "name") };
+  my $number = &Utils::XML::get_attribute ($tag, "number");
+  my $screen = { 'Identifier' => &Utils::XML::get_attribute ($tag, "name") };
   $hash->{$kw}->{$number} = $screen;
 }
 
@@ -863,7 +863,7 @@ sub x_xml_print_serverlayout_screen
 
   foreach my $screen (keys %$val) {
     my $name = $val->{$screen}->{'Identifier'};
-    &gst_xml_print_line ("<$key number=\"$screen\" name=\"$name\"/>");
+    &Utils::XML::print_line ("<$key number=\"$screen\" name=\"$name\"/>");
   }
 }
 
@@ -988,9 +988,9 @@ sub x_xml_parse_modeline
     while (@$modeline) {      
       my $field = shift @$modeline;
       if ($field ne 'flag') {
-        $mode->{$field} = &gst_xml_get_text (shift @$modeline);
+        $mode->{$field} = &Utils::XML::get_text (shift @$modeline);
       } else {
-        push @{$mode->{$field}}, &gst_xml_get_text (shift @$modeline);
+        push @{$mode->{$field}}, &Utils::XML::get_text (shift @$modeline);
       }
     }
     push @{$hash->{$kw}}, $mode;
@@ -1001,18 +1001,18 @@ sub x_xml_print_modeline
 {
   my ($key, $list) = @_;
 
-  &gst_xml_container_enter ("ModeLine");
+  &Utils::XML::container_enter ("ModeLine");
 
   foreach (@$list) {
     my $modeline = $_;
-    &gst_xml_container_enter ("Mode");
+    &Utils::XML::container_enter ("Mode");
     foreach my $field (keys %$modeline) {
       my $type = ref ($modeline->{$field});
 
-      if (!$type) { &gst_xml_print_pcdata ($field, $modeline->{$field}); }
+      if (!$type) { &Utils::XML::print_pcdata ($field, $modeline->{$field}); }
       elsif ($type eq 'ARRAY') {
         foreach my $flag (@{$modeline->{$field}}) {
-          &gst_xml_print_pcdata ('flag', $flag);
+          &Utils::XML::print_pcdata ('flag', $flag);
         }
       }
       else {
@@ -1021,9 +1021,9 @@ sub x_xml_print_modeline
         &gst_debug_print_line ("x_xml_print_modeline: $msg");
       }
     }
-    &gst_xml_container_leave ();
+    &Utils::XML::container_leave ();
   }
-  &gst_xml_container_leave ();
+  &Utils::XML::container_leave ();
 }
 
 sub x_update_modeline
@@ -1118,7 +1118,7 @@ sub x_xml_parse_range_hz
   my $hash, shift;
   my $kw = shift;
 
-  push @{$hash->{$kw}}, &gst_xml_get_text (shift @_);
+  push @{$hash->{$kw}}, &Utils::XML::get_text (shift @_);
 }
 
 sub x_xml_print_range_hz
@@ -1130,7 +1130,7 @@ sub x_xml_print_range_hz
     my $val = $$tmp[0];
     $val .= '-' . $$tmp[1] if $$tmp[0] != $$tmp[1];
 
-    &gst_xml_print_pcdata ($key, $val);
+    &Utils::XML::print_pcdata ($key, $val);
   }
 }
 
@@ -1312,7 +1312,7 @@ sub x_xml_print_section
   $section_ptr = $x4_sections unless $section_ptr; # Always print using X4_sections.
 
   return unless (exists ($section_ptr->{$section}));
-  &gst_xml_container_enter ("$section");
+  &Utils::XML::container_enter ("$section");
 
   $section_ptr = $section_ptr->{$section};
   foreach $key (keys %$hash) {
@@ -1334,7 +1334,7 @@ sub x_xml_print_section
     }
   }
 
-  &gst_xml_container_leave ();
+  &Utils::XML::container_leave ();
 }
 
 # --------------------------------------------------------------------
@@ -2113,18 +2113,18 @@ sub x_probe_print_xml
 
   return unless $list;    
 
-  &gst_xml_print_begin ();
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_begin ();
+  &Utils::XML::print_vspace ();
 
   foreach my $depth (keys %$list) {
-    &gst_xml_print_line ("<Depth value=\"$depth\">");
-    &gst_xml_enter ();
+    &Utils::XML::print_line ("<Depth value=\"$depth\">");
+    &Utils::XML::enter ();
     &x_xml_print_modeline (0, $list->{$depth});
-    &gst_xml_leave ();
-    &gst_xml_print_line (q(</Depth>));
+    &Utils::XML::leave ();
+    &Utils::XML::print_line (q(</Depth>));
   }
 
-  &gst_xml_print_end ();
+  &Utils::XML::print_end ();
 }
 
 # Internal

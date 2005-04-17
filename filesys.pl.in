@@ -31,7 +31,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 }
 
 require "$SCRIPTSDIR/parse.pl$DOTIN";
-require "$SCRIPTSDIR/xml.pl$DOTIN";
 
 
 # --- Utilities --- #

@@ -26,16 +26,6 @@ use Utils::Report;
 use Utils::File;
 use Errno;
 
-$SCRIPTSDIR = "@scriptsdir@";
-if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
-{
-    $SCRIPTSDIR = ".";
-    $DOTIN = ".in";
-}
-
-require "$SCRIPTSDIR/general.pl$DOTIN";
-
-
 @DEVICE_NAMES = (
     {
       "name" => "da",

@@ -158,40 +158,40 @@ sub gst_media_xml_print
 {
   my @devices = @_;
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<media>\n");
-  &gst_xml_enter ();
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<media>\n");
+  &Utils::XML::enter ();
 
   for $dev (@devices)
   {
-    &gst_xml_print_vspace ();
-    &gst_xml_print_line ("<device>\n");
-    &gst_xml_enter ();
-    &gst_xml_print_line ("<name>" . $dev->{"device"} . "</name>\n"); 
-    &gst_xml_print_line ("<type>" . $dev->{"media"} . "</type>\n"); 
-    &gst_xml_print_line ("<interface>" . $dev->{"type"} . "</interface>\n"); 
-    &gst_xml_print_line ("<driver>" . $dev->{"driver"} . "</driver>\n"); 
-    &gst_xml_print_line ("<model>" . $dev->{"model"} . "</model>\n");
+    &Utils::XML::print_vspace ();
+    &Utils::XML::print_line ("<device>\n");
+    &Utils::XML::enter ();
+    &Utils::XML::print_line ("<name>" . $dev->{"device"} . "</name>\n"); 
+    &Utils::XML::print_line ("<type>" . $dev->{"media"} . "</type>\n"); 
+    &Utils::XML::print_line ("<interface>" . $dev->{"type"} . "</interface>\n"); 
+    &Utils::XML::print_line ("<driver>" . $dev->{"driver"} . "</driver>\n"); 
+    &Utils::XML::print_line ("<model>" . $dev->{"model"} . "</model>\n");
 
     if ($dev->{"media"} ne "disk")
     {
-      &gst_xml_print_vspace ();
+      &Utils::XML::print_vspace ();
       if ($dev->{"point_listed"})
       {
-        &gst_xml_print_line ("<point_listed>" . $dev->{"point_listed"} . "</point_listed>\n");
+        &Utils::XML::print_line ("<point_listed>" . $dev->{"point_listed"} . "</point_listed>\n");
       }
 
-      gst_xml_print_state_tag ("mounted", $dev->{"is_mounted"});
+      Utils::XML::print_state_tag ("mounted", $dev->{"is_mounted"});
     }
 
-    &gst_xml_leave ();
-    &gst_xml_print_line ("</device>\n");
-    &gst_xml_print_vspace ();
+    &Utils::XML::leave ();
+    &Utils::XML::print_line ("</device>\n");
+    &Utils::XML::print_vspace ();
   }
 
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</media>\n");
-  &gst_xml_print_vspace ();
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</media>\n");
+  &Utils::XML::print_vspace ();
 }
 
 

@@ -110,7 +110,7 @@ sub xml_parse
   my $fname = shift;
   my ($tree, $hash);
 
-  $tree = &gst_xml_scan ($fname);
+  $tree = &Utils::XML::scan ($fname);
 
   # Find the first interesting value.
   while ($$tree[0] eq undef) {
@@ -132,19 +132,19 @@ sub xml_print
   my $config = shift;
   my ($section, $hash);
 
-  &gst_xml_print_begin ();
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_begin ();
+  &Utils::XML::print_vspace ();
 
   foreach $section (keys %$config) {
     my ($arrayref) = $$config{$section};
 
     foreach $hash (@$arrayref) {      
       &x_xml_print_section ($hash, $section, \@display_sections);
-      &gst_xml_print_vspace ();
+      &Utils::XML::print_vspace ();
     }
   }
   
-  &gst_xml_print_end ();
+  &Utils::XML::print_end ();
 }
 
 # Top-level actions.
@@ -224,6 +224,6 @@ $directives = {
   "probe"  => [ \&probe,  [ "direct*" ], "Return list of valid standard modelines." ],
 };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);

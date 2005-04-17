@@ -31,10 +31,7 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/xml.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
-require "$SCRIPTSDIR/replace.pl$DOTIN";
 require "$SCRIPTSDIR/partition.pl$DOTIN";
 
 my @lilo_global_vars = qw (default prompt delay timeout append boot root);

@@ -24,6 +24,7 @@
 
 use Utils::Util;
 use Utils::File;
+use Utils::Replace;
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -32,10 +33,7 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/general.pl$DOTIN";
-require "$SCRIPTSDIR/xml.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
-require "$SCRIPTSDIR/replace.pl$DOTIN";
 require "$SCRIPTSDIR/boot-grub.pl$DOTIN";
 require "$SCRIPTSDIR/boot-lilo.pl$DOTIN";
 require "$SCRIPTSDIR/boot-yaboot.pl$DOTIN";
@@ -149,19 +147,19 @@ sub gst_boot_bootloader_list
 {
   my (@list);
 
-  if (gst_file_locate_tool ("lilo"))
+  if (Utils::File::locate_tool ("lilo"))
   {
     push @list, { "name" => "LILO",
                   "exec" => "lilo" };
   }
 
-  if (gst_file_locate_tool ("grub-install"))
+  if (Utils::File::locate_tool ("grub-install"))
   {
     push @list, { "name" => "Grub",
                   "exec" => "grub" };
   }
 
-  if (gst_file_locate_tool ("ybin"))
+  if (Utils::File::locate_tool ("ybin"))
   {
     push @list, { "name" => "YaBoot",
                   "exec" => "yaboot" };
@@ -378,7 +376,7 @@ sub gst_boot_entry_set
     $fn{$j} = &gst_parse_expand ($ {$$dist_attrib{"fn"}}{$j}, "key", $$values_hash{"key"});
   }
   
-  return &gst_replace_from_table (\%fn, $$dist_attrib{"table"}, $values_hash);
+  return &Utils::Replace::set_from_table (\%fn, $$dist_attrib{"table"}, $values_hash);
 }
 
 sub gst_boot_entries_set
@@ -470,7 +468,7 @@ sub gst_boot_conf_set
          }
        );
 
-  return &gst_replace_from_table ($ {$tool_tables{$bootl}}{"fn"},
+  return &Utils::Replace::set_from_table ($ {$tool_tables{$bootl}}{"fn"},
                                   $ {$tool_tables{$bootl}}{"table"}, $values_hash);
 }
 

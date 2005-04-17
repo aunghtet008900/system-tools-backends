@@ -5,6 +5,6 @@ RFUNC=$2
 
 for i in `find . -name "*.in" -o -name "*.pm"`
 do
-	   cat $i | sed -r "s/([ \t&])$FUNC([ \t]*[\(\=])/\1$RFUNC\2/g" > $i.2
+	   cat $i | sed -r "s/([ \t\(&])$FUNC([ \t]*[\(\=,;])/\1$RFUNC\2/g" > $i.2
 	   mv $i.2 $i
 done

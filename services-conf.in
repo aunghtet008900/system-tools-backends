@@ -32,11 +32,11 @@ BEGIN {
       $DOTIN = ".in";
   }
   
-  require "$SCRIPTSDIR/general.pl$DOTIN";
-  require "$SCRIPTSDIR/platform.pl$DOTIN";
   require "$SCRIPTSDIR/service.pl$DOTIN";
-  require "$SCRIPTSDIR/print.pl$DOTIN";
 }
+
+use Utils::Backend;
+use Utils::Platform;
 
 # --- Tool information --- #
 
@@ -67,7 +67,7 @@ end_of_description;
 sub xml_parse
 {
   my ($tree, %hash, $elem);
-  $tree = &gst_xml_scan ();
+  $tree = &Utils::XML::scan ();
 
   # Walk the tree recursively and extract configuration parameters.
   while ($elem = shift @$tree)
@@ -132,7 +132,7 @@ sub xml_parse_runlevel
   while ($elem = shift @$tree)
   {
     if ($elem eq "default") {  $default = 1; shift @$tree }
-    elsif ($elem eq "number") { $runlevel = &gst_xml_get_pcdata (shift @$tree); }
+    elsif ($elem eq "number") { $runlevel = &Utils::XML::get_pcdata (shift @$tree); }
     elsif ($elem eq "description") { shift @$tree; }
     else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
@@ -170,11 +170,11 @@ sub xml_parse_service
   while ($elem = shift @$tree)
   {
     if ($elem eq "actions") { push @$actions, &xml_parse_actions (shift @$tree); }
-    elsif ($elem eq "name") { $$hash{"name"} = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "description") { $$hash{"description"} = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "priority") { $$hash{"priority"} = &gst_xml_get_pcdata (shift @$tree); }
+    elsif ($elem eq "name") { $$hash{"name"} = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "description") { $$hash{"description"} = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "priority") { $$hash{"priority"} = &Utils::XML::get_pcdata (shift @$tree); }
     elsif ($elem eq "runlevels") { push @$runlevels, &xml_parse_runlevels (shift @$tree); }
-    elsif ($elem eq "script") { $$hash{"script"} = &gst_xml_get_pcdata (shift @$tree); }
+    elsif ($elem eq "script") { $$hash{"script"} = &Utils::XML::get_pcdata (shift @$tree); }
     else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
   
@@ -193,7 +193,7 @@ sub xml_parse_actions
 
   while ($elem = shift @$tree)
   {
-    if ($elem eq "action") { push @$action, &gst_xml_get_pcdata (shift @$tree); }
+    if ($elem eq "action") { push @$action, &Utils::XML::get_pcdata (shift @$tree); }
 	else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
   
@@ -234,8 +234,8 @@ sub xml_parse_single_runlevel
   
   while ($elem = shift @$tree)
   {
-    if ($elem eq "number") { $number = &gst_xml_get_pcdata (shift @$tree); }
-  	elsif ($elem eq "action") { $action = &gst_xml_get_pcdata (shift @$tree); }
+    if ($elem eq "number") { $number = &Utils::XML::get_pcdata (shift @$tree); }
+  	elsif ($elem eq "action") { $action = &Utils::XML::get_pcdata (shift @$tree); }
     else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
   
@@ -248,55 +248,55 @@ sub xml_print_services
 {
   my ($h) = @_;
 
-  &gst_xml_print_line ("<services>");
-  &gst_xml_enter ();
+  &Utils::XML::print_line ("<services>");
+  &Utils::XML::enter ();
 
-  &gst_xml_print_hash_hash ($h, "service");
+  &Utils::XML::print_hash_hash ($h, "service");
 
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</services>");
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</services>");
 }
 
 sub xml_print_runlevels
 {
   my ($h, $default) = @_;
-  &gst_xml_print_line ("<runlevels>");
-  &gst_xml_enter ();
+  &Utils::XML::print_line ("<runlevels>");
+  &Utils::XML::enter ();
 
   foreach $i (sort keys %$h)
   {
-    &gst_xml_print_line ("<runlevel>");
-    &gst_xml_enter ();
+    &Utils::XML::print_line ("<runlevel>");
+    &Utils::XML::enter ();
 
-    &gst_xml_print_pcdata ("number", $i);
-    &gst_xml_print_pcdata ("description", $$h{$i});
+    &Utils::XML::print_pcdata ("number", $i);
+    &Utils::XML::print_pcdata ("description", $$h{$i});
 
     if ($i eq $default)
     {
       # It's the default runlevel
-      &gst_xml_print_pcdata ("default", "1");
+      &Utils::XML::print_pcdata ("default", "1");
     }
       
-    &gst_xml_leave ();
-    &gst_xml_print_line ("</runlevel>");
+    &Utils::XML::leave ();
+    &Utils::XML::print_line ("</runlevel>");
   }
   
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</runlevels>");
-  &gst_xml_print_vspace ();
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</runlevels>");
+  &Utils::XML::print_vspace ();
 }
 
 sub xml_print
 {
   my ($h) = @_;
 
-  &gst_xml_print_begin ();
-  &gst_xml_print_comment ("These are the runlevels available in the system");
+  &Utils::XML::print_begin ();
+  &Utils::XML::print_comment ("These are the runlevels available in the system");
   &xml_print_runlevels ($$h{"runlevels"}, $$h{"runlevel"});
   
-  &gst_xml_print_comment ("These are the services");
+  &Utils::XML::print_comment ("These are the services");
   &xml_print_services ($$h{"services"});
-  &gst_xml_print_end ();
+  &Utils::XML::print_end ();
 }
 
 
@@ -346,8 +346,8 @@ sub throw_service
   &gst_service_run_script ($service, $parameter);
   &Utils::Report::end ();
 
-  &gst_xml_print_begin ("throw_service");
-  &gst_xml_print_end ("throw_service");
+  &Utils::XML::print_begin ("throw_service");
+  &Utils::XML::print_end ("throw_service");
 }
 
 # --- get_status: gets the status of a service --- #
@@ -360,9 +360,9 @@ sub get_status
 
   &Utils::Report::end ();
 
-  &gst_xml_print_begin ("get_status");
-  &gst_xml_print_state_tag ("active", $active) if ($active ne undef);
-  &gst_xml_print_end ("get_status");
+  &Utils::XML::print_begin ("get_status");
+  &Utils::XML::print_state_tag ("active", $active) if ($active ne undef);
+  &Utils::XML::print_end ("get_status");
 }
 
 # --- Main --- #
@@ -378,6 +378,6 @@ $directives = {
   "get_status"         => [ \&get_status, ["service"], "Gets the status of a service"]
   };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);

@@ -38,8 +38,9 @@
 # nmbd
 # ifconfig: check current interfaces and activate/deactivate.
 
-use Utils::Util;
-use Utils::File;
+use Utils::XML;
+use Utils::Backend;
+use Utils::Platform;
 
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
@@ -49,9 +50,6 @@ BEGIN {
       $DOTIN = ".in";
   }
   
-  require "$SCRIPTSDIR/general.pl$DOTIN";
-  require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/xml.pl$DOTIN";
   require "$SCRIPTSDIR/filesys.pl$DOTIN";
   require "$SCRIPTSDIR/network.pl$DOTIN";
   require "$SCRIPTSDIR/share.pl$DOTIN";
@@ -89,7 +87,7 @@ sub xml_parse
   my $config = {};
   # Scan XML to tree.
 
-  $tree = &gst_xml_scan;
+  $tree = &Utils::XML::scan;
 
   # Walk the tree recursively and extract configuration parameters.
   while (@$tree)
@@ -185,15 +183,15 @@ sub xml_parse_import
 
   while (@$tree)
   {
-    if    ($$tree[0] eq "host")     { $host     = &gst_xml_get_word  ($$tree[1]); }
-    elsif ($$tree[0] eq "path")     { $path     = &gst_xml_get_word  ($$tree[1]); }
-    elsif ($$tree[0] eq "user")     { $user     = &gst_xml_get_text  ($$tree[1]); }
-    elsif ($$tree[0] eq "password") { $password = &gst_xml_get_text  ($$tree[1]); }
-    elsif ($$tree[0] eq "comment")  { $comment  = &gst_xml_get_text  ($$tree[1]); }
-    elsif ($$tree[0] eq "point")    { $point    = &gst_xml_get_word  ($$tree[1]); }
-    elsif ($$tree[0] eq "mounted")  { $mounted  = &gst_xml_get_state ($$tree[1]); }
-    elsif ($$tree[0] eq "detected") { $detected = &gst_xml_get_state ($$tree[1]); }
-    elsif ($$tree[0] eq "listed")   { $listed   = &gst_xml_get_state ($$tree[1]); }
+    if    ($$tree[0] eq "host")     { $host     = &Utils::XML::get_word  ($$tree[1]); }
+    elsif ($$tree[0] eq "path")     { $path     = &Utils::XML::get_word  ($$tree[1]); }
+    elsif ($$tree[0] eq "user")     { $user     = &Utils::XML::get_text  ($$tree[1]); }
+    elsif ($$tree[0] eq "password") { $password = &Utils::XML::get_text  ($$tree[1]); }
+    elsif ($$tree[0] eq "comment")  { $comment  = &Utils::XML::get_text  ($$tree[1]); }
+    elsif ($$tree[0] eq "point")    { $point    = &Utils::XML::get_word  ($$tree[1]); }
+    elsif ($$tree[0] eq "mounted")  { $mounted  = &Utils::XML::get_state ($$tree[1]); }
+    elsif ($$tree[0] eq "detected") { $detected = &Utils::XML::get_state ($$tree[1]); }
+    elsif ($$tree[0] eq "listed")   { $listed   = &Utils::XML::get_state ($$tree[1]); }
 
     shift @$tree;
     shift @$tree;
@@ -243,7 +241,7 @@ sub xml_parse_export
 
     while (@$tree)
     {
-      if    ($$tree[0] eq "path")       { $path = &gst_xml_get_pcdata ($$tree[1]);     }
+      if    ($$tree[0] eq "path")       { $path = &Utils::XML::get_pcdata ($$tree[1]);     }
       elsif ($$tree[0] eq "allow")      { &xml_parse_allow ($$tree[1], $client_table); }
 
       shift @$tree;
@@ -266,13 +264,13 @@ sub xml_parse_export
 
     while (@$tree)
     {
-      if    ($$tree[0] eq "name")       { $name       = &gst_xml_get_word   ($$tree[1]); }
-      elsif ($$tree[0] eq "path")       { $path       = &gst_xml_get_pcdata ($$tree[1]); }
-      elsif ($$tree[0] eq "comment")    { $comment    = &gst_xml_get_text   ($$tree[1]); }
-      elsif ($$tree[0] eq "enabled")    { $enabled    = &gst_xml_get_state  ($$tree[1]); }
-      elsif ($$tree[0] eq "browse")     { $browseable = &gst_xml_get_state  ($$tree[1]); }
-      elsif ($$tree[0] eq "public")     { $public     = &gst_xml_get_state  ($$tree[1]); }
-      elsif ($$tree[0] eq "write")      { $writeable  = &gst_xml_get_state  ($$tree[1]); }
+      if    ($$tree[0] eq "name")       { $name       = &Utils::XML::get_word   ($$tree[1]); }
+      elsif ($$tree[0] eq "path")       { $path       = &Utils::XML::get_pcdata ($$tree[1]); }
+      elsif ($$tree[0] eq "comment")    { $comment    = &Utils::XML::get_text   ($$tree[1]); }
+      elsif ($$tree[0] eq "enabled")    { $enabled    = &Utils::XML::get_state  ($$tree[1]); }
+      elsif ($$tree[0] eq "browse")     { $browseable = &Utils::XML::get_state  ($$tree[1]); }
+      elsif ($$tree[0] eq "public")     { $public     = &Utils::XML::get_state  ($$tree[1]); }
+      elsif ($$tree[0] eq "write")      { $writeable  = &Utils::XML::get_state  ($$tree[1]); }
 
       shift @$tree;
       shift @$tree;
@@ -308,8 +306,8 @@ sub xml_parse_allow
 
   while (@$tree)
   {
-    if    ($$tree[0] eq "pattern") { $pattern = &gst_xml_get_word  ($$tree[1]); }
-    elsif ($$tree[0] eq "write")   { $write   = &gst_xml_get_state ($$tree[1]); }
+    if    ($$tree[0] eq "pattern") { $pattern = &Utils::XML::get_word  ($$tree[1]); }
+    elsif ($$tree[0] eq "write")   { $write   = &Utils::XML::get_state ($$tree[1]); }
 
     shift @$tree;
     shift @$tree;
@@ -332,27 +330,27 @@ sub xml_print_import_common  # filesys_info
   $host  = &gst_filesys_info_get_network_host ($fsinfo);
   $path  = &gst_filesys_info_get_network_path ($fsinfo);
 
-  &gst_xml_print_pcdata    ("host",     $host);
-  &gst_xml_print_pcdata    ("path",     $path);
-  &gst_xml_print_pcdata    ("point",    $point);
-  &gst_xml_print_state_tag ("listed",   &gst_filesys_info_get_permanent ($fsinfo));
-  &gst_xml_print_state_tag ("mounted",  &gst_filesys_info_get_mounted   ($fsinfo));
-  &gst_xml_print_state_tag ("detected", &gst_filesys_info_get_detected  ($fsinfo));
+  &Utils::XML::print_pcdata    ("host",     $host);
+  &Utils::XML::print_pcdata    ("path",     $path);
+  &Utils::XML::print_pcdata    ("point",    $point);
+  &Utils::XML::print_state_tag ("listed",   &gst_filesys_info_get_permanent ($fsinfo));
+  &Utils::XML::print_state_tag ("mounted",  &gst_filesys_info_get_mounted   ($fsinfo));
+  &Utils::XML::print_state_tag ("detected", &gst_filesys_info_get_detected  ($fsinfo));
 }
 
 sub xml_print_import_nfs
 {
   my ($fsinfo) = @_;
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<import type='nfs'>");
-  &gst_xml_enter ();
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<import type='nfs'>");
+  &Utils::XML::enter ();
 
   &xml_print_import_common ($fsinfo);
 
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</import>");
-  &gst_xml_print_vspace ();
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</import>");
+  &Utils::XML::print_vspace ();
 }
 
 sub xml_print_import_smb
@@ -365,17 +363,17 @@ sub xml_print_import_smb
   $password = &gst_filesys_info_get_option ($fsinfo, "password");
   $password = "" if ($password =~ /^ +$/);
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<import type='smb'>");
-  &gst_xml_enter ();
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<import type='smb'>");
+  &Utils::XML::enter ();
 
   &xml_print_import_common ($fsinfo);
-  if ($user ne "")     { &gst_xml_print_pcdata ("user",     $user); }
-  if ($password ne "") { &gst_xml_print_pcdata ("password", $password); }
+  if ($user ne "")     { &Utils::XML::print_pcdata ("user",     $user); }
+  if ($password ne "") { &Utils::XML::print_pcdata ("password", $password); }
 
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</import>");
-  &gst_xml_print_vspace ();
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</import>");
+  &Utils::XML::print_vspace ();
 }
 
 sub xml_print_export_nfs
@@ -385,45 +383,45 @@ sub xml_print_export_nfs
 
   $client_table = &gst_share_nfs_info_get_client_table ($info);
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<export type='nfs'>");
-  &gst_xml_enter ();
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<export type='nfs'>");
+  &Utils::XML::enter ();
 
-  &gst_xml_print_pcdata ("name", "unknown");
-  &gst_xml_print_pcdata ("path", &gst_share_nfs_info_get_point ($info));
+  &Utils::XML::print_pcdata ("name", "unknown");
+  &Utils::XML::print_pcdata ("path", &gst_share_nfs_info_get_point ($info));
 
   for $client (@$client_table)
   {
-    &gst_xml_container_enter ("allow");
-    &gst_xml_print_pcdata    ("pattern", &gst_share_nfs_client_info_get_pattern ($client));
-    &gst_xml_print_state_tag ("write",   &gst_share_nfs_client_info_get_write   ($client));
-    &gst_xml_container_leave ();
+    &Utils::XML::container_enter ("allow");
+    &Utils::XML::print_pcdata    ("pattern", &gst_share_nfs_client_info_get_pattern ($client));
+    &Utils::XML::print_state_tag ("write",   &gst_share_nfs_client_info_get_write   ($client));
+    &Utils::XML::container_leave ();
   }
 
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</export>");
-  &gst_xml_print_vspace ();
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</export>");
+  &Utils::XML::print_vspace ();
 }
 
 sub xml_print_export_smb
 {
   my ($info) = @_;
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<export type='smb'>");
-  &gst_xml_enter ();
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<export type='smb'>");
+  &Utils::XML::enter ();
 
-  &gst_xml_print_pcdata    ("name",       &gst_share_smb_info_get_name    ($info));
-  &gst_xml_print_pcdata    ("path",       &gst_share_smb_info_get_point   ($info));
-  &gst_xml_print_pcdata    ("comment",    &gst_share_smb_info_get_comment ($info));
-  &gst_xml_print_state_tag ("enabled",    &gst_share_smb_info_get_enabled ($info));
-  &gst_xml_print_state_tag ("browse",     &gst_share_smb_info_get_browse  ($info));
-  &gst_xml_print_state_tag ("public",     &gst_share_smb_info_get_public  ($info));
-  &gst_xml_print_state_tag ("write",      &gst_share_smb_info_get_write   ($info));
+  &Utils::XML::print_pcdata    ("name",       &gst_share_smb_info_get_name    ($info));
+  &Utils::XML::print_pcdata    ("path",       &gst_share_smb_info_get_point   ($info));
+  &Utils::XML::print_pcdata    ("comment",    &gst_share_smb_info_get_comment ($info));
+  &Utils::XML::print_state_tag ("enabled",    &gst_share_smb_info_get_enabled ($info));
+  &Utils::XML::print_state_tag ("browse",     &gst_share_smb_info_get_browse  ($info));
+  &Utils::XML::print_state_tag ("public",     &gst_share_smb_info_get_public  ($info));
+  &Utils::XML::print_state_tag ("write",      &gst_share_smb_info_get_write   ($info));
 
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</export>");
-  &gst_xml_print_vspace ();
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</export>");
+  &Utils::XML::print_vspace ();
 }
 
 sub xml_print
@@ -437,23 +435,23 @@ sub xml_print
   $smb_export_table = $$config{"smb_exports"};
   $nfs_export_table = $$config{"nfs_exports"};
 
-  &gst_xml_print_begin ();
+  &Utils::XML::print_begin ();
 
   foreach $i (keys (%$tools))
   {
-    &gst_xml_print_pcdata ($i, $$tools{$i});
+    &Utils::XML::print_pcdata ($i, $$tools{$i});
   }
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_vspace ();
 
   foreach $i (keys (%$smb_config))
   {
-    &gst_xml_print_pcdata ($i, $$smb_config{$i});
+    &Utils::XML::print_pcdata ($i, $$smb_config{$i});
   }
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_vspace ();
 
   if (scalar @$import_table)
   {
-    &gst_xml_container_enter ("imports");
+    &Utils::XML::container_enter ("imports");
 
     foreach $i (@$import_table)
     {
@@ -466,13 +464,13 @@ sub xml_print
       else                   { next; }
     }
     
-    &gst_xml_container_leave ();
-    &gst_xml_print_vspace ();
+    &Utils::XML::container_leave ();
+    &Utils::XML::print_vspace ();
   }
 
   if (scalar @$smb_export_table || scalar @$nfs_export_table)
   {
-    &gst_xml_container_enter ("exports");
+    &Utils::XML::container_enter ("exports");
     
     foreach $i (@$smb_export_table)
     {
@@ -484,10 +482,10 @@ sub xml_print
       &xml_print_export_nfs ($i);
     }
 
-    &gst_xml_container_leave ();
+    &Utils::XML::container_leave ();
   }
 
-  &gst_xml_print_end ();
+  &Utils::XML::print_end ();
 }
 
 # Misc
@@ -729,10 +727,10 @@ sub set
 
 #  &gst_filesys_fstab_replace     (&distro_file ("fstab"),    $fs_new_shares);
 
-  &gst_replace_ini ($smb_conf, "global", "workgroup",     $$config{"smb_config"}{"workgroup"});
-  &gst_replace_ini ($smb_conf, "global", "server string", $$config{"smb_config"}{"smbdesc"});
-  &gst_replace_ini ($smb_conf, "global", "wins server",   $$config{"smb_config"}{"winsserver"});
-  &gst_replace_ini_bool ($smb_conf, "global", "wins support", $$config{"smb_config"}{"winsuse"});
+  &Utils::Replace::set_ini ($smb_conf, "global", "workgroup",     $$config{"smb_config"}{"workgroup"});
+  &Utils::Replace::set_ini ($smb_conf, "global", "server string", $$config{"smb_config"}{"smbdesc"});
+  &Utils::Replace::set_ini ($smb_conf, "global", "wins server",   $$config{"smb_config"}{"winsserver"});
+  &Utils::Replace::set_ini_bool ($smb_conf, "global", "wins support", $$config{"smb_config"}{"winsuse"});
 
   &gst_share_replace_smb_conf    ($smb_conf, $$config{"smb_exports"});
   &gst_share_replace_nfs_exports ($exports,  $$config{"nfs_exports"});
@@ -781,10 +779,10 @@ sub get_network_conf
   $hash = &gst_network_conf_get ();
   &Utils::Report::end ();
 
-  &gst_xml_print_begin ("network-conf");
+  &Utils::XML::print_begin ("network-conf");
   &network_xml_print_statichost ($hash);
-  &gst_xml_print_structure (\@arr, "interface");
-  &gst_xml_print_end ("network-conf");
+  &Utils::XML::print_structure (\@arr, "interface");
+  &Utils::XML::print_end ("network-conf");
 }
 
 # --- Main --- #
@@ -800,6 +798,6 @@ $directives = {
   "scan_network" =>     [ \&scan,   [], "Looks for smb or nfs shares in the network." ]
     };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);

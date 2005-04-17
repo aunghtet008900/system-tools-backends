@@ -712,18 +712,18 @@ sub font_xml_print
   {
     my $font = $fonts->{$_};
 
-    &gst_xml_print_line ("<font format=\"$font->{format}\" name=\"$font->{name}\" version=\"$font->{version}\"" .
+    &Utils::XML::print_line ("<font format=\"$font->{format}\" name=\"$font->{name}\" version=\"$font->{version}\"" .
                          " familyname=\"$font->{familyname}\" speciesname=\"$font->{speciesname}\"" .
                          " psname=\"$font->{psname}\" weight=\"$font->{weight}\" italicangle=\"$font->{italicangle}\">");
 
-    &gst_xml_enter ();
+    &Utils::XML::enter ();
     foreach my $file (@{$font->{'file'}})
     {
-      &gst_xml_print_line ("<file type=\"$file->{type}\" path=\"$file->{path}\"" .
+      &Utils::XML::print_line ("<file type=\"$file->{type}\" path=\"$file->{path}\"" .
                            " size=\"$file->{size}\" mtime=\"$file->{mtime}\"/>");
     }
-    &gst_xml_leave ();
-    &gst_xml_print_line ("</font>");
+    &Utils::XML::leave ();
+    &Utils::XML::print_line ("</font>");
   }
 }
 
@@ -877,12 +877,12 @@ sub gp_parse
   my $fname = shift;
   my $font_list = {};
 
-  my $tree = &gst_xml_scan ($fname);
+  my $tree = &Utils::XML::scan ($fname);
 
   if ($$tree[0] eq 'fontmap')
   {
     $tree = $$tree[1];
-    unless (&gst_xml_get_attribute ($tree, 'version') >= 2)
+    unless (&Utils::XML::get_attribute ($tree, 'version') >= 2)
     {
       # TODO: report
       &gst_debug_print_line ("gp_parse: File '$fname' fontmap version should be 2.0 or higher.");

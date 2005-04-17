@@ -108,14 +108,14 @@ sub xml_print ()
     my @tags = ('Protocol', 'Device', 'BaudRate', 'SampleRate', 'Emulate3Buttons', 'Emulate3Timeout', 'ChordMiddle');
     my $i;
 
-    &gst_xml_print_begin ();
+    &Utils::XML::print_begin ();
     
     while ($i = shift @tags) {
-        if (exists $$h{$i} && $$h{$i} eq "on") { gst_xml_print_line ("<$i/>\n"); } 
-        elsif (exists $$h{$i}) { gst_xml_print_line ("<$i>$$h{$i}</$i>\n"); }
+        if (exists $$h{$i} && $$h{$i} eq "on") { Utils::XML::print_line ("<$i/>\n"); } 
+        elsif (exists $$h{$i}) { Utils::XML::print_line ("<$i>$$h{$i}</$i>\n"); }
     }
     
-    &gst_xml_print_end ();
+    &Utils::XML::print_end ();
 }
 
 
@@ -168,6 +168,6 @@ $directives = {
   "filter" => [ \&filter, [], "" ]
     };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);

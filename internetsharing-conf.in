@@ -68,7 +68,7 @@ sub xml_parse
   
   # Scan XML to tree.
 
-  $tree = &gst_xml_scan ();
+  $tree = &Utils::XML::scan ();
 
   # Walk the tree recursively and extract configuration parameters.
   # This is the top level - find and enter the "networking" tag.
@@ -113,14 +113,14 @@ sub xml_parse_fwrules
 
   while ($elem = shift @$tree)
   {
-      if    ($elem eq "tools")        { $$hash{"tools"}        = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "kerneltool")   { $$hash{"kerneltool"}   = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "configured")   { $$hash{"configured"}   = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "forwarding")   { $$hash{"forwarding"}   = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "masquerading") { $$hash{"masquerading"} = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "overwrite")    { $$hash{"overwrite"}    = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "active")       { $$hash{"active"}       = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "landev")       { push @$landevs, &gst_xml_get_pcdata (shift @$tree); }
+      if    ($elem eq "tools")        { $$hash{"tools"}        = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "kerneltool")   { $$hash{"kerneltool"}   = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "configured")   { $$hash{"configured"}   = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "forwarding")   { $$hash{"forwarding"}   = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "masquerading") { $$hash{"masquerading"} = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "overwrite")    { $$hash{"overwrite"}    = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "active")       { $$hash{"active"}       = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "landev")       { push @$landevs, &Utils::XML::get_pcdata (shift @$tree); }
       else  { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
@@ -141,11 +141,11 @@ sub xml_parse_dhcp
 
   while ($elem = shift @$tree)
   {
-      if    ($elem eq "installed")    { $$hash{"installed"}  = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "configured")   { $$hash{"configured"} = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "overwrite")    { $$hash{"overwrite"}  = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "active")       { $$hash{"active"}     = &gst_xml_get_pcdata (shift @$tree); }
-      elsif ($elem eq "dev")          { push @$devs, &gst_xml_get_pcdata (shift @$tree); }
+      if    ($elem eq "installed")    { $$hash{"installed"}  = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "configured")   { $$hash{"configured"} = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "overwrite")    { $$hash{"overwrite"}  = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "active")       { $$hash{"active"}     = &Utils::XML::get_pcdata (shift @$tree); }
+      elsif ($elem eq "dev")          { push @$devs, &Utils::XML::get_pcdata (shift @$tree); }
       else  { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
   }
 
@@ -162,11 +162,11 @@ sub xml_print
 {
   my ($h) = @_;
 
-  &gst_xml_print_begin ();
-  &gst_xml_print_hash ($$h{"fwrules"}, "fwrules");
-  &gst_xml_print_hash ($$h{"dhcp"},    "dhcp");
-  &gst_xml_print_hash_hash ($$h{"interface"}, "interface");
-  &gst_xml_print_end ();
+  &Utils::XML::print_begin ();
+  &Utils::XML::print_hash ($$h{"fwrules"}, "fwrules");
+  &Utils::XML::print_hash ($$h{"dhcp"},    "dhcp");
+  &Utils::XML::print_hash_hash ($$h{"interface"}, "interface");
+  &Utils::XML::print_end ();
 }
 
 # Main operations
@@ -189,9 +189,9 @@ sub get_interfaces
   $hash = &gst_network_interfaces_get ();
   
   &Utils::Report::end ();
-  &gst_xml_print_begin ();
-  &gst_xml_print_hash_hash ($hash, "interface");
-  &gst_xml_print_end ();
+  &Utils::XML::print_begin ();
+  &Utils::XML::print_hash_hash ($hash, "interface");
+  &Utils::XML::print_end ();
 }
 
 
@@ -229,7 +229,7 @@ $directives = {
   "get_interfaces" => [ \&get_interfaces, [], "Get the interface tags only." ]
     };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);
 

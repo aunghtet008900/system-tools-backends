@@ -106,7 +106,7 @@ sub gst_print_conf_set
       $ {$dist_attrib{"fn"}}{$j} = $value;
     }
 
-    my $tmpres = &gst_replace_from_table ($dist_attrib {"fn"},
+    my $tmpres = &Utils::Replace::set_from_table ($dist_attrib {"fn"},
                                           $dist_attrib {"table"},
                                           $$values_hash {$i},
                                           $$old_hash {$i});
@@ -271,21 +271,21 @@ sub gst_print_get_printer_replace_table
         [ "suppress_headers",   \&gst_replace_printcap,       [PRINTCAP,  PRINTER],    "sh", ""  ],
         [ "device",             \&gst_replace_printcap,       [PRINTCAP,  PRINTER],    "lp", "=" ],
         [ "filter",             \&gst_replace_printcap,       [PRINTCAP,  PRINTER],    "if", "=" ],
-        [ "papersize",          \&gst_replace_sh_export,      GENERAL,    PAPERSIZE              ],
-        [ "type",               \&gst_replace_sh_export,      GENERAL,    PRINTERTYPE            ],
-        [ "ascii_to_ps",        \&gst_replace_sh_export_bool, GENERAL,    ASCII_TO_PS            ],
-        [ "gsdevice",           \&gst_replace_sh,             POSTSCRIPT, GSDEVICE               ],
-        [ "resolution",         \&gst_replace_sh,             POSTSCRIPT, RESOLUTION             ],
-        [ "color",              \&gst_replace_sh,             POSTSCRIPT, COLOR                  ],
-        [ "gs_papersize",       \&gst_replace_sh,             POSTSCRIPT, PAPERSIZE              ],
-        [ "gs_options",         \&gst_replace_sh,             POSTSCRIPT, EXTRA_GS_OPTIONS       ],
-        [ "ps_send_eof",        \&gst_replace_sh_bool,        POSTSCRIPT, PS_SEND_EOF            ],
-        [ "pages_per_sheet",    \&gst_replace_sh,             POSTSCRIPT, NUP                    ],
-        [ "rt_margin",          \&gst_replace_sh,             POSTSCRIPT, RTLFTMAR               ],
-        [ "tb_margin",          \&gst_replace_sh,             POSTSCRIPT, TOPBOTMAR              ],
-        [ "text_options",       \&gst_replace_sh,             TEXTONLY,   TEXTONLYOPTIONS        ],
-        [ "trans_crlf",         \&gst_replace_sh_bool,        TEXTONLY,   CRLFTRANS              ],
-        [ "text_send_eof",      \&gst_replace_sh_bool,        TEXTONLY,   TEXT_SEND_EOF          ]
+        [ "papersize",          \&Utils::Replace::set_sh_export,      GENERAL,    PAPERSIZE              ],
+        [ "type",               \&Utils::Replace::set_sh_export,      GENERAL,    PRINTERTYPE            ],
+        [ "ascii_to_ps",        \&Utils::Replace::set_sh_export_bool, GENERAL,    ASCII_TO_PS            ],
+        [ "gsdevice",           \&Utils::Replace::set_sh,             POSTSCRIPT, GSDEVICE               ],
+        [ "resolution",         \&Utils::Replace::set_sh,             POSTSCRIPT, RESOLUTION             ],
+        [ "color",              \&Utils::Replace::set_sh,             POSTSCRIPT, COLOR                  ],
+        [ "gs_papersize",       \&Utils::Replace::set_sh,             POSTSCRIPT, PAPERSIZE              ],
+        [ "gs_options",         \&Utils::Replace::set_sh,             POSTSCRIPT, EXTRA_GS_OPTIONS       ],
+        [ "ps_send_eof",        \&Utils::Replace::set_sh_bool,        POSTSCRIPT, PS_SEND_EOF            ],
+        [ "pages_per_sheet",    \&Utils::Replace::set_sh,             POSTSCRIPT, NUP                    ],
+        [ "rt_margin",          \&Utils::Replace::set_sh,             POSTSCRIPT, RTLFTMAR               ],
+        [ "tb_margin",          \&Utils::Replace::set_sh,             POSTSCRIPT, TOPBOTMAR              ],
+        [ "text_options",       \&Utils::Replace::set_sh,             TEXTONLY,   TEXTONLYOPTIONS        ],
+        [ "trans_crlf",         \&Utils::Replace::set_sh_bool,        TEXTONLY,   CRLFTRANS              ],
+        [ "text_send_eof",      \&Utils::Replace::set_sh_bool,        TEXTONLY,   TEXT_SEND_EOF          ]
       ]
     },
     "redhat-7.1" =>
@@ -307,20 +307,20 @@ sub gst_print_get_printer_replace_table
         [ "type",               \&gst_replace_alchemist_print, [PRINTCONF, PRINTER], "queue_type", "STRING" ],
         [ "printer_id",         \&gst_replace_alchemist_print, [PRINTCONF, PRINTER], "filter_data/printer_id", "STRING" ],
 #        [ "filter",             \&gst_replace_printcap,        [PRINTCAP,  PRINTER],    "if", "=" ],
-#        [ "papersize",          \&gst_replace_sh_export,       GENERAL,    PAPERSIZE              ],
-#        [ "ascii_to_ps",        \&gst_replace_sh_export_bool,  GENERAL,    ASCII_TO_PS            ],
+#        [ "papersize",          \&Utils::Replace::set_sh_export,       GENERAL,    PAPERSIZE              ],
+#        [ "ascii_to_ps",        \&Utils::Replace::set_sh_export_bool,  GENERAL,    ASCII_TO_PS            ],
         [ "gsdevice",           \&gst_replace_alchemist_print, [PRINTCONF, PRINTER], "filter_data/gs_driver", "STRING" ],
         [ "resolution",         \&gst_replace_alchemist_print_option, [PRINTCONF, PRINTER], "Resolution", "enum" ]
-#        [ "color",              \&gst_replace_sh,              POSTSCRIPT, COLOR                  ],
-#        [ "gs_papersize",       \&gst_replace_sh,              POSTSCRIPT, PAPERSIZE              ],
-#        [ "gs_options",         \&gst_replace_sh,              POSTSCRIPT, EXTRA_GS_OPTIONS       ],
-#        [ "ps_send_eof",        \&gst_replace_sh_bool,         POSTSCRIPT, PS_SEND_EOF            ],
-#        [ "pages_per_sheet",    \&gst_replace_sh,              POSTSCRIPT, NUP                    ],
-#        [ "rt_margin",          \&gst_replace_sh,              POSTSCRIPT, RTLFTMAR               ],
-#        [ "tb_margin",          \&gst_replace_sh,              POSTSCRIPT, TOPBOTMAR              ],
-#        [ "text_options",       \&gst_replace_sh,              TEXTONLY,   TEXTONLYOPTIONS        ],
-#        [ "trans_crlf",         \&gst_replace_sh_bool,         TEXTONLY,   CRLFTRANS              ],
-#        [ "text_send_eof",      \&gst_replace_sh_bool,         TEXTONLY,   TEXT_SEND_EOF          ]
+#        [ "color",              \&Utils::Replace::set_sh,              POSTSCRIPT, COLOR                  ],
+#        [ "gs_papersize",       \&Utils::Replace::set_sh,              POSTSCRIPT, PAPERSIZE              ],
+#        [ "gs_options",         \&Utils::Replace::set_sh,              POSTSCRIPT, EXTRA_GS_OPTIONS       ],
+#        [ "ps_send_eof",        \&Utils::Replace::set_sh_bool,         POSTSCRIPT, PS_SEND_EOF            ],
+#        [ "pages_per_sheet",    \&Utils::Replace::set_sh,              POSTSCRIPT, NUP                    ],
+#        [ "rt_margin",          \&Utils::Replace::set_sh,              POSTSCRIPT, RTLFTMAR               ],
+#        [ "tb_margin",          \&Utils::Replace::set_sh,              POSTSCRIPT, TOPBOTMAR              ],
+#        [ "text_options",       \&Utils::Replace::set_sh,              TEXTONLY,   TEXTONLYOPTIONS        ],
+#        [ "trans_crlf",         \&Utils::Replace::set_sh_bool,         TEXTONLY,   CRLFTRANS              ],
+#        [ "text_send_eof",      \&Utils::Replace::set_sh_bool,         TEXTONLY,   TEXT_SEND_EOF          ]
       ]
     }
   );

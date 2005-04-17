@@ -70,49 +70,49 @@ $cmd_pack = &Utils::File::locate_tool ("rpm");
 
 sub xml_print
 {
-  &gst_xml_print_line ("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>");
-  &gst_xml_print_line ("<!DOCTYPE packages []>\n");
-  &gst_xml_print_line ("<packages>");
-  &gst_xml_enter ();
+  &Utils::XML::print_line ("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>");
+  &Utils::XML::print_line ("<!DOCTYPE packages []>\n");
+  &Utils::XML::print_line ("<packages>");
+  &Utils::XML::enter ();
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<!-- Configuration starts here -->\n");
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<!-- Configuration starts here -->\n");
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<meta>");
-  &gst_xml_enter;
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<meta>");
+  &Utils::XML::enter;
 
   my $number_of_packages = $#cf_package + 1;
-  &gst_xml_print_line ("<number>$number_of_packages</number>");
-  &gst_xml_leave;
-  &gst_xml_print_line ("</meta>");
+  &Utils::XML::print_line ("<number>$number_of_packages</number>");
+  &Utils::XML::leave;
+  &Utils::XML::print_line ("</meta>");
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("</packagedb>");
-  &gst_xml_print_vspace ();
-  &gst_xml_enter;
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("</packagedb>");
+  &Utils::XML::print_vspace ();
+  &Utils::XML::enter;
 
   foreach $entry (@cf_package) {
-    &gst_xml_print_line ("<package>");
-    &gst_xml_enter;
-    &gst_xml_print_line ("<name>$entry->{name}</name>");
-    &gst_xml_print_line ("<version>$entry->{vers}</version>");
-    &gst_xml_print_line ("<distribution>$entry->{dist}</distribution>");
-    &gst_xml_leave;
-    &gst_xml_print_line ("</package>");
-  &gst_xml_print_vspace ();
+    &Utils::XML::print_line ("<package>");
+    &Utils::XML::enter;
+    &Utils::XML::print_line ("<name>$entry->{name}</name>");
+    &Utils::XML::print_line ("<version>$entry->{vers}</version>");
+    &Utils::XML::print_line ("<distribution>$entry->{dist}</distribution>");
+    &Utils::XML::leave;
+    &Utils::XML::print_line ("</package>");
+  &Utils::XML::print_vspace ();
   }
 
-  &gst_xml_print_vspace ();
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</packagedb>");
+  &Utils::XML::print_vspace ();
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</packagedb>");
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<!-- End of configuration -->\n");
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<!-- End of configuration -->\n");
 
-  &gst_xml_print_vspace ();
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</packages>");
+  &Utils::XML::print_vspace ();
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</packages>");
 }
 
 
@@ -186,6 +186,6 @@ $directives = {
   "filter" => [ \&filter, [], "" ]
     };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);

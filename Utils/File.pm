@@ -30,16 +30,6 @@ use File::Copy;
 use File::Temp;
 use Carp;
 
-$SCRIPTSDIR = "@scriptsdir@";
-$FILESDIR = "@filesdir@";
-if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
-{
-    $FILESDIR = "files";
-    $SCRIPTSDIR = ".";
-    $DOTIN = ".in";
-}
-
-require "$SCRIPTSDIR/general.pl$DOTIN";
 
 $FILE_READ  = 1;
 $FILE_WRITE = 2;
@@ -454,7 +444,7 @@ sub run_pipe
   my ($command);
   local *PIPE;
 
-  $mode_mask = $GST_FILE_READ if $mode_mask eq undef;
+  $mode_mask = $FILE_READ if $mode_mask eq undef;
 
   &Utils::Report::enter ();
   
@@ -474,8 +464,8 @@ sub run_pipe
     return undef;
   }
 
-  $command .= " |"        if $mode_mask & $GST_FILE_READ;
-  $command = "| $command > /dev/null" if $mode_mask & $GST_FILE_WRITE;
+  $command .= " |"        if $mode_mask & $FILE_READ;
+  $command = "| $command > /dev/null" if $mode_mask & $FILE_WRITE;
 
   open PIPE, $command;
   &Utils::Report::do_report ("file_run_pipe_success", $command);
@@ -488,21 +478,21 @@ sub run_pipe_read
 {
   my ($cmd) = @_;
 
-  return &run_pipe ($cmd, $GST_FILE_READ);
+  return &run_pipe ($cmd, $FILE_READ);
 }
 
 sub run_pipe_read_with_stderr
 {
    my ($cmd) = @_;
 
-   return &run_pipe ($cmd, $GST_FILE_READ, 1);
+   return &run_pipe ($cmd, $FILE_READ, 1);
 }
 
 sub run_pipe_write
 {
   my ($cmd) = @_;
 
-  return &run_pipe ($cmd, $GST_FILE_WRITE);
+  return &run_pipe ($cmd, $FILE_WRITE);
 }
 
 

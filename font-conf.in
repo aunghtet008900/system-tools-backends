@@ -62,12 +62,12 @@ sub xml_print
 {
   my $font_list = shift;
 
-  &gst_xml_print_begin ();
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_begin ();
+  &Utils::XML::print_vspace ();
 
   &font_xml_print ($font_list);
 
-  &gst_xml_print_end ();
+  &Utils::XML::print_end ();
 }
 
 # Top-level actions.
@@ -119,6 +119,6 @@ $directives = {
 };
 
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);

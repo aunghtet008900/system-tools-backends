@@ -35,8 +35,9 @@
 #
 # /sbin/lilo
 
-use Utils::Util;
 use Utils::File;
+use Utils::XML;
+use Utils::Backend;
 
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
@@ -46,9 +47,6 @@ BEGIN {
       $DOTIN = ".in";
   }
   
-  require "$SCRIPTSDIR/general.pl$DOTIN";
-  require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/xml.pl$DOTIN";
   require "$SCRIPTSDIR/parse.pl$DOTIN";
   require "$SCRIPTSDIR/boot.pl$DOTIN";
   require "$SCRIPTSDIR/boot-lilo.pl$DOTIN";
@@ -75,7 +73,7 @@ sub xml_parse
   my ($tree, %hash, $elem);
   # Scan XML to tree.
 
-  $tree = &gst_xml_scan ();
+  $tree = &Utils::XML::scan ();
 
   # Walk the tree recursively and extract configuration parameters.
   # This is the top level - find and enter the "boot" tag.
@@ -101,14 +99,14 @@ sub xml_parse_boot
 
   while ($elem = shift @$tree)
   {
-    if    ($elem eq "prompt")    { $$hash{"prompt"}    = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "boot")      { $$hash{"boot"}      = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "root")      { $$hash{"root"}      = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "timeout")   { $$hash{"timeout"}   = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "default")   { $$hash{"default"}   = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "append")    { $$hash{"append"}    = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "pixmap")    { $$hash{"pixmap"}    = &gst_xml_get_pcdata (shift @$tree); }
-    elsif ($elem eq "pixmapsup") { $$hash{"pixmapsup"} = &gst_xml_get_pcdata (shift @$tree); }
+    if    ($elem eq "prompt")    { $$hash{"prompt"}    = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "boot")      { $$hash{"boot"}      = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "root")      { $$hash{"root"}      = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "timeout")   { $$hash{"timeout"}   = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "default")   { $$hash{"default"}   = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "append")    { $$hash{"append"}    = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "pixmap")    { $$hash{"pixmap"}    = &Utils::XML::get_pcdata (shift @$tree); }
+    elsif ($elem eq "pixmapsup") { $$hash{"pixmapsup"} = &Utils::XML::get_pcdata (shift @$tree); }
     elsif ($elem eq "entry")     { &xml_parse_entry (shift @$tree, \@entries); }
     elsif ($elem eq "partitions") { shift @$tree; } # Just skip it.
     else { &Utils::Report::do_report ("xml_unexp_tag", $elem); shift @$tree; }
@@ -127,7 +125,7 @@ sub xml_parse_entry
 
   while ($elem = shift @$tree)
   {
-    $hash{$elem} = &gst_xml_get_pcdata (shift @$tree);
+    $hash{$elem} = &Utils::XML::get_pcdata (shift @$tree);
   }
 
   push @$entries, \%hash;
@@ -141,16 +139,16 @@ sub xml_print
   my ($h) = @_;
   my @scalars = qw(default timeout pixmap pixmapsup prompt boot root);
 
-  &gst_xml_print_begin ();
+  &Utils::XML::print_begin ();
 
-  &gst_xml_print_structure ($$h{"bootloaders"}, "bootloaders") if ($$h{"bootloaders"} ne undef);
+  &Utils::XML::print_structure ($$h{"bootloaders"}, "bootloaders") if ($$h{"bootloaders"} ne undef);
 
-  &gst_xml_print_hash ($$h{"partitions"}, "partitions") if ($$h{"partitions"} ne undef);
-  &gst_xml_print_vspace ();
-  &gst_xml_print_scalars ($h, @scalars);
-  &gst_xml_print_structure ($$h{"entry"}, "entry") if ($$h{"entry"} ne undef);
+  &Utils::XML::print_hash ($$h{"partitions"}, "partitions") if ($$h{"partitions"} ne undef);
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_scalars ($h, @scalars);
+  &Utils::XML::print_structure ($$h{"entry"}, "entry") if ($$h{"entry"} ne undef);
 
-  &gst_xml_print_end ();
+  &Utils::XML::print_end ();
 }
   
 
@@ -228,9 +226,9 @@ sub verify_print
 {
   my ($res) = @_;
 
-  &gst_xml_print_begin ("verify");
-  &gst_xml_print_structure ($res, "result");
-  &gst_xml_print_end ("verify");
+  &Utils::XML::print_begin ("verify");
+  &Utils::XML::print_structure ($res, "result");
+  &Utils::XML::print_end ("verify");
 }
 
 sub verify
@@ -267,5 +265,5 @@ $directives = {
   "verify"  => [ \&verify, [ "type", "value", "xtravalues*" ], "Verifies the values, depending on the type." ]
     };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Backend::run ($tool);

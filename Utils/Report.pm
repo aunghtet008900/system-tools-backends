@@ -25,14 +25,6 @@
 
 package Utils::Report;
 
-$SCRIPTSDIR = "@scriptsdir@";
-if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
-{
-    $SCRIPTSDIR = ".";
-    $DOTIN = ".in";
-}
-
-require "$SCRIPTSDIR/general.pl$DOTIN";
 
 my $report_threshold = 0;
 my $report_table = \%gst_report_message;

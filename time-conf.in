@@ -36,10 +36,6 @@
 #
 # date
 
-use Utils::Util;
-use Utils::File;
-use File::Copy;
-
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
   if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -48,14 +44,17 @@ BEGIN {
       $DOTIN = ".in";
   }
   
-  require "$SCRIPTSDIR/general.pl$DOTIN";
-  require "$SCRIPTSDIR/platform.pl$DOTIN";
-  require "$SCRIPTSDIR/xml.pl$DOTIN";
   require "$SCRIPTSDIR/service.pl$DOTIN";
   require "$SCRIPTSDIR/parse.pl$DOTIN";
-  require "$SCRIPTSDIR/replace.pl$DOTIN";
 }
 
+use Utils::Util;
+use Utils::File;
+use Utils::XML;
+use Utils::Backend;
+use Utils::Platform;
+use Utils::Replace;
+use File::Copy;
 
 # --- Tool information --- #
 
@@ -88,7 +87,7 @@ sub xml_parse
   
   # Scan XML to tree.
 
-  $tree = &gst_xml_scan;
+  $tree = &Utils::XML::scan;
 
   # Walk the tree recursively and extract configuration parameters.
   # This is the top level - find and enter the "time" tag.
@@ -117,7 +116,7 @@ sub xml_parse_time
   while (@$tree)
   {
     if    ($$tree[0] eq "local_time"){ $$hash{"local_time"} = &xml_parse_local_time ($$tree[1]); }
-    elsif ($$tree[0] eq "timezone") { $$hash{"timezone"} = &gst_xml_get_word ($$tree[1]); }
+    elsif ($$tree[0] eq "timezone") { $$hash{"timezone"} = &Utils::XML::get_word ($$tree[1]); }
     elsif ($$tree[0] eq "sync")     { $$hash{"sync"} = &xml_parse_sync ($$tree[1], $hash); }
 
     shift @$tree;
@@ -137,7 +136,7 @@ sub xml_parse_sync
 
   while (@$tree)
   {
-    if ($$tree[0] eq "server")  { push (@sync, &gst_xml_get_word($$tree[1])); }
+    if ($$tree[0] eq "server")  { push (@sync, &Utils::XML::get_word($$tree[1])); }
     
     shift @$tree;
     shift @$tree;
@@ -156,12 +155,12 @@ sub xml_parse_local_time
 
   while (@$tree)
   {
-    if    ($$tree[0] eq "year")     { $$hash{"year"} = &gst_xml_get_word($$tree[1]); }
-    elsif ($$tree[0] eq "month")    { $$hash{"month"} = &gst_xml_get_word($$tree[1]); }
-    elsif ($$tree[0] eq "monthday") { $$hash{"monthday"} = &gst_xml_get_word($$tree[1]); }
-    elsif ($$tree[0] eq "hour")     { $$hash{"hour"} = &gst_xml_get_word($$tree[1]); }
-    elsif ($$tree[0] eq "minute")   { $$hash{"minute"} = &gst_xml_get_word($$tree[1]); }
-    elsif ($$tree[0] eq "second")   { $$hash{"second"} = &gst_xml_get_word($$tree[1]); }
+    if    ($$tree[0] eq "year")     { $$hash{"year"} = &Utils::XML::get_word($$tree[1]); }
+    elsif ($$tree[0] eq "month")    { $$hash{"month"} = &Utils::XML::get_word($$tree[1]); }
+    elsif ($$tree[0] eq "monthday") { $$hash{"monthday"} = &Utils::XML::get_word($$tree[1]); }
+    elsif ($$tree[0] eq "hour")     { $$hash{"hour"} = &Utils::XML::get_word($$tree[1]); }
+    elsif ($$tree[0] eq "minute")   { $$hash{"minute"} = &Utils::XML::get_word($$tree[1]); }
+    elsif ($$tree[0] eq "second")   { $$hash{"second"} = &Utils::XML::get_word($$tree[1]); }
     
     shift @$tree;
     shift @$tree;
@@ -181,29 +180,29 @@ sub xml_print
 
   $sync = $$h{"sync"};
 
-  &gst_xml_print_begin ();
+  &Utils::XML::print_begin ();
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_hash ($$h{"local_time"}, "local_time");
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_hash ($$h{"local_time"}, "local_time");
+  &Utils::XML::print_vspace ();
   
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<sync active='" . &Utils::Util::print_boolean_yesno ($$h{'sync_active'}) . "'>\n");
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<sync active='" . &Utils::Util::print_boolean_yesno ($$h{'sync_active'}) . "'>\n");
   
-  &gst_xml_enter ();
+  &Utils::XML::enter ();
   foreach $server (@$sync)
   {
-    &gst_xml_print_line ("<server>$server</server>\n");
+    &Utils::XML::print_line ("<server>$server</server>\n");
   }
-  &gst_xml_leave ();
+  &Utils::XML::leave ();
   
-  &gst_xml_print_line ("</sync>\n");
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_line ("</sync>\n");
+  &Utils::XML::print_vspace ();
 
-  &gst_xml_print_scalars ($h, @scalar_keys);
-  &gst_xml_print_vspace ();
+  &Utils::XML::print_scalars ($h, @scalar_keys);
+  &Utils::XML::print_vspace ();
 
-  &gst_xml_print_end ();
+  &Utils::XML::print_end ();
 }
 
 # Main operations
@@ -254,9 +253,9 @@ $directives = {
   "filter" => [ \&filter, [], "" ]
     };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);
 
 # Portable code.
 
@@ -481,7 +480,7 @@ sub conf_set
 
   %dist_attrib = &conf_get_replace_table ();
 
-  $res = &gst_replace_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
+  $res = &Utils::Replace::set_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
                                   $values_hash);
 
   &time_sync_hw_from_sys ();
@@ -894,7 +893,7 @@ sub conf_get_replace_table
          table =>
              [
               [ "timezone",     \&time_set_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
-              [ "local_time",   \&gst_replace_join_all, NTP_CONF, "server", "[ \t]+" ],
+              [ "local_time",   \&Utils::Replace::join_all, NTP_CONF, "server", "[ \t]+" ],
               [ "sync_active",  \&gst_service_sysv_set_status, 90, "ntpd", "%sync_active%" ],
               ]
         },

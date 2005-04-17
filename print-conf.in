@@ -80,7 +80,7 @@ sub xml_parse
   my ($tree, %hash);
   # Scan XML to tree.
 
-  $tree = &gst_xml_scan;
+  $tree = &Utils::XML::scan;
 
   # Walk the tree recursively and extract configuration parameters.
   # This is the top level - find and enter the "print" tag.
@@ -130,7 +130,7 @@ sub xml_parse_printer
 
   while (@$tree)
   {
-    $hash{$$tree[0]} = &gst_xml_get_pcdata ($$tree[1]);
+    $hash{$$tree[0]} = &Utils::XML::get_pcdata ($$tree[1]);
 
     # If get_pcdata returns an array instead of a scalar, we have
     #  a subsection to process.
@@ -154,7 +154,7 @@ sub xml_parse_section
 
   while (@$tree)
   {
-    $hash{$$tree[0]} = &gst_xml_get_pcdata ($$tree[1]);
+    $hash{$$tree[0]} = &Utils::XML::get_pcdata ($$tree[1]);
 
     shift @$tree;
     shift @$tree;
@@ -175,21 +175,21 @@ sub xml_print_printer
   my ($h, $spool) = @_;
   my ($i, $val, $section);
 
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<printer>\n");
-  &gst_xml_enter ();
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<printer>\n");
+  &Utils::XML::enter ();
 
-  $val = &gst_xml_quote ($spool);
-  &gst_xml_print_line ("<name>$val</name>");
+  $val = &Utils::XML::quote ($spool);
+  &Utils::XML::print_line ("<name>$val</name>");
 
   foreach $i (keys (%$h))
   {
-    $val = &gst_xml_quote ($$h{$i});
-    &gst_xml_print_line ("<$i>$val</$i>\n");
+    $val = &Utils::XML::quote ($$h{$i});
+    &Utils::XML::print_line ("<$i>$val</$i>\n");
   }
 
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</printer>\n");  
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</printer>\n");  
 }
 
 sub xml_print
@@ -197,14 +197,14 @@ sub xml_print
   my $h = $_[0];
   my ($i, $val);
 
-  &gst_xml_print_begin ();
+  &Utils::XML::print_begin ();
 
   foreach $i (keys (%$h))
   {
     &xml_print_printer ($$h{$i}, $i);
   }
 
-  &gst_xml_print_end ();
+  &Utils::XML::print_end ();
 }
 
 
@@ -256,6 +256,6 @@ $directives =
   "filter" => [ \&filter, [], "" ]
 };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);

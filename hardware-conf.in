@@ -166,7 +166,7 @@ sub xml_parse
   {
     # Scan XML to tree.
     
-    $tree = &gst_xml_scan;
+    $tree = &Utils::XML::scan;
     
     # Walk the tree recursively and extract configuration parameters.
     # This is the top level - find and enter the "networking" tag.
@@ -218,7 +218,7 @@ sub xml_parse_swapinfo
       {
 	if ($$tree[0] eq 'device') 
 	  { 
-	    $entry->{device} = &gst_xml_get_word ($$tree[1]);
+	    $entry->{device} = &Utils::XML::get_word ($$tree[1]);
 	  }
 	elsif ($$tree[0] eq 'enabled') 
 	  {
@@ -227,11 +227,11 @@ sub xml_parse_swapinfo
 	  }
 	elsif ($$tree[0] eq 'priority') 
 	  { 
-	    $entry->{priority} = &gst_xml_get_word ($$tree[1]);
+	    $entry->{priority} = &Utils::XML::get_word ($$tree[1]);
 	  }
 	elsif ($$tree[0] eq 'size') 
 	  { 
-	    $entry->{size} = &gst_xml_get_word ($$tree[1]);
+	    $entry->{size} = &Utils::XML::get_word ($$tree[1]);
 	  }
 	elsif ($$tree[0] eq 'isfile') 
 	  { 
@@ -260,15 +260,15 @@ sub xml_print
     print "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n";
     print "<!DOCTYPE memory []>\n\n";
     print "<hardware>\n";
-    &gst_xml_enter ();
+    &Utils::XML::enter ();
 
-    &gst_xml_print_vspace ();
-    &gst_xml_print_line ("<!-- Configuration starts here -->\n");
-    &gst_xml_print_vspace ();
+    &Utils::XML::print_vspace ();
+    &Utils::XML::print_line ("<!-- Configuration starts here -->\n");
+    &Utils::XML::print_vspace ();
 
     foreach $entry (@cf_hardware)
       {
-	&gst_xml_print_line ("<device id='$entry->{id}'>\n");
+	&Utils::XML::print_line ("<device id='$entry->{id}'>\n");
 
       LOOP: while (($key, $value) = each %$entry)
 	  {
@@ -280,10 +280,10 @@ sub xml_print
 	      $_ = $key;
 	      /^ports/ && do 
 		{
-		  &gst_xml_enter;
+		  &Utils::XML::enter;
 		  foreach $range (@$value)
 		    {
-		      &gst_xml_print_line ("<io low='$range->{low}' high='$range->{high}'/>\n");
+		      &Utils::XML::print_line ("<io low='$range->{low}' high='$range->{high}'/>\n");
 		    }
 		  last SWITCH;
 		};
@@ -291,7 +291,7 @@ sub xml_print
 		{
 		  foreach $number (@$value)
 		    {
-		      &gst_xml_print_line ("<interrupt number='$number'/>\n");
+		      &Utils::XML::print_line ("<interrupt number='$number'/>\n");
 		    }
 		  last SWITCH;
 		};
@@ -299,7 +299,7 @@ sub xml_print
 		{
 		  foreach $channel (@$value)
 		    {
-		      &gst_xml_print_line ("<dma channel='$channel'/>\n");
+		      &Utils::XML::print_line ("<dma channel='$channel'/>\n");
 		    }
 		  last SWITCH;
 		};
@@ -307,25 +307,25 @@ sub xml_print
 		{
 		  foreach $mode (@$value)
 		    {
-		      &gst_xml_print_line ("<mode>$mode</mode>\n");
+		      &Utils::XML::print_line ("<mode>$mode</mode>\n");
 		    }
 		  last SWITCH;
 		};
 	      (/^id/ || /^io/ || /^irq/) && next LOOP;
 
-	      &gst_xml_print_line ("<$key>$value</$key>\n");
-				&gst_xml_leave;
+	      &Utils::XML::print_line ("<$key>$value</$key>\n");
+				&Utils::XML::leave;
 	    }
 	  }
 
-	&gst_xml_print_line ("</device>\n");
-	&gst_xml_print_vspace ();
+	&Utils::XML::print_line ("</device>\n");
+	&Utils::XML::print_vspace ();
       }
 
-    &gst_xml_print_line ("<!-- End of configuration -->\n");
-    &gst_xml_print_vspace ();
+    &Utils::XML::print_line ("<!-- End of configuration -->\n");
+    &Utils::XML::print_vspace ();
 
-    &gst_xml_leave ();
+    &Utils::XML::leave ();
     print "</hardware>\n";
   }
 
@@ -875,6 +875,6 @@ $directives = {
   "filter" => [ \&filter, [], "" ]
     };
 
-$tool = &gst_init ($name, $version, $description, $directives, @ARGV);
-&gst_platform_ensure_supported ($tool, @platforms);
-&gst_run ($tool);
+$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Platform::ensure_supported ($tool, @platforms);
+&Utils::Backend::run ($tool);

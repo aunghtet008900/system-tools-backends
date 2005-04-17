@@ -215,7 +215,7 @@ sub gst_ishare_conf_set
   %dist_attrib = &gst_ishare_conf_get_replace_table ();
 
   $old_hash = &gst_network_conf_get ();
-  $res = &gst_replace_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
+  $res = &Utils::Replace::set_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
                                   $values_hash, $old_hash);
 
   return $res;
@@ -230,7 +230,7 @@ sub gst_ishare_fwrules_set
   %dist_attrib = &gst_ishare_fwrules_get_replace_table ();
 
   $$values_hash{"interface"} = $interface;
-  $res = &gst_replace_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
+  $res = &Utils::Replace::set_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
                                   $values_hash, $old_hash);
   delete $$values_hash{"interface"};
 
@@ -246,7 +246,7 @@ sub gst_ishare_dhcp_set
   %dist_attrib = &gst_ishare_dhcp_get_replace_table ();
 
   $$values_hash{"interface"} = $interface;
-  $res = &gst_replace_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
+  $res = &Utils::Replace::set_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
                                   $values_hash, $old_hash);
   delete $$values_hash{"interface"};
 
@@ -311,11 +311,11 @@ sub gst_ishare_fwrules_get_parse_table
          },
          table =>
              [
-              [ "tools",        \&gst_file_tool_installed,        "ipchains"    ],
-              [ "kerneltool",   \&gst_file_exists,                PROC_IPCHAINS ],
+              [ "tools",        \&Utils::File::tool_installed,        "ipchains"    ],
+              [ "kerneltool",   \&Utils::File::exists,                PROC_IPCHAINS ],
               [ "configured",   \&gst_ishare_ipchains_configured, "%tools%", "%kerneltool%" ],
-              [ "forwarding",   \&gst_file_exists,                PROC_FORWARD  ],
-              [ "masquerading", \&gst_file_exists,                PROC_MASQ     ],
+              [ "forwarding",   \&Utils::File::exists,                PROC_FORWARD  ],
+              [ "masquerading", \&Utils::File::exists,                PROC_MASQ     ],
               [ "active",       \&gst_parse_kw,                   PROC_FORWARD, "1" ]
               ]
                 },
@@ -353,7 +353,7 @@ sub gst_ishare_dhcp_get_parse_table
          table =>
              [
               [ "installed",   \&gst_service_sysv_installed,  DHCPD_SERVICE ],
-              [ "configured",  \&gst_file_exists,             DHCPD_CONF    ],
+              [ "configured",  \&Utils::File::exists,             DHCPD_CONF    ],
               [ "active",      \&gst_service_sysv_get_status, DHCPD_SERVICE ],
               [ "dev",         \&gst_parse_split_first_array, LINUX_CONF, "DHCP.interface",
                                                               "[ \t]+", "[ \t]+" ],
@@ -369,7 +369,7 @@ sub gst_ishare_dhcp_get_parse_table
          table =>
              [
               [ "installed",   \&gst_service_sysv_installed,  DHCPD_SERVICE ],
-              [ "configured",  \&gst_file_exists,             DHCPD_CONF    ],
+              [ "configured",  \&Utils::File::exists,             DHCPD_CONF    ],
               [ "active",      \&gst_service_sysv_get_status, DHCPD_SERVICE ],
               ]
                 },
@@ -440,8 +440,8 @@ sub gst_ishare_fwrules_get_replace_table
          },
          table =>
              [
-              [ "active",     \&gst_replace_line_first,         PROC_FORWARD ],
-              [ "active",     \&gst_replace_sh_bool,            SYSCONFIG_NETWORK, "FORWARD_IPV4" ],
+              [ "active",     \&Utils::Replace::set_first_line,         PROC_FORWARD ],
+              [ "active",     \&Utils::Replace::set_sh_bool,            SYSCONFIG_NETWORK, "FORWARD_IPV4" ],
               [ "overwrite",  \&gst_ishare_ipchains_save,       IPCHAINS_CONF, "%interface%", "%landev%" ],
               [ "active",     \&gst_service_sysv_force_status,  [8, IPCHAINS_SERVICE] ],
               ]
@@ -457,8 +457,8 @@ sub gst_ishare_fwrules_get_replace_table
          },
          table =>
              [
-              [ "active",     \&gst_replace_sh_bool,             NETWORK_OPTIONS, "ip_forward" ],          
-              [ "active",     \&gst_replace_line_first,          PROC_FORWARD ],
+              [ "active",     \&Utils::Replace::set_sh_bool,             NETWORK_OPTIONS, "ip_forward" ],          
+              [ "active",     \&Utils::Replace::set_first_line,          PROC_FORWARD ],
               [ "active",     \&gst_service_sysv_install_script, IPCHAINS_SERVICE, "debian_ipchains" ],
               [ "overwrite",  \&gst_ishare_ipchains_save,        IPCHAINS_CONF, "%interface%", "%landev%" ],
               [ "active",     \&gst_service_sysv_force_status,   [5, IPCHAINS_SERVICE] ],
@@ -512,7 +512,7 @@ sub gst_ishare_dhcp_get_replace_table
          table =>
              [
               [ "dev",         \&gst_ishare_dhcp_set_conf,    DHCPD_CONF, "%overwrite%", "%interface%" ],
-              [ "active",      \&gst_replace_sh_bool,         "/etc/init.d/dhcpd", "run_dhcpd", "1", "0" ],
+              [ "active",      \&Utils::Replace::set_sh_bool,         "/etc/init.d/dhcpd", "run_dhcpd", "1", "0" ],
               [ "active",      \&gst_service_sysv_set_status, [20, DHCPD_SERVICE] ]
               ]
               },

@@ -57,13 +57,13 @@ sub gst_removable_media_get_list
 
 sub gst_removable_media_xml_print
 {
-  &gst_xml_print_vspace ();
-  &gst_xml_print_line ("<removables>\n");
-  &gst_xml_enter ();
+  &Utils::XML::print_vspace ();
+  &Utils::XML::print_line ("<removables>\n");
+  &Utils::XML::enter ();
 
   
 
-  &gst_xml_leave ();
-  &gst_xml_print_line ("</removables>\n");
-  &gst_xml_print_vspace ();
+  &Utils::XML::leave ();
+  &Utils::XML::print_line ("</removables>\n");
+  &Utils::XML::print_vspace ();
 }

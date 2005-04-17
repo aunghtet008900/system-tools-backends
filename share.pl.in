@@ -22,6 +22,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
 use Utils::File;
+use Utils::Replace;
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -30,9 +31,7 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/general.pl$DOTIN";
 require "$SCRIPTSDIR/parse.pl$DOTIN";
-require "$SCRIPTSDIR/replace.pl$DOTIN";
 require "$SCRIPTSDIR/network.pl$DOTIN";
 
 
@@ -465,7 +464,7 @@ sub gst_share_replace_smb_conf
 
     if (!&gst_share_smb_table_find ($table, $section))
     {
-      &gst_replace_remove_ini_section ($file, $section);
+      &Utils::Replace::remove_ini_section ($file, $section);
     }
   }
 
@@ -474,16 +473,16 @@ sub gst_share_replace_smb_conf
     my $point, $comment, $enabled, $browseable, $public, $writable, $printable;
     my $name = &gst_share_smb_info_get_name ($export);
 
-    &gst_replace_ini      ($file, $name, "path",       &gst_share_smb_info_get_point      ($export));
-    &gst_replace_ini      ($file, $name, "comment",    &gst_share_smb_info_get_comment    ($export));
-    &gst_replace_ini_bool ($file, $name, "available",  &gst_share_smb_info_get_enabled    ($export));
-    &gst_replace_ini_bool ($file, $name, "browseable", &gst_share_smb_info_get_browse     ($export));
-    &gst_replace_ini_bool ($file, $name, "public",     &gst_share_smb_info_get_public     ($export));
-    &gst_replace_ini_bool ($file, $name, "writable",   &gst_share_smb_info_get_write      ($export));
+    &Utils::Replace::set_ini      ($file, $name, "path",       &gst_share_smb_info_get_point      ($export));
+    &Utils::Replace::set_ini      ($file, $name, "comment",    &gst_share_smb_info_get_comment    ($export));
+    &Utils::Replace::set_ini_bool ($file, $name, "available",  &gst_share_smb_info_get_enabled    ($export));
+    &Utils::Replace::set_ini_bool ($file, $name, "browseable", &gst_share_smb_info_get_browse     ($export));
+    &Utils::Replace::set_ini_bool ($file, $name, "public",     &gst_share_smb_info_get_public     ($export));
+    &Utils::Replace::set_ini_bool ($file, $name, "writable",   &gst_share_smb_info_get_write      ($export));
 
-    &gst_replace_remove_ini_var ($file, $name, "browsable");
-    &gst_replace_remove_ini_var ($file, $name, "guest");
-    &gst_replace_remove_ini_var ($file, $name, "writeable");
+    &Utils::Replace::remove_ini_var ($file, $name, "browsable");
+    &Utils::Replace::remove_ini_var ($file, $name, "guest");
+    &Utils::Replace::remove_ini_var ($file, $name, "writeable");
   }
 }
 
