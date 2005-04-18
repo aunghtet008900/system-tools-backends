@@ -763,7 +763,7 @@ sub gst_dhcpd_conf_get
 
   %dist_attrib = &gst_dhcpd_conf_get_parse_table ();
 
-  $hash = &gst_parse_from_table ($dist_attrib{"fn"},
+  $hash = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
                                  $dist_attrib{"table"});
   return $hash;
 }

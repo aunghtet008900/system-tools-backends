@@ -35,10 +35,6 @@
 #
 # /sbin/lilo
 
-use Utils::File;
-use Utils::XML;
-use Utils::Backend;
-
 BEGIN {
   $SCRIPTSDIR = "@scriptsdir@";
   if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -47,12 +43,14 @@ BEGIN {
       $DOTIN = ".in";
   }
   
-  require "$SCRIPTSDIR/parse.pl$DOTIN";
   require "$SCRIPTSDIR/boot.pl$DOTIN";
   require "$SCRIPTSDIR/boot-lilo.pl$DOTIN";
   require "$SCRIPTSDIR/boot-grub.pl$DOTIN";
 }
 
+use Utils::File;
+use Utils::XML;
+use Utils::Backend;
 
 # --- Tool information --- #
 

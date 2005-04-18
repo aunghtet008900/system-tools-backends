@@ -24,17 +24,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+package Utils::Replace;
+
 use Utils::Util;
 use Utils::File;
-
-$SCRIPTSDIR = "@scriptsdir@";
-if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
-{
-    $SCRIPTSDIR = ".";
-    $DOTIN = ".in";
-}
-
-require "$SCRIPTSDIR/parse.pl$DOTIN";
+use Utils::Parse;
 
 
 # General rules: all replacing is in-line. Respect unsupported values, comments
@@ -54,7 +48,7 @@ require "$SCRIPTSDIR/parse.pl$DOTIN";
 #
 # Most of these functions have a parsing counterpart. The convention is
 # that parse becomes replace and split becomes join:
-# gst_parse_split_first_str -> gst_replace_join_first_str
+# split_first_str -> join_first_str
 
 # Additional abstraction: replace table entries can have
 # arrays inside. The replace proc will be ran with every
@@ -84,7 +78,7 @@ sub run_entry
   
   # OK, the given entry didn't have any array refs in it...
   
-  return -1 if (!&gst_parse_replace_hash_values ($ncp, $values_hash));
+  return -1 if (!&Utils::Parse::replace_hash_values ($ncp, $values_hash));
   push (@$ncp, $$values_hash{$key}) unless $key eq "_always_";
   $res = -1 if &$proc (@$ncp);
   return $res;
@@ -115,7 +109,7 @@ sub set_from_table
     $key = shift (@cp);
 
     $proc = shift (@cp);
-    @files = &gst_parse_replace_files (shift (@cp), $fn);
+    @files = &Utils::Parse::replace_files (shift (@cp), $fn);
     unshift @cp, @files if (scalar @files) > 0;
 
     if ((exists $$values_hash{$key}) or ($key eq "_always_"))
@@ -257,7 +251,7 @@ sub set_sh
   my ($file, $key, $value) = @_;
   my $ret;
 
-  $value = &gst_parse_shell_escape ($value);
+  $value = &Utils::Parse::escape ($value);
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("replace_sh", $key, $file);
@@ -282,7 +276,7 @@ sub set_sh_export
   my ($file, $key, $value) = @_;
   my $ret;
 
-  $value = &gst_parse_shell_escape ($value);
+  $value = &Utils::Parse::escape ($value);
 
   # This will expunge the whole var if the value is empty.
 
@@ -351,7 +345,7 @@ sub set_hostname
   my ($file, $key, $value) = @_;
   my ($domain);
 
-  $domain = &gst_parse_sh_get_domain ($file, $key);
+  $domain = &Utils::Parse::get_sh_domain ($file, $key);
   return &set_sh ($file, $key, "$value.$domain");
 }
 
@@ -362,7 +356,7 @@ sub set_domain
   my ($file, $key, $value) = @_;
   my ($hostname);
 
-  $hostname = &gst_parse_sh_get_hostname ($file, $key);
+  $hostname = &Utils::Parse::get_sh_hostname ($file, $key);
   return &set_sh ($file, $key, "$hostname.$value");
 }
 
@@ -382,7 +376,7 @@ sub set_sh_re
   my ($file, $key, $re, $value) = @_;
   my ($val);
 
-  $val = &gst_parse_sh ($file, $key);
+  $val = &Utils::Parse::get_sh ($file, $key);
 
   if ($val =~ /$re/)
   {
@@ -438,7 +432,7 @@ sub set_join_hash
   my ($i, $res, $tmp, $val);
   my ($oldhash, %merge);
 
-  $oldhash = &gst_parse_split_hash ($file, $re1, $re2);
+  $oldhash = &Utils::Parse::split_hash ($file, $re1, $re2);
   foreach $i (keys (%$value), keys (%$oldhash))
   {
     $merge{$i} = 1;
@@ -706,7 +700,7 @@ sub interfaces_get_next_stanza
   while ($$line_no < (scalar @$buff))
   {
     $_ = $$buff[$$line_no];
-    $_ = &gst_parse_interfaces_line_clean ($_);
+    $_ = &Utils::Parse::interfaces_line_clean ($_);
 
     if (/^$stanza_type[ \t]+[^ \t]/)
     {
@@ -740,7 +734,7 @@ sub interfaces_get_next_option
   while ($$line_no < (scalar @$buff))
   {
     $_ = $$buff[$$line_no];
-    $_ = &gst_parse_interfaces_line_clean ($_);
+    $_ = &Utils::Parse::interfaces_line_clean ($_);
 
     if (!/^$/)
     {
@@ -982,7 +976,7 @@ sub pump_get_next_option
   while ($$line_no < (scalar @$buff))
   {
     $_ = $$buff[$$line_no];
-    $_ = &gst_parse_interfaces_line_clean ($_);
+    $_ = &Utils::Parse::interfaces_line_clean ($_);
     if ($_ ne "")
     {
       return [ split ("[ \t]+", $_, 2) ];
@@ -1087,7 +1081,7 @@ sub set_pump_iface_option_str
   {
     $value =~ s/^[ \t]+//;
     $value =~ s/[ \t]+$//;
-    $$buff[$line_no] .= &gst_parse_shell_escape ($value) . "\n";
+    $$buff[$line_no] .= &Utils::Parse::escape ($value) . "\n";
   }
 
   &Utils::File::clean_buffer ($buff);
@@ -1253,14 +1247,14 @@ sub set_pppconf_common
 
   $buff = &Utils::File::load_buffer ($pppconf);
 
-  $line_no = &gst_parse_pppconf_find_stanza ($buff, $section);
+  $line_no = &Utils::Parse::pppconf_find_stanza ($buff, $section);
 
   if ($line_no ne -1)
   {
     # The stanza exists
     $line_no++;
 
-    $end_line_no = &gst_parse_pppconf_find_next_stanza ($buff, $line_no);
+    $end_line_no = &Utils::Parse::pppconf_find_next_stanza ($buff, $line_no);
     $end_line_no = scalar @$buff + 1 if ($end_line_no == -1);
     $end_line_no--;
 
@@ -1310,3 +1304,5 @@ sub set_pppconf_bool
   &set_pppconf_common ($pppconf, $section, $key,
                        ($value == 1)? "enable $key" : "disable $key");
 }
+
+1;

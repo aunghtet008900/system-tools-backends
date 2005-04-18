@@ -606,10 +606,10 @@ sub gst_installed_daemons_parse_table
        ]},
     );
 
-  my $dist = $dist_map{$gst_dist};
+  my $dist = $dist_map{$$tool{"platform"}};
   return %{$dist_table{$dist}} if $dist;
 
-  &Utils::Report::do_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $$tool{"platform"});
   return undef;
 }
 
@@ -618,7 +618,7 @@ sub get_installed_daemons
   my ($hash, %dist_attrib);
 
   %dist_attrib = &gst_installed_daemons_parse_table ();
-  $hash = &gst_parse_from_table (undef, $dist_attrib{"table"});
+  $hash = &Utils::Parse::get_from_table (undef, $dist_attrib{"table"});
   return $hash;
 }
 
@@ -669,10 +669,10 @@ sub get_smb_config
 
   ($smb_conf, $exports) = &get_distro_files ();
 
-  $$config{"workgroup"}  = &gst_parse_ini ($smb_conf, "global", "workgroup");
-  $$config{"smbdesc"}    = &gst_parse_ini ($smb_conf, "global", "server string");
-  $$config{"winsserver"} = &gst_parse_ini ($smb_conf, "global", "wins server");
-  $$config{"winsuse"}    = &gst_parse_ini_bool ($smb_conf, "global", "wins support");
+  $$config{"workgroup"}  = &Utils::Parse::get_from_ini ($smb_conf, "global", "workgroup");
+  $$config{"smbdesc"}    = &Utils::Parse::get_from_ini ($smb_conf, "global", "server string");
+  $$config{"winsserver"} = &Utils::Parse::get_from_ini ($smb_conf, "global", "wins server");
+  $$config{"winsuse"}    = &Utils::Parse::get_from_ini_bool ($smb_conf, "global", "wins support");
 
   return $config;
 }

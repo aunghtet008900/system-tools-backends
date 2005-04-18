@@ -22,15 +22,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
 use Utils::File;
-
-$SCRIPTSDIR = "@scriptsdir@";
-if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
-{
-    $SCRIPTSDIR = ".";
-    $DOTIN = ".in";
-}
-
-require "$SCRIPTSDIR/parse.pl$DOTIN";
+use Utils::Parse;
 
 
 # --- Utilities --- #
@@ -626,7 +618,7 @@ sub gst_filesys_fstab_parse  # filename
 
   $table = &gst_filesys_table_new ();
 
-  while (($_ = &gst_parse_chomp_line_hash_comment ($fd)) != -1)
+  while (($_ = &Utils::Parse::chomp_line_hash_comment ($fd)) != -1)
   {
     # Each line is in the following format:
     # <device> <mount point> <filesystem> <options> <dump flag> <fsck priority>
@@ -728,7 +720,7 @@ sub gst_filesys_mtab_parse  # filename
 
   $table = &gst_filesys_table_new ();
 
-  while (($_ = &gst_parse_chomp_line_hash_comment ($fd)) != -1)
+  while (($_ = &Utils::Parse::chomp_line_hash_comment ($fd)) != -1)
   {
     # Columns are separated by one, and only one, space. The presence of one or
     # more blank values is indicated by a string of several spaces.

@@ -175,7 +175,7 @@ sub gst_ishare_conf_get
 
   %dist_attrib = &gst_ishare_conf_get_parse_table ();
 
-  $hash = &gst_parse_from_table ($dist_attrib{"fn"},
+  $hash = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
                                  $dist_attrib{"table"});
   return $hash;
 }
@@ -188,7 +188,7 @@ sub gst_ishare_fwrules_get
 
   %dist_attrib = &gst_ishare_fwrules_get_parse_table ();
 
-  $hash = &gst_parse_from_table ($dist_attrib{"fn"},
+  $hash = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
                                  $dist_attrib{"table"});
   return $hash;
 }
@@ -201,7 +201,7 @@ sub gst_ishare_dhcp_get
 
   %dist_attrib = &gst_ishare_dhcp_get_parse_table ();
 
-  $hash = &gst_parse_from_table ($dist_attrib{"fn"},
+  $hash = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
                                  $dist_attrib{"table"});
   return $hash;
 }
@@ -316,7 +316,7 @@ sub gst_ishare_fwrules_get_parse_table
               [ "configured",   \&gst_ishare_ipchains_configured, "%tools%", "%kerneltool%" ],
               [ "forwarding",   \&Utils::File::exists,                PROC_FORWARD  ],
               [ "masquerading", \&Utils::File::exists,                PROC_MASQ     ],
-              [ "active",       \&gst_parse_kw,                   PROC_FORWARD, "1" ]
+              [ "active",       \&Utils::Parse::get_kw,                   PROC_FORWARD, "1" ]
               ]
                 },
        );
@@ -355,7 +355,7 @@ sub gst_ishare_dhcp_get_parse_table
               [ "installed",   \&gst_service_sysv_installed,  DHCPD_SERVICE ],
               [ "configured",  \&Utils::File::exists,             DHCPD_CONF    ],
               [ "active",      \&gst_service_sysv_get_status, DHCPD_SERVICE ],
-              [ "dev",         \&gst_parse_split_first_array, LINUX_CONF, "DHCP.interface",
+              [ "dev",         \&Utils::Parse::split_first_array, LINUX_CONF, "DHCP.interface",
                                                               "[ \t]+", "[ \t]+" ],
               ]
                 },

@@ -58,7 +58,7 @@ sub gst_print_conf_get
       $ {$dist_attrib{"fn"}}{$j} = $value;
     }
 
-    $printer = &gst_parse_from_table ($dist_attrib{"fn"},
+    $printer = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
                                       $dist_attrib{"table"});
     $hash {$i} = $printer;
   }
@@ -169,21 +169,21 @@ sub gst_print_get_printer_parse_table
         [ "suppress_headers",   \&gst_parse_printcap_bool,  [PRINTCAP,  PRINTER],    "sh" ],
         [ "device",             \&gst_parse_printcap,       [PRINTCAP,  PRINTER],    "lp" ],
         [ "filter",             \&gst_parse_printcap,       [PRINTCAP,  PRINTER],    "if" ],
-        [ "papersize",          \&gst_parse_sh_export,      GENERAL,    PAPERSIZE         ],
-        [ "type",               \&gst_parse_sh_export,      GENERAL,    PRINTERTYPE       ],
-        [ "ascii_to_ps",        \&gst_parse_sh_export_bool, GENERAL,    ASCII_TO_PS       ],
-        [ "gsdevice",           \&gst_parse_sh,             POSTSCRIPT, GSDEVICE          ],
-        [ "resolution",         \&gst_parse_sh,             POSTSCRIPT, RESOLUTION        ],
-        [ "color",              \&gst_parse_sh,             POSTSCRIPT, COLOR             ],
-        [ "gs_papersize",       \&gst_parse_sh,             POSTSCRIPT, PAPERSIZE         ],
-        [ "gs_options",         \&gst_parse_sh,             POSTSCRIPT, EXTRA_GS_OPTIONS  ],
-        [ "ps_send_eof",        \&gst_parse_sh_bool,        POSTSCRIPT, PS_SEND_EOF       ],
-        [ "pages_per_sheet",    \&gst_parse_sh,             POSTSCRIPT, NUP               ],
-        [ "rt_margin",          \&gst_parse_sh,             POSTSCRIPT, RTLFTMAR          ],
-        [ "tb_margin",          \&gst_parse_sh,             POSTSCRIPT, TOPBOTMAR         ],
-        [ "text_options",       \&gst_parse_sh,             TEXTONLY,   TEXTONLYOPTIONS   ],
-        [ "trans_crlf",         \&gst_parse_sh_bool,        TEXTONLY,   CRLFTRANS         ],
-        [ "text_send_eof",      \&gst_parse_sh_bool,        TEXTONLY,   TEXT_SEND_EOF     ]
+        [ "papersize",          \&Utils::Parse::get_sh_export,      GENERAL,    PAPERSIZE         ],
+        [ "type",               \&Utils::Parse::get_sh_export,      GENERAL,    PRINTERTYPE       ],
+        [ "ascii_to_ps",        \&Utils::Parse::get_sh_export_bool, GENERAL,    ASCII_TO_PS       ],
+        [ "gsdevice",           \&Utils::Parse::get_sh,             POSTSCRIPT, GSDEVICE          ],
+        [ "resolution",         \&Utils::Parse::get_sh,             POSTSCRIPT, RESOLUTION        ],
+        [ "color",              \&Utils::Parse::get_sh,             POSTSCRIPT, COLOR             ],
+        [ "gs_papersize",       \&Utils::Parse::get_sh,             POSTSCRIPT, PAPERSIZE         ],
+        [ "gs_options",         \&Utils::Parse::get_sh,             POSTSCRIPT, EXTRA_GS_OPTIONS  ],
+        [ "ps_send_eof",        \&Utils::Parse::get_sh_bool,        POSTSCRIPT, PS_SEND_EOF       ],
+        [ "pages_per_sheet",    \&Utils::Parse::get_sh,             POSTSCRIPT, NUP               ],
+        [ "rt_margin",          \&Utils::Parse::get_sh,             POSTSCRIPT, RTLFTMAR          ],
+        [ "tb_margin",          \&Utils::Parse::get_sh,             POSTSCRIPT, TOPBOTMAR         ],
+        [ "text_options",       \&Utils::Parse::get_sh,             TEXTONLY,   TEXTONLYOPTIONS   ],
+        [ "trans_crlf",         \&Utils::Parse::get_sh_bool,        TEXTONLY,   CRLFTRANS         ],
+        [ "text_send_eof",      \&Utils::Parse::get_sh_bool,        TEXTONLY,   TEXT_SEND_EOF     ]
       ]
     },
     "redhat-7.1" =>
@@ -200,8 +200,8 @@ sub gst_print_get_printer_parse_table
 #        [ "jobsize_max_k",      \&gst_parse_printcap,       [PRINTCAP,  PRINTER],    "mx" ],
 #        [ "suppress_headers",   \&gst_parse_printcap_bool,  [PRINTCAP,  PRINTER],    "sh" ],
         [ "device",             \&gst_parse_alchemist_print, [PRINTCONF,  PRINTER], "queue_data/local_printer_device" ],
-#        [ "papersize",          \&gst_parse_sh_export,      GENERAL,    PAPERSIZE         ],
-#        [ "ascii_to_ps",        \&gst_parse_sh_export_bool, GENERAL,    ASCII_TO_PS       ],
+#        [ "papersize",          \&Utils::Parse::get_sh_export,      GENERAL,    PAPERSIZE         ],
+#        [ "ascii_to_ps",        \&Utils::Parse::get_sh_export_bool, GENERAL,    ASCII_TO_PS       ],
         [ "filter_type",        \&gst_parse_alchemist_print, [PRINTCONF, PRINTER], "filter_type" ],
         [ "type",               \&gst_parse_alchemist_print, [PRINTCONF, PRINTER], "queue_type" ],
         [ "printer_id",         \&gst_parse_alchemist_print, [PRINTCONF, PRINTER], "filter_data/printer_id" ],
@@ -218,16 +218,16 @@ sub gst_print_get_printer_parse_table
          [ "jetdirect_ip",     \&gst_parse_alchemist_print, [PRINTCONF, PRINTER], "queue_data/jetdirect_ip" ],
          [ "jetdirect_port",     \&gst_parse_alchemist_print, [PRINTCONF, PRINTER], "queue_data/jetdirect_port" ],
          [ "resolution",         \&gst_parse_alchemist_print_option, [PRINTCONF, PRINTER], "Resolution" ],
-#        [ "color",              \&gst_parse_sh,             POSTSCRIPT, COLOR             ],
-#        [ "gs_papersize",       \&gst_parse_sh,             POSTSCRIPT, PAPERSIZE         ],
-#        [ "gs_options",         \&gst_parse_sh,             POSTSCRIPT, EXTRA_GS_OPTIONS  ],
-#        [ "ps_send_eof",        \&gst_parse_sh_bool,        POSTSCRIPT, PS_SEND_EOF       ],
-#        [ "pages_per_sheet",    \&gst_parse_sh,             POSTSCRIPT, NUP               ],
-#        [ "rt_margin",          \&gst_parse_sh,             POSTSCRIPT, RTLFTMAR          ],
-#        [ "tb_margin",          \&gst_parse_sh,             POSTSCRIPT, TOPBOTMAR         ],
-#        [ "text_options",       \&gst_parse_sh,             TEXTONLY,   TEXTONLYOPTIONS   ],
-#        [ "trans_crlf",         \&gst_parse_sh_bool,        TEXTONLY,   CRLFTRANS         ],
-#        [ "text_send_eof",      \&gst_parse_sh_bool,        TEXTONLY,   TEXT_SEND_EOF     ]
+#        [ "color",              \&Utils::Parse::get_sh,             POSTSCRIPT, COLOR             ],
+#        [ "gs_papersize",       \&Utils::Parse::get_sh,             POSTSCRIPT, PAPERSIZE         ],
+#        [ "gs_options",         \&Utils::Parse::get_sh,             POSTSCRIPT, EXTRA_GS_OPTIONS  ],
+#        [ "ps_send_eof",        \&Utils::Parse::get_sh_bool,        POSTSCRIPT, PS_SEND_EOF       ],
+#        [ "pages_per_sheet",    \&Utils::Parse::get_sh,             POSTSCRIPT, NUP               ],
+#        [ "rt_margin",          \&Utils::Parse::get_sh,             POSTSCRIPT, RTLFTMAR          ],
+#        [ "tb_margin",          \&Utils::Parse::get_sh,             POSTSCRIPT, TOPBOTMAR         ],
+#        [ "text_options",       \&Utils::Parse::get_sh,             TEXTONLY,   TEXTONLYOPTIONS   ],
+#        [ "trans_crlf",         \&Utils::Parse::get_sh_bool,        TEXTONLY,   CRLFTRANS         ],
+#        [ "text_send_eof",      \&Utils::Parse::get_sh_bool,        TEXTONLY,   TEXT_SEND_EOF     ]
       ]
     }
   );

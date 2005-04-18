@@ -62,7 +62,7 @@ sub print_begin
 {
   my ($name) = @_;
 
-  $name = $gst_name if !$name;
+  $name = "response" if !$name;
 
   &print_string ("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n");
   &print_string ("<!DOCTYPE $name []>\n\n");
@@ -85,7 +85,7 @@ sub print_end
 {
   my ($name) = @_;
 
-  $name = $gst_name if !$name;
+  $name = "response" if !$name;
   
   &leave ();
 

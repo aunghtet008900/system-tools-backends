@@ -23,6 +23,8 @@
 
 use Utils::File;
 use Utils::Replace;
+use Utils::Parse;
+
 
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
@@ -31,7 +33,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/network.pl$DOTIN";
 
 
@@ -362,25 +363,25 @@ sub gst_share_parse_smb_conf
 
   # Get the sections.
 
-  @sections = &gst_parse_ini_sections ($smb_conf_name);
+  @sections = &Utils::Parse::get_ini_sections ($smb_conf_name);
 
   for $section (@sections)
   {
     next if ($section =~ /^(global)|(homes)|(printers)|(print\$)$/);
-    next if (&gst_parse_ini_bool ($smb_conf_name, $section, "printable"));
+    next if (&Utils::Parse::get_from_ini_bool ($smb_conf_name, $section, "printable"));
 
     my $sesi = &gst_share_smb_info_new ();
     my $point, $comment, $enabled, $browseable, $public, $writable, $printable;
 
-    $point      = &gst_parse_ini      ($smb_conf_name, $section, "path");
-    $comment    = &gst_parse_ini      ($smb_conf_name, $section, "comment");
-    $enabled    = &gst_parse_ini_bool ($smb_conf_name, $section, "available");
-    $browseable = &gst_parse_ini_bool ($smb_conf_name, $section, "browsable")   ||
-                  &gst_parse_ini_bool ($smb_conf_name, $section, "browseable");
-    $public     = &gst_parse_ini_bool ($smb_conf_name, $section, "public")      ||
-                  &gst_parse_ini_bool ($smb_conf_name, $section, "guest");
-    $writable   = &gst_parse_ini_bool ($smb_conf_name, $section, "writable")    ||
-                  &gst_parse_ini_bool ($smb_conf_name, $section, "writeable");
+    $point      = &Utils::Parse::get_from_ini      ($smb_conf_name, $section, "path");
+    $comment    = &Utils::Parse::get_from_ini      ($smb_conf_name, $section, "comment");
+    $enabled    = &Utils::Parse::get_from_ini_bool ($smb_conf_name, $section, "available");
+    $browseable = &Utils::Parse::get_from_ini_bool ($smb_conf_name, $section, "browsable")   ||
+                  &Utils::Parse::get_from_ini_bool ($smb_conf_name, $section, "browseable");
+    $public     = &Utils::Parse::get_from_ini_bool ($smb_conf_name, $section, "public")      ||
+                  &Utils::Parse::get_from_ini_bool ($smb_conf_name, $section, "guest");
+    $writable   = &Utils::Parse::get_from_ini_bool ($smb_conf_name, $section, "writable")    ||
+                  &Utils::Parse::get_from_ini_bool ($smb_conf_name, $section, "writeable");
 
     &gst_share_smb_info_set_name    ($sesi, $section);
     &gst_share_smb_info_set_point   ($sesi, $point);
@@ -404,7 +405,7 @@ sub gst_share_parse_nfs_exports
 
   $table = &gst_share_nfs_table_new ();
 
-  $entries = &gst_parse_split_hash_with_continuation ($nfs_exports_name, "[ \t]+", "[ \t]+");
+  $entries = &Utils::Parse::split_hash_with_continuation ($nfs_exports_name, "[ \t]+", "[ \t]+");
 
   foreach $point (keys %$entries)
   {
@@ -455,12 +456,12 @@ sub gst_share_replace_smb_conf
 
   # Get the sections.
 
-  @sections = &gst_parse_ini_sections ($file);
+  @sections = &Utils::Parse::get_ini_sections ($file);
 
   for $section (@sections)
   {
     next if ($section =~ /^(global)|(homes)|(printers)|(print\$)$/);
-    next if (&gst_parse_ini_bool ($file, $section, "printable"));
+    next if (&Utils::Parse::get_from_ini_bool ($file, $section, "printable"));
 
     if (!&gst_share_smb_table_find ($table, $section))
     {

@@ -45,11 +45,11 @@ sub gst_media_get_ide_device_from_proc
 
   %device->{"device"}   = $_[1];
   %device->{"type"}     = "ide";
-  %device->{"media"}    = &gst_parse_line_first ("$path/media");
-  %device->{"model"}    = &gst_parse_line_first ("$path/model");
-  %device->{"cache"}    = &gst_parse_line_first ("$path/cache");
-  %device->{"capacity"} = &gst_parse_line_first ("$path/capacity");
-  %device->{"driver"}   = (split ' ', &gst_parse_line_first ("$path/driver")) [0];
+  %device->{"media"}    = &Utils::Parse::get_first_line ("$path/media");
+  %device->{"model"}    = &Utils::Parse::get_first_line ("$path/model");
+  %device->{"cache"}    = &Utils::Parse::get_first_line ("$path/cache");
+  %device->{"capacity"} = &Utils::Parse::get_first_line ("$path/capacity");
+  %device->{"driver"}   = (split ' ', &Utils::Parse::get_first_line ("$path/driver")) [0];
 
   # TODO: We need a detailed list of media types that can occur, and what
   # special handling they need. Currently recognized are: disk, cdrom.
@@ -69,10 +69,10 @@ sub gst_media_get_ide_device_from_proc
   {
     %device->{"is_removable"} = 1;
 
-    %device->{"point_listed"} = &gst_parse_split_first_str ("/etc/fstab", "/dev/$_[1]", "[ \t]+");
-    %device->{"point_actual"} = &gst_parse_split_first_str ("/etc/mtab", "/dev/$_[1]", "[ \t]+");
-    %device->{"fs_listed"}    = (&gst_parse_split_all ("/etc/fstab", "/dev/$_[1]", "[ \t]+")) -> [1];
-    %device->{"fs_actual"}    = (&gst_parse_split_all ("/etc/mtab", "/dev/$_[1]", "[ \t]+")) -> [1];
+    %device->{"point_listed"} = &Utils::Parse::split_first_str ("/etc/fstab", "/dev/$_[1]", "[ \t]+");
+    %device->{"point_actual"} = &Utils::Parse::split_first_str ("/etc/mtab", "/dev/$_[1]", "[ \t]+");
+    %device->{"fs_listed"}    = (&Utils::Parse::get_split_all ("/etc/fstab", "/dev/$_[1]", "[ \t]+")) -> [1];
+    %device->{"fs_actual"}    = (&Utils::Parse::get_split_all ("/etc/mtab", "/dev/$_[1]", "[ \t]+")) -> [1];
 
     if (%device->{"point_actual"})
     {

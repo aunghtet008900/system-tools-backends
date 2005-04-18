@@ -24,19 +24,11 @@
 
 package Utils::Platform;
 
-# --- System guessing --- #
-
 use Utils::XML;
+use Utils::Parse;
 
-$SCRIPTSDIR = "@scriptsdir@";
-if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
-{
-    $SCRIPTSDIR = ".";
-    $DOTIN = ".in";
-}
 
-require "$SCRIPTSDIR/parse.pl$DOTIN";
-
+# --- System guessing --- #
 
 $PLATFORM_INFO = {
   "debian-2.2"      => "Debian GNU/Linux 2.2 Potato",
@@ -103,8 +95,8 @@ sub check_lsb
       ("Blackpanther" => "blackpanther");
 
   # gst_prefix not required here: parse already does that for us.
-  $dist = lc (&gst_parse_sh ("/etc/lsb-release", "DISTRIB_ID"));
-  $ver = lc (&gst_parse_sh ("/etc/lsb-release", "DISTRIB_RELEASE"));
+  $dist = lc (&Utils::Parse::get_sh ("/etc/lsb-release", "DISTRIB_ID"));
+  $ver = lc (&Utils::Parse::get_sh ("/etc/lsb-release", "DISTRIB_RELEASE"));
   
 #  $ver = $vermap{$ver} if exists $vermap{$ver};
   $dist = $distmap{$dist} if exists $dirmap{$dir};

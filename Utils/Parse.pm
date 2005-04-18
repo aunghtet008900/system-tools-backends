@@ -22,6 +22,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+package Utils::Parse;
+
 use Utils::Util;
 use Utils::File;
 
@@ -40,7 +42,7 @@ use Utils::File;
 # Expand substrings of the form #$substr# to the $value in
 # the string or recursively in the array $strarr.
 
-sub gst_parse_expand
+sub expand
 {
   my ($strarr, $substr, $value) = @_;
 
@@ -51,7 +53,7 @@ sub gst_parse_expand
     $strarr = [ @$strarr ];
     foreach $i (@$strarr)
     {
-      $i = &gst_parse_expand ($i, $substr, $value);
+      $i = &expand ($i, $substr, $value);
     }
 
     return $strarr;
@@ -61,7 +63,7 @@ sub gst_parse_expand
   return $strarr;
 }
 
-sub gst_parse_replace_hash_values
+sub replace_hash_values
 {
   my ($cp, $hash) = @_;
   my ($j, $replace_key, $value);
@@ -93,7 +95,7 @@ sub gst_parse_replace_hash_values
   return 1;
 }
 
-sub gst_parse_replace_files
+sub replace_files
 {
   my ($values, $fn_hash) = @_;
   my @ret;
@@ -119,11 +121,11 @@ sub gst_parse_replace_files
 # Additional abstraction: parse table entries can have
 # arrays inside. The parsing proc will be ran with every
 # combination that the arrays provide. Ex:
-# ["user", \&gst_parse_foo, [0, 1], [2, 3] ] will parse
+# ["user", \&get_foo, [0, 1], [2, 3] ] will parse
 # using the combinatory of [0, 1]x[2, 3] until a result
 # ne undef is given. Check RedHat 7.2's network parse table
 # for further enlightenment.
-sub gst_parse_run_entry
+sub run_entry
 {
   my ($hash, $key, $proc, $cp) = @_;
   my ($ncp, $i, $j, $res);
@@ -136,7 +138,7 @@ sub gst_parse_run_entry
       foreach $j (@{$$cp[$i]})
       {
         $$ncp[$i] = $j;
-        $res = &gst_parse_run_entry ($hash, $key, $proc, $ncp);
+        $res = &run_entry ($hash, $key, $proc, $ncp);
         return $res if $res ne undef;
       }
       return undef;
@@ -145,7 +147,7 @@ sub gst_parse_run_entry
 
   # OK, the given entry didn't have any array refs in it...
   
-  return undef if (!&gst_parse_replace_hash_values ($cp, $hash));
+  return undef if (!&replace_hash_values ($cp, $hash));
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("parse_table", "$key");
@@ -157,7 +159,7 @@ sub gst_parse_run_entry
 
 # OK, this is the good stuff:
 
-# gst_parse_from_table takes a file mapping and a parse table.
+# get_from_table takes a file mapping and a parse table.
 #
 # The functions in the replace tables, most of which are coded in
 # this file, receive the mapped files of the first argument, and then
@@ -170,7 +172,7 @@ sub gst_parse_run_entry
 # can return undef if they failed to get the requested value.
 #
 # A ref to the hash with all the fetched values is returned.
-sub gst_parse_from_table
+sub get_from_table
 {
   my ($fn, $table) = @_;
   my %hash;
@@ -185,12 +187,12 @@ sub gst_parse_from_table
     if ($hash{$key} eq undef)
     {
       $proc = shift (@cp);
-      @files = &gst_parse_replace_files (shift (@cp), $fn);
+      @files = &replace_files (shift (@cp), $fn);
 
       # Don't unshift the resulting files if none were given.
       unshift @cp, @files if (scalar @files) > 0;
 
-      &gst_parse_run_entry (\%hash, $key, $proc, \@cp);
+      &run_entry (\%hash, $key, $proc, \@cp);
     }
   }
 
@@ -205,7 +207,7 @@ sub gst_parse_from_table
 # Just return the passed values. If there's just
 # one value, the value. If more, a reference to an
 # array with the values.
-sub gst_parse_trivial
+sub get_trivial
 {
   my (@res) = @_;
 
@@ -220,7 +222,7 @@ sub gst_parse_trivial
 # Try to read a line from $fd and remove any leading or
 # trailing white spaces. Return ref to read $line or
 # -1 if eof.
-sub gst_parse_chomp_line_std
+sub chomp_line_std
 {
   my ($fd) = @_;
   my $line;
@@ -237,7 +239,7 @@ sub gst_parse_chomp_line_std
 
 # Assuming $line is a line read from a shell file,
 # remove comments.
-sub gst_parse_process_sh_line
+sub process_sh_line
 {
   my ($line) = @_;
   my ($pline);
@@ -265,28 +267,28 @@ sub gst_parse_process_sh_line
   return $pline;
 }
 
-# Same as gst_parse_chomp_line_std, but apply
+# Same as chomp_line_std, but apply
 # the sh line processing before returning.
 # -1 if eof, ref to read $line if success.
-sub gst_parse_chomp_line_hash_comment
+sub chomp_line_hash_comment
 {
   my ($fd) = @_;
   my $line;
 
-  $line = &gst_parse_chomp_line_std ($fd);
+  $line = &chomp_line_std ($fd);
   return -1 if $line == -1;
 
-  $line = &gst_parse_process_sh_line ($$line);
+  $line = &process_sh_line ($$line);
   return \$line;
 }
 
 # Get an sh line, and remove the export keyword, if any.
-sub gst_parse_chomp_line_sh_export
+sub chomp_line_sh_export
 {
   my ($fd) = @_;
   my $line;
 
-  $line = &gst_parse_chomp_line_hash_comment ($fd);
+  $line = &chomp_line_hash_comment ($fd);
   return -1 if $line == -1;
 
   $line = $$line;
@@ -299,7 +301,7 @@ sub gst_parse_chomp_line_sh_export
 # Parse a $file, wich is assumed to have a column-based format, with $re matching field separators
 # and one record per line. Search for $key, and return either a scalar with the first ocurrence,
 # or an array with all the found ocurrences.
-sub gst_parse_split_ref
+sub split_ref
 {
   my ($file, $key, $re, $all, $line_read_proc) = @_;
   my ($fd, @line, @res);
@@ -307,7 +309,7 @@ sub gst_parse_split_ref
   &Utils::Report::enter ();
   &Utils::Report::do_report ("parse_split", $key, $file);
 
-  $proc = $line_read_proc? $line_read_proc : \&gst_parse_chomp_line_std;
+  $proc = $line_read_proc? $line_read_proc : \&chomp_line_std;
   
   $fd = &Utils::File::open_read_from_names ($file);
   $all = 0 if !$fd;
@@ -339,46 +341,46 @@ sub gst_parse_split_ref
   return -1;
 }
 
-sub gst_parse_split
+sub split
 {
   my $res;
 
   # Don't pass @_ like this anywhere. This is bad practice.
-  $res = &gst_parse_split_ref (@_);
+  $res = &split_ref (@_);
 
   return $$res if ref $res eq "SCALAR";
   return @$res if ref $res eq "ARRAY";
   return undef;
 }
 
-# This gives meaning to the $all flag of gst_parse_split, and returns a reference to the array, which
+# This gives meaning to the $all flag of &split, and returns a reference to the array, which
 # is what we want. (ie search a.com\nsearch b.com\nsearch c.com)
-sub gst_parse_split_all
+sub split_all
 {
   my ($file, $key, $re, $line_read_proc) = @_;
   my @a;
 
-  @a = &gst_parse_split ($file, $key, $re, 1, $line_read_proc);
+  @a = &split ($file, $key, $re, 1, $line_read_proc);
 
   return \@a;
 }
 
 # Same, but use the hash_comment routine for line analysis.
-sub gst_parse_split_all_hash_comment
+sub split_all_hash_comment
 {
   my ($file, $key, $re) = @_;
 
-  return &gst_parse_split_all ($file, $key, $re, \&gst_parse_chomp_line_hash_comment);
+  return &split_all ($file, $key, $re, \&chomp_line_hash_comment);
 }
 
 # Make the elements of the resulting array unique.
-sub gst_parse_split_all_unique_hash_comment
+sub split_all_unique_hash_comment
 {
   my ($file, $key, $re) = @_;
   my ($arr, @res);
   my (%hash, $i);
 
-  $arr = &gst_parse_split_all ($file, $key, $re, \&gst_parse_chomp_line_hash_comment);
+  $arr = &split_all ($file, $key, $re, \&chomp_line_hash_comment);
 
   foreach $i (@$arr)
   {
@@ -390,12 +392,12 @@ sub gst_parse_split_all_unique_hash_comment
   return \@res;
 }
 
-sub gst_parse_split_all_array_with_pos
+sub split_all_array_with_pos
 {
   my ($file, $key, $pos, $re, $sep, $line_read_proc) = @_;
   my ($arr, @s, @ret, $i);
 
-  $arr = &gst_parse_split_all ($file, $key, $re, $line_read_proc);
+  $arr = &split_all ($file, $key, $re, $line_read_proc);
 
   foreach $i (@$arr)
   {
@@ -407,55 +409,55 @@ sub gst_parse_split_all_array_with_pos
 }
 
 # Same, but for $all = 0. (ie nameserver 10.0.0.1)
-sub gst_parse_split_first_str
+sub split_first_str
 {
   my ($file, $key, $re, $line_read_proc) = @_;
 
-  return &gst_parse_split ($file, $key, $re, 0, $line_read_proc);
+  return &split ($file, $key, $re, 0, $line_read_proc);
 }
 
 # Interpret the result as a boolean. (ie multi on)
-sub gst_parse_split_first_bool
+sub split_first_bool
 {
   my ($file, $key, $re, $line_read_proc) = @_;
   my $ret;
 
-  $ret = &gst_parse_split_first_str ($file, $key, $re, $line_read_proc);
+  $ret = &split_first_str ($file, $key, $re, $line_read_proc);
 
   return undef if ($ret eq undef);
   return (&Utils::Util::read_boolean ($ret)? 1: 0);
 }
 
 # After getting the first field, split the result with $sep matching separators. (ie order hosts,bind)
-sub gst_parse_split_first_array
+sub split_first_array
 {
   my ($file, $key, $re, $sep, $line_read_proc) = @_;
   my @ret;
 
-  @ret = split ($sep, &gst_parse_split ($file, $key, $re, 0, $line_read_proc));
+  @ret = split ($sep, &split ($file, $key, $re, 0, $line_read_proc));
 
   return \@ret;
 }
 
-sub gst_parse_split_first_array_pos
+sub split_first_array_pos
 {
   my ($file, $key, $pos, $re, $sep, $line_read_proc) = @_;
   my (@ret);
 
-  @ret = split ($sep, &gst_parse_split ($file, $key, $re, 0, $line_read_proc));
+  @ret = split ($sep, &split ($file, $key, $re, 0, $line_read_proc));
   return $ret[$pos];
 }
 
-# Do an gst_parse_split_first_array and then make
+# Do an split_first_array and then make
 # the array elements unique. This is to fix broken
 # searchdomain entries in /etc/resolv.conf, for example.
-sub gst_parse_split_first_array_unique
+sub split_first_array_unique
 {
   my ($file, $key, $re, $sep, $line_read_proc) = @_;
   my (@arr, @res);
   my (%hash, $i);
   
-  @arr = split ($sep, &gst_parse_split ($file, $key, $re, 0, $line_read_proc));
+  @arr = split ($sep, &split ($file, $key, $re, 0, $line_read_proc));
 
   foreach $i (@arr)
   {
@@ -473,7 +475,7 @@ sub gst_parse_split_first_array_unique
 # you don't know what keys you are going to parse
 # (i.e. /etc/hosts). Any other application will not
 # be very portable and should be avoided.
-sub gst_parse_split_hash
+sub split_hash
 {
   my ($file, $key_re, $value_re) = @_;
   my ($fd, @line, %res, $key);
@@ -503,7 +505,7 @@ sub gst_parse_split_hash
 }
 
 # Same as above, but join lines that end with '\'.
-sub gst_parse_split_hash_with_continuation
+sub split_hash_with_continuation
 {
   my ($file, $key_re, $value_re) = @_;
   my ($fd, $l, @line, %res, $key);
@@ -513,7 +515,7 @@ sub gst_parse_split_hash_with_continuation
   
   $fd = &Utils::File::open_read_from_names ($file);
   
-  while (($l = &gst_parse_ini_line_read ($fd)) != -1)
+  while (($l = &ini_line_read ($fd)) != -1)
   {
     $_ = $$l;
     chomp;
@@ -534,7 +536,7 @@ sub gst_parse_split_hash_with_continuation
 }
 
 # Remove escape sequences in a shell value.
-sub gst_parse_shell_unescape
+sub unescape
 {
   my $ret = $_[0];
 
@@ -551,7 +553,7 @@ sub gst_parse_shell_unescape
 }
 
 # unescape (escape (x)) == x
-sub gst_parse_shell_escape
+sub escape
 {
   my ($value) = @_;
   
@@ -562,39 +564,39 @@ sub gst_parse_shell_escape
 }
 
 # For files which are a list of /bin/sh shell variable declarations. (ie GATEWAY=10.10.10.1)
-sub gst_parse_sh
+sub get_sh
 {
   my ($file, $key) = @_;
   my $ret;
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("parse_sh", $key, $file);
-  $ret = &gst_parse_split_first_str ($file, $key, "[ \t]*=[ \t]*",
-                                     \&gst_parse_chomp_line_hash_comment);
+  $ret = &split_first_str ($file, $key, "[ \t]*=[ \t]*",
+                                     \&chomp_line_hash_comment);
   &Utils::Report::leave ();
 
-  return &gst_parse_shell_unescape ($ret);
+  return &unescape ($ret);
 }
 
 # Same, but interpret the returning value as a bool. (ie NETWORKING=yes)
-sub gst_parse_sh_bool
+sub get_sh_bool
 {
   my ($file, $key) = @_;
   my $ret;
 
-  $ret = &gst_parse_sh ($file, $key);
+  $ret = &get_sh ($file, $key);
 
   return undef if ($ret eq undef);
   return (&Utils::Util::read_boolean ($ret)? 1: 0);
 }
 
 # Get an sh value and then split with $re, returning ref to resulting array.
-sub gst_parse_sh_split
+sub get_sh_split
 {
   my ($file, $key, $re) = @_;
   my (@ret, $val);
 
-  $val = &gst_parse_sh ($file, $key);
+  $val = &get_sh ($file, $key);
   @ret = split ($re, $val);
 
   return \@ret;
@@ -602,62 +604,62 @@ sub gst_parse_sh_split
 
 # Get a fully qualified hostname from a $key shell var in $file
 # and extract the hostname from there. e.g.: suse70's /etc/rc.config's FQHOSTNAME.
-sub gst_parse_sh_get_hostname
+sub get_sh_hostname
 {
   my ($file, $key) = @_;
   my ($val);
 
-  $val = &gst_parse_sh_split ($file, $key, "\\.");
+  $val = &get_sh_split ($file, $key, "\\.");
 
   return $$val[0];
 }
 
 # Get a fully qualified hostname from a $key shell var in $file
 # and extract the domain from there. e.g.: suse70's /etc/rc.config's FQHOSTNAME.
-sub gst_parse_sh_get_domain
+sub get_sh_domain
 {
   my ($file, $key) = @_;
   my ($val);
 
-  $val = &gst_parse_sh_split ($file, $key, "\\.");
+  $val = &get_sh_split ($file, $key, "\\.");
 
   return join ".", @$val[1..$#$val];
 }
 
 # For files which are a list of /bin/sh shell variable exports. (eg export GATEWAY=10.10.10.1)
-sub gst_parse_sh_export
+sub get_sh_export
 {
   my ($file, $key) = @_;
   my $ret;
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("parse_sh", $key, $file);
-  $ret = &gst_parse_split_first_str ($file, $key, "[ \t]*=[ \t]*",
-                                     \&gst_parse_chomp_line_sh_export);
+  $ret = &split_first_str ($file, $key, "[ \t]*=[ \t]*",
+                                     \&chomp_line_sh_export);
   &Utils::Report::leave ();
 
-  return &gst_parse_shell_unescape ($ret);
+  return &unescape ($ret);
 }
 
 # Same, but interpret the returing value as a bool. (ie export NETWORKING=yes)
-sub gst_parse_sh_export_bool
+sub get_sh_export_bool
 {
   my ($file, $key) = @_;
   my $ret;
 
-  $ret = &gst_parse_sh_export ($file, $key);
+  $ret = &get_sh_export ($file, $key);
 
   return undef if ($ret eq undef);
   return (&Utils::Util::read_boolean ($ret)? 1: 0);
 }
 
 # Same, but accepting a regexp and returning the value between the paren operator
-sub gst_parse_sh_re
+sub get_sh_re
 {
   my ($file, $key, $re) = @_;
   my $ret;
 
-  $ret = &gst_parse_sh ($file, $key);
+  $ret = &get_sh ($file, $key);
 
   $ret =~ /$re/i;
   return $1;
@@ -666,7 +668,7 @@ sub gst_parse_sh_re
 
 # Search for $keyword in $file, delimited by $re (default " ") or EOL.
 # If keyword exists, return 1, else 0.
-sub gst_parse_kw
+sub get_kw
 {
   my ($file, $keyword, $re, $line_read_proc) = @_;
   my $res;
@@ -684,7 +686,7 @@ sub gst_parse_kw
   }
   
   $re = " " if $re eq undef;
-  $res = &gst_parse_split_ref ($file, $keyword, $re, 0, $line_read_proc);
+  $res = &split_ref ($file, $keyword, $re, 0, $line_read_proc);
 
   &Utils::Report::leave ();
   return 0 if $res == -1;
@@ -692,7 +694,7 @@ sub gst_parse_kw
 }
 
 # A file containing the desired value in its first line. (ie /etc/hostname)
-sub gst_parse_line_first
+sub get_first_line
 {
   my ($file) = @_;
   my ($fd, $res);
@@ -711,7 +713,7 @@ sub gst_parse_line_first
 
 # parse a chat file, searching for an entry that matches $re.
 # $re must have one paren operator (ie "^atd[^0-9]*([0-9, -]+)").
-sub gst_parse_chat
+sub get_from_chatfile
 {
   my ($file, $re) = @_;
   my ($fd, $found);
@@ -756,7 +758,7 @@ sub gst_parse_chat
 
 # Clean an ini line of comments and leading or
 # trailing spaces.
-sub gst_parse_ini_line_clean
+sub ini_line_clean
 {
   $_ = $_[0];
   
@@ -771,7 +773,7 @@ sub gst_parse_ini_line_clean
 
 # Read an ini line, which may have to be joined
 # with the next one if it ends with '\'.
-sub gst_parse_ini_line_read
+sub ini_line_read
 {
   my $fd = $_[0];
   my $l;
@@ -779,25 +781,25 @@ sub gst_parse_ini_line_read
   $l = <$fd>;
   return -1 if ($l eq undef);
   
-  $l = &gst_parse_ini_line_clean ($l);
+  $l = &ini_line_clean ($l);
   while ($l =~ /\\$/)
   {
     $l =~ s/\\$//;
-    $l .= &gst_parse_ini_line_clean (scalar <$fd>);
+    $l .= &ini_line_clean (scalar <$fd>);
   }
 
   return \$l;
 }
 
 # Return an array of all found sections in $file.
-sub gst_parse_ini_sections
+sub get_ini_sections
 {
   my ($file) = @_;
   my (@sections, $line);
 
   $fd = &Utils::File::open_read_from_names ($file);
   
-  while (($line = &gst_parse_ini_line_read ($fd)) != -1)
+  while (($line = &ini_line_read ($fd)) != -1)
   {
     $_ = $$line;
     next if (/^$/);
@@ -810,7 +812,7 @@ sub gst_parse_ini_sections
 }
 
 # Get the value of a $var in a $section from $file.
-sub gst_parse_ini
+sub get_from_ini
 {
   my ($file, $section, $var) = @_;
   my ($fd, $res, $line);
@@ -822,7 +824,7 @@ sub gst_parse_ini
   &Utils::Report::leave ();
   $res = undef;
   
-  while (($line = &gst_parse_ini_line_read ($fd)) != -1)
+  while (($line = &ini_line_read ($fd)) != -1)
   {
     $_ = $$line;
     next if (/^$/);
@@ -854,324 +856,20 @@ sub gst_parse_ini
 }
 
 # Same, but treat value as bool and return 1/0.
-sub gst_parse_ini_bool
+sub get_from_ini_bool
 {
   my ($file, $section, $var) = @_;
   my $ret;
   
-  $ret = &gst_parse_ini ($file, $section, $var);
+  $ret = &get_from_ini ($file, $section, $var);
   
   return undef if ($ret eq undef);
   return (&Utils::Util::read_boolean ($ret)? 1: 0);
 }
 
-sub gst_parse_cap_line_clean
-{
-  $_ = $_[0];
-
-  chomp;
-  s/^[ \t]*\#.*//;
-  s/;.*//;
-  s/^[ \t]+//;
-  s/[ \t]+$//;
-
-  return $_; 
-}
-
-sub gst_parse_cap_line_read
-{
-  my $fd = $_[0];
-  my $l;
-
-  $l = <$fd>;
-  return -1 if ($l eq undef);
-  
-  $l = &gst_parse_cap_line_clean ($l);
-  while ($l =~ /\\$/)
-  {
-    $l =~ s/\\$//;
-    $l .= &gst_parse_cap_line_clean (scalar <$fd>);
-  }
-
-  return \$l;
-}
-
-sub gst_parse_cap_sections
-{
-  my ($file) = @_;
-  my (@sections, $line);
-
-  $fd = &Utils::File::open_read_from_names ($file);
-  
-  while (($line = &gst_parse_cap_line_read ($fd)) != -1)
-  {
-    $_ = $$line;
-    next if (/^$/);
-    push @sections, $1 if (/^([^:|]+)/i);
-  }
-
-  &Utils::File::close_file ($fd);
-  return @sections;
-}
-
-sub gst_parse_cap
-{
-  my ($file, $section, $var) = @_;
-  my ($fd, $res, $line);
-  my $found_section_flag = 0;
-
-  $fd = &Utils::File::open_read_from_names ($file);
-  $res = undef;
-  
-  while (($line = &gst_parse_ini_line_read ($fd)) != -1)
-  {
-    $_ = $$line;
-    next if (/^$/);
-    if (/^$section[:|]/i)
-    {
-      $found_section_flag = 1;
-    }
-
-    if ($found_section_flag && /:$var\#/i)
-    {
-      $_ =~ /:$var\#([^:]*)/;
-      $res = $1;
-      last;
-    }
-#    if ($found_section_flag && /:$var[#=]/i)
-#    {
-#      $_ =~ /:$var[#=]([^:]*)/;
-#      $res = $1;
-#      last;
-#    }
-  }
-
-  &Utils::File::close_file ($fd);
-  return $res;
-}
-
-sub gst_parse_cap_bool
-{
-  my ($file, $section, $var) = @_;
-  my ($fd, $res, $line);
-  my $found_section_flag = 0;
-
-  $fd = &Utils::File::open_read_from_names ($file);
-  $res = 0;
-  
-  while (($line = &gst_parse_ini_line_read ($fd)) != -1)
-  {
-    $_ = $$line;
-    next if (/^$/);
-    if (/^$section[:|]/i)
-    {
-      $found_section_flag = 1;
-    }
-
-    if ($found_section_flag && /:$var[:\#=]/i)
-    {
-      $res = 1;
-      last;
-    }
-  }
-
-  &Utils::File::close_file ($fd);
-  return $res;
-}
-
-# Load a printcap file to buffer, join \ lines and split them back up into a
-# 'one option, printtool comment or section name per line' format.
-sub gst_parse_printcap_buffer_load
-{
-  my ($file) = @_;
-  my ($inbuf, @outbuf);
-
-  $inbuf = &Utils::File::load_buffer ($file);
-  &Utils::File::join_buffer_lines ($inbuf);
-
-  for $i (@$inbuf)
-  {
-    my ($comment) = ("");
-
-    chomp $i;
-    $comment = $1 if $i =~ s/^([ \t]*[\#].*)//;
-
-    if ($i ne "")
-    {
-      my @line = split /:/, $i;
-
-      if ($i =~ /^[a-z0-9]+/i)
-      {
-        push @outbuf, ($line [0] . ":\n");
-        shift @line;
-      }
-
-      for $elem (@line)
-      {
-        $elem =~ s/^[ \t]//;
-        $elem =~ s/[ \t]$//;
-        if ($elem ne "")
-        {
-          push @outbuf, ("\t:$elem:\n");
-        }
-      }
-    }
-    elsif ($comment ne "")
-    {
-      push @outbuf, ($comment . "\n");
-    }
-    else
-    {
-      push @outbuf, "\n";
-    }
-  }
-
-  return \@outbuf;
-}
-
-# Find next printer definition, returning (printtool-comment-lineno, stanza-name-lineno).
-sub gst_parse_printcap_get_next_stanza
-{
-  my ($buf, $line_no) = @_;
-  my ($last_printtool_line) = (-1);
-
-  while ($line_no <= $#$buf)
-  {
-    if ($$buf [$line_no] =~ /^\#\#PRINTTOOL3\#\#/)
-    {
-      $last_printtool_line = $line_no;
-    }
-    elsif ($$buf [$line_no] =~ /^[a-z0-9]+/i)
-    {
-      return ($last_printtool_line, $line_no);
-    }
-
-    $line_no++;
-  }
-
-  return (-1, -1);
-}
-
-# Find next printer option.
-sub gst_parse_printcap_get_next_option
-{
-  my ($buf, $line_no) = @_;
-
-  while ($line_no <= $#$buf)
-  {
-    if ($$buf [$line_no] =~ /^\#\#PRINTTOOL3\#\#/ ||
-        $$buf [$line_no] =~ /^[a-z0-9]+/i)
-    {
-      last;
-    }
-
-    if ($$buf [$line_no] =~ /^\t:/)
-    {
-      return $line_no;
-    }
-
-    $line_no++;
-  }
-
-  return -1;
-}
-
-sub gst_parse_printcap_parse_stanza
-{
-  my ($stanza) = @_;
-  my ($key);
-
-  $key = $1 if $stanza =~ /^([a-z0-9]+)/i;
-  return $key;
-}
-
-sub gst_parse_printcap_parse_option
-{
-  my ($option) = @_;
-  my ($key, $value);
-
-  $key   = $1 if $option =~ /^\t:([a-z0-9]+)/i;
-  $value = $1 if $option =~ /^\t:[a-z0-9]+[\#=]([a-z0-9\/_-]*)/i;
-  return ($key, $value);
-}
-
-# Locate stanza line for $printer in $buf, starting at $line_no.
-sub gst_parse_printcap_find_stanza
-{
-  my ($buf, $line_no, $printer) = @_;
-  my ($printtool_line_no, $found_printer);
-
-  while ((($printtool_line_no, $line_no) = &gst_parse_printcap_get_next_stanza ($buf, $line_no)))
-  {
-    if ($line_no == -1) { last; }
-
-    $found_printer = &gst_parse_printcap_parse_stanza ($$buf [$line_no]);
-    return ($printtool_line_no, $line_no) if ($found_printer eq $printer);
-    $line_no++;
-  }
-
-  return (-1, -1);
-}
-
-# Search buffer for option with key $key, starting
-# at $line_no position. Return line number, or -1 if not found.
-sub gst_parse_printcap_find_option
-{
-  my ($buf, $line_no, $key) = @_;
-  my $found_key;
-
-  while (($line_no = &gst_parse_printcap_get_next_option ($buf, $line_no)) != -1)
-  {
-    ($found_key) = &gst_parse_printcap_parse_option ($$buf [$line_no]);
-    return $line_no if ($found_key eq $key);
-    $line_no++;
-  }
-
-  return -1;
-}
-
-# High-level API.
-sub gst_parse_printcap
-{
-  my ($file, $section, $var) = @_;
-  my ($printtool_line_no, $stanza_line_no, $option_line_no);
-  my ($buf);
-  my ($key, $value);
-
-  $buf = &gst_parse_printcap_buffer_load ($file);
-
-  ($printtool_line_no, $stanza_line_no) = &gst_parse_printcap_find_stanza ($buf, 0, $section);
-  return undef if ($stanza_line_no == -1);
-
-  $option_line_no = &gst_parse_printcap_find_option ($buf, $stanza_line_no + 1, $var);
-  return undef if ($option_line_no == -1);
-
-  ($key, $value) = &gst_parse_printcap_parse_option ($$buf [$option_line_no]);
-  return $value;
-}
-
-# High-level API.
-sub gst_parse_printcap_bool
-{
-  my ($file, $section, $var) = @_;
-  my ($printtool_line_no, $stanza_line_no, $option_line_no);
-  my ($buf);
-  my ($key, $value);
-
-  $buf = &gst_parse_printcap_buffer_load ($file);
-
-  ($printtool_line_no, $stanza_line_no) = &gst_parse_printcap_find_stanza ($buf, 0, $section);
-  return 0 if ($stanza_line_no == -1);
-
-  $option_line_no = &gst_parse_printcap_find_option ($buf, $stanza_line_no + 1, $var);
-  return 0 if ($option_line_no == -1);
-
-  return 1;
-}
-
 # Debian interfaces(5) states that files starting with # are comments.
 # Also, leading and trailing spaces are ignored.
-sub gst_parse_interfaces_line_clean
+sub interfaces_line_clean
 {
   $_ = $_[0];
   
@@ -1184,7 +882,7 @@ sub gst_parse_interfaces_line_clean
 }
 
 # interfaces(5) also states that \ line continuation is possible.
-sub gst_parse_interfaces_line_read
+sub interfaces_line_read
 {
   my $fd = $_[0];
   my $l;
@@ -1192,11 +890,11 @@ sub gst_parse_interfaces_line_read
   $l = <$fd>;
   return -1 if ($l eq undef);
   
-  $l = &gst_parse_interfaces_line_clean ($l);
+  $l = &interfaces_line_clean ($l);
   while ($l =~ /\\$/)
   {
     $l =~ s/\\$//;
-    $l .= &gst_parse_interfaces_line_clean (scalar <$fd>);
+    $l .= &interfaces_line_clean (scalar <$fd>);
   }
 
   return \$l;
@@ -1204,12 +902,12 @@ sub gst_parse_interfaces_line_read
 
 # Read lines until a stanza, a line starting with $stanza_type is found.
 # Return ref to an array with the stanza params split.
-sub gst_parse_interfaces_get_next_stanza
+sub interfaces_get_next_stanza
 {
   my ($fd, $stanza_type) = @_;
   my $line;
 
-  while (($line = &gst_parse_interfaces_line_read ($fd)) != -1)
+  while (($line = &interfaces_line_read ($fd)) != -1)
   {
     $_ = $$line;
     if (/^$stanza_type[ \t]+[^ \t]/)
@@ -1224,12 +922,12 @@ sub gst_parse_interfaces_get_next_stanza
 
 # Read lines until a line not recognized as a stanza is
 # found, and split in a "tuple" of key/value.
-sub gst_parse_interfaces_get_next_option
+sub interfaces_get_next_option
 {
   my $fd = $_[0];
   my $line;
 
-  while (($line = &gst_parse_interfaces_line_read ($fd)) != -1)
+  while (($line = &interfaces_line_read ($fd)) != -1)
   {
     $_ = $$line;
     next if /^$/;
@@ -1242,7 +940,7 @@ sub gst_parse_interfaces_get_next_option
 }
 
 # Get all stanzas from file. Return array.
-sub gst_parse_interfaces_stanzas
+sub get_interfaces_stanzas
 {
   my ($file, $stanza_type) = @_;
   my ($fd, @res);
@@ -1250,7 +948,7 @@ sub gst_parse_interfaces_stanzas
   $fd = &Utils::File::open_read_from_names ($file);
   $res = undef;
   
-  while (($_ = &gst_parse_interfaces_get_next_stanza ($fd, $stanza_type)) != -1)
+  while (($_ = &interfaces_get_next_stanza ($fd, $stanza_type)) != -1)
   {
     push @res, $_;
   }
@@ -1262,18 +960,18 @@ sub gst_parse_interfaces_stanzas
 
 # Find stanza for $iface in $file, and return
 # tuple for option with $key. Return -1 if unexisting.
-sub gst_parse_interfaces_option_tuple
+sub get_interfaces_option_tuple
 {
   my ($file, $iface, $key, $all) = @_;
   my ($fd, @res);
 
   $fd = &Utils::File::open_read_from_names ($file);
 
-  while (($stanza = &gst_parse_interfaces_get_next_stanza ($fd, "iface")) != -1)
+  while (($stanza = &interfaces_get_next_stanza ($fd, "iface")) != -1)
   {
     if ($$stanza[0] eq $iface)
     {
-      while (($tuple = &gst_parse_interfaces_get_next_option ($fd)) != -1)
+      while (($tuple = &interfaces_get_next_option ($fd)) != -1)
       {
         if ($$tuple[0] =~ /$key/)
         {
@@ -1292,14 +990,14 @@ sub gst_parse_interfaces_option_tuple
 
 # Go get option $kw for $iface stanza. If found,
 # return 1 (true), else, false.
-sub gst_parse_interfaces_option_kw
+sub get_interfaces_option_kw
 {
   my ($file, $iface, $kw) = @_;
   my $tuple;
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("parse_ifaces_kw", $kw, $file);
-  $tuple = &gst_parse_interfaces_option_tuple ($file, $iface, $kw);
+  $tuple = &get_interfaces_option_tuple ($file, $iface, $kw);
   &Utils::Report::leave ();
 
   if ($tuple != -1)
@@ -1314,22 +1012,22 @@ sub gst_parse_interfaces_option_kw
 
 # For such keywords as noauto, whose existence means
 # a false value.
-sub gst_parse_interfaces_option_kw_not
+sub get_interfaces_option_kw_not
 {
   my ($file, $iface, $kw) = @_;
   
-  return &gst_parse_interfaces_option_kw ($file, $iface, $kw)? 0 : 1;
+  return &get_interfaces_option_kw ($file, $iface, $kw)? 0 : 1;
 }
 
 # Go get option $key for $iface in $file and return value.
-sub gst_parse_interfaces_option_str
+sub get_interfaces_option_str
 {
   my ($file, $iface, $key) = @_;
   my $tuple;
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("parse_ifaces_str", $kw, $file);
-  $tuple = &gst_parse_interfaces_option_tuple ($file, $iface, $key);
+  $tuple = &get_interfaces_option_tuple ($file, $iface, $key);
   &Utils::Report::leave ();
 
   if ($tuple != -1)
@@ -1343,12 +1041,12 @@ sub gst_parse_interfaces_option_str
 
 # Implementing pump(8) pump.conf file format parser.
 # May be useful for dhcpd too.
-sub gst_parse_pump_get_next_option
+sub pump_get_next_option
 {
   my ($fd) = @_;
   my $line;
 
-  while (($line = &gst_parse_interfaces_line_read ($fd)) != -1)
+  while (($line = &interfaces_line_read ($fd)) != -1)
   {
     $line = $$line;
     if ($line ne "")
@@ -1360,12 +1058,12 @@ sub gst_parse_pump_get_next_option
   return -1;
 }
 
-sub gst_parse_pump_get_device
+sub pump_get_device
 {
   my ($fd, $iface) = @_;
   my ($opt);
   
-  while (($opt = &gst_parse_pump_get_next_option ($fd)) != -1)
+  while (($opt = &pump_get_next_option ($fd)) != -1)
   {
     if ($$opt[0] eq "device")
     {
@@ -1377,20 +1075,20 @@ sub gst_parse_pump_get_device
   return 0;
 }
 
-sub gst_parse_pump_get_iface_option_ref
+sub get_pump_iface_option_ref
 {
   my ($file, $iface, $key) = @_;
   my ($fd, $opt, $ret);
 
   $fd = &Utils::File::open_read_from_names ($file);
 
-  if (&gst_parse_pump_get_device ($fd, $iface))
+  if (&pump_get_device ($fd, $iface))
   {
-    while (($opt = &gst_parse_pump_get_next_option ($fd)) != -1)
+    while (($opt = &pump_get_next_option ($fd)) != -1)
     {
       if ($$opt[0] eq $key)
       {
-        $ret = &gst_parse_shell_unescape ($$opt[1]);
+        $ret = &unescape ($$opt[1]);
         return \$ret;
       }
       
@@ -1401,130 +1099,31 @@ sub gst_parse_pump_get_iface_option_ref
   return -1;
 }
 
-sub gst_parse_pump_get_iface_kw
+sub get_pump_iface_kw
 {
   my ($file, $iface, $key) = @_;
   my ($ret);
 
-  return 1 if &gst_parse_pump_get_iface_option_ref ($file, $iface, $key) != -1;
+  return 1 if &get_pump_iface_option_ref ($file, $iface, $key) != -1;
   return 0;
 }
 
-sub gst_parse_pump_get_iface_kw_not
+sub get_pump_iface_kw_not
 {
   my ($file, $iface, $key) = @_;
 
-  return 0 if &gst_parse_pump_get_iface_option_ref ($file, $iface, $key) != -1;
+  return 0 if &get_pump_iface_option_ref ($file, $iface, $key) != -1;
   return 1;
-}
-
-# Read a variable out of an XML document. The varpath is the '/'-separated path to the
-# XML tag. If the name of a property is passed, that property of the leaf tag is read,
-# otherwise the tag's PCDATA.
-sub gst_parse_xml
-{
-  my ($file, $varpath, $property) = @_;
-  my ($model, $branch);
-
-  ($model) = &gst_xml_model_scan ($file);
-  $branch  = &gst_xml_model_find ($model, $varpath);
-
-  if ($branch)
-  {
-    return &gst_xml_model_get_attribute ($branch, $property) if $property ne "";
-    return &gst_xml_model_get_pcdata ($branch);
-  }
-
-  return undef;
-}
-
-sub gst_parse_xml_child_names
-{
-  my ($file, $varpath) = @_;
-  my ($model, $branch, @children);
-
-  ($model) = &gst_xml_model_scan ($file);
-  $branch  = &gst_xml_model_find ($model, $varpath);
-
-  if (!$branch) { return @children; }
-
-  my @list = @$branch;
-  shift @list;  # Attributes
-
-  while (@list)
-  {
-    if ($list [0] ne "__unparsed__" && $list [0] ne "0")
-    {
-      push @children, shift @list;
-    }
-    else
-    {
-      shift @list;
-    }
-
-    shift @list;
-  }
-
-  return @children;
-}
-
-sub gst_parse_alchemist
-{
-  my ($file, $varpath) = @_;
-
-  $varpath = "/adm_context/datatree/" . $varpath;
-  return &gst_parse_xml ($file, $varpath, "VALUE");
-}
-
-sub gst_parse_alchemist_print
-{
-  my ($file, $printer, $varpath) = @_;
-
-  $varpath = "printconf/print_queues/" . $printer . "/" . $varpath;
-  return &gst_parse_alchemist ($file, $varpath);
-}
-
-sub gst_parse_alchemist_print_option
-{
-  my ($file, $printer, $name) = @_;
-  my ($varpath, $model, $branch, $fd, $options, $option);
-
-  ($model) = &gst_xml_model_scan ($file);
-  $branch  = &gst_xml_model_find ($model, "/adm_context/datatree/printconf/print_queues/" . $printer .
-                                  "/filter_data/foomatic_defaults");
-
-  return undef if (!$branch);
-
-  $options = &gst_xml_model_get_children ($branch);
-
-  foreach $o (@$options)
-  {
-    my $opt_node = &gst_xml_model_find ($o, "name");
-    next if (!$opt_node);
-
-    if (&gst_xml_model_get_attribute ($opt_node, "VALUE") eq $name)
-    {
-      $option = $o;
-      last;
-    }
-  }
-
-  return undef if (!$option);
-
-  my $node = &gst_xml_model_find ($option, "default");
-  return undef if (!$node);
-
-  return &gst_xml_model_get_attribute ($node, "VALUE");
 }
 
 # extracts hostname from a fully qualified hostname
 # contained in a file
-sub gst_parse_fq_hostname
+sub get_fq_hostname
 {
   my ($file) = @_;
   my ($ret);
 
-  $ret = &gst_parse_line_first ($file);
+  $ret = &get_first_line ($file);
   $ret =~ s/\..*//; #remove domain
 
   return $ret;
@@ -1532,18 +1131,18 @@ sub gst_parse_fq_hostname
 
 # extracts domain from a fully qualified hostname
 # contained in a file
-sub gst_parse_fq_domain
+sub get_fq_domain
 {
   my ($file) = @_;
   my ($ret);
 
-  $ret = &gst_parse_line_first ($file);
+  $ret = &get_first_line ($file);
   $ret =~ s/^[^\.]*\.//;
 
   return $ret;
 }
 
-sub gst_parse_rcinet1conf
+sub get_rcinet1conf
 {
   my ($file, $iface, $kw) = @_;
   my ($line);
@@ -1553,21 +1152,21 @@ sub gst_parse_rcinet1conf
   #we must double escape those []
   $line = "$kw\\[$iface\\]";
 
-  return &gst_parse_sh ($file, $line);
+  return &get_sh ($file, $line);
 }
 
-sub gst_parse_rcinet1conf_bool
+sub get_rcinet1conf_bool
 {
   my ($file, $iface, $kw) = @_;
   my ($ret);
 
-  $ret = &gst_parse_rcinet1conf ($file, $iface, $kw);
+  $ret = &get_rcinet1conf ($file, $iface, $kw);
   
   return undef if ($ret eq undef);
   return (&Utils::Util::read_boolean ($ret)? 1: 0);
 }
 
-sub gst_parse_wireless_opts
+sub get_wireless_opts
 {
   my ($file, $iface, $proc, $kw) = @_;
   my $ifaces = &$proc ();
@@ -1616,7 +1215,7 @@ sub gst_parse_wireless_opts
 }
 
 # function for parsing /etc/start_if.$iface files in FreeBSD
-sub gst_parse_startif
+sub get_startif
 {
   my ($file, $regex) = @_;
   my ($fd, $line, $val);
@@ -1649,7 +1248,7 @@ sub gst_parse_startif
 }
 
 # functions for parsing /etc/ppp/ppp.conf sections in FreeBSD
-sub gst_parse_pppconf_find_next_stanza
+sub pppconf_find_next_stanza
 {
   my ($buff, $line_no) = @_;
 
@@ -1668,12 +1267,12 @@ sub gst_parse_pppconf_find_next_stanza
   return -1;
 }
 
-sub gst_parse_pppconf_find_stanza
+sub pppconf_find_stanza
 {
   my ($buff, $section) = @_;
   my ($line_no) = 0;
   
-  while (($line_no = &gst_parse_pppconf_find_next_stanza ($buff, $line_no)) != -1)
+  while (($line_no = &pppconf_find_next_stanza ($buff, $line_no)) != -1)
   {
     return $line_no if ($$buff[$line_no] =~ /^$section\:/);
     $line_no++;
@@ -1682,7 +1281,7 @@ sub gst_parse_pppconf_find_stanza
   return -1;
 }
 
-sub gst_parse_pppconf_common
+sub get_pppconf_common
 {
   my ($file, $section, $key) = @_;
   my ($fd, $val);
@@ -1731,7 +1330,7 @@ sub gst_parse_pppconf_common
   if ($val eq undef)
   {
     return undef if ($section eq "default");
-    return &gst_parse_pppconf_common ($file, "default", $key);
+    return &get_pppconf_common ($file, "default", $key);
   }
   else
   {
@@ -1742,12 +1341,12 @@ sub gst_parse_pppconf_common
   }
 }
 
-sub gst_parse_pppconf
+sub get_pppconf
 {
   my ($file, $section, $key) = @_;
   my ($val);
 
-  $val = &gst_parse_pppconf_common ($file, $section, $key);
+  $val = &get_pppconf_common ($file, $section, $key);
 
   if ($val =~ /$key[ \t]+(.+)/)
   {
@@ -1755,23 +1354,23 @@ sub gst_parse_pppconf
   }
 }
 
-sub gst_parse_pppconf_bool
+sub get_pppconf_bool
 {
   my ($file, $section, $key) = @_;
   my ($val);
 
-  $val = &gst_parse_pppconf_common ($file, $section, $key);
+  $val = &get_pppconf_common ($file, $section, $key);
 
   return 1 if ($val ne undef);
   return 0;
 }
 
-sub gst_parse_pppconf_re
+sub get_pppconf_re
 {
   my ($file, $section, $key, $re) = @_;
   my ($val);
 
-  $val = &gst_parse_pppconf_common ($file, $section, $key);
+  $val = &get_pppconf_common ($file, $section, $key);
 
   if ($val =~ /$re/i)
   {

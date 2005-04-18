@@ -21,8 +21,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-use Utils::File;
-
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 {
@@ -30,8 +28,10 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/partition.pl$DOTIN";
+
+use Utils::File;
+use Utils::Parse;
 
 my @yaboot_global_vars = qw (default prompt delay timeout append boot root);
 my @yaboot_image_vars = qw (label image append initrd root);
@@ -79,7 +79,7 @@ sub gst_boot_yaboot_parse_entries
     
     next if $line =~ /^\#/;
 
-    $line = &gst_parse_process_sh_line ($line);
+    $line = &Utils::Parse::process_sh_line ($line);
     next if $line eq "";
     
     my @line = split ("[ \t]*=[ \t]*", $line, 2);    

@@ -218,7 +218,7 @@ sub get_login_defs_prop_array
      "CREATE_HOME",    "create_home",
      "", "");
   
-  if ($gst_dist =~ /^suse/)
+  if ($$tool{"platform"} =~ /^suse/)
   {
     @prop_array = @login_defs_prop_array_suse;
   }
@@ -287,7 +287,7 @@ sub get_profiles_prop_array
      "CREATE_HOME" ,   "create_home",
      "", "");
 
-  if ($gst_dist =~ /suse/)
+  if ($$tool{"platform"} =~ /suse/)
   {
     @prop_array = @profiles_prop_array_suse;
   }
@@ -488,7 +488,7 @@ sub logindefs_add_defaults
   };
 
   # Distro specific
-  my $dist_specific = $logindefs_dist_map->{$gst_dist};
+  my $dist_specific = $logindefs_dist_map->{$$tool{"platform"}};
 
   # Just to be 100% sure SOMETHING gets filled:
   unless ($dist_specific)
@@ -838,7 +838,7 @@ sub del_user
 	my ($data) = @_;
   my ($command);
 	
-  if ($gst_dist =~ /^freebsd/) {
+  if ($$tool{"platform"} =~ /^freebsd/) {
     $command = "$cmd_pw userdel -n \'" . $$data[$users_prop_map{"login"}] . "\' ";
   } else {
     $command = "$cmd_userdel \'" . $$data[$users_prop_map{"login"}] . "\'";
@@ -860,7 +860,7 @@ sub change_user_chfn
   # Compare old and new data
   return if (!&arr_cmp_recurse (\@line, \@old_line));
 
-  if ($gst_dist =~ /^freebsd/)
+  if ($$tool{"platform"} =~ /^freebsd/)
   {
     $command = "$cmd_pw usermod -n " . $username . " -c \'" . $comment . "\'";
   }
@@ -871,7 +871,7 @@ sub change_user_chfn
     $fname = "-f \'" . $fname . "\'";
     $home_phone = "-h \'" . $home_phone . "\'";
 
-    if ($gst_dist =~ /^debian/  || $gst_dist =~ /^archlinux/)
+    if ($$tool{"platform"} =~ /^debian/  || $$tool{"platform"} =~ /^archlinux/)
     {
       $office = "-r \'" . $office . "\'";
       $office_phone = "-w \'" . $office_phone . "\'";
@@ -896,7 +896,7 @@ sub add_user
   $log = $$data[$users_prop_map{"login"}];
   $tool_mkdir = &Utils::File::locate_tool ("mkdir");
 
-  if ($gst_dist =~ /^freebsd/)
+  if ($$tool{"platform"} =~ /^freebsd/)
   {
     my $pwdpipe;
     my $home;
@@ -939,7 +939,7 @@ sub change_user
 {
   my ($old_data, $new_data) = @_;
 	
-  if ($gst_dist =~ /^freebsd/)
+  if ($$tool{"platform"} =~ /^freebsd/)
   {
     my $pwdpipe;
 
@@ -976,7 +976,7 @@ sub del_group
 {
   my ($data) = @_;
 
-  if ($gst_dist =~ /^freebsd/)
+  if ($$tool{"platform"} =~ /^freebsd/)
   {
     $command = "$cmd_pw groupdel -n \'" . $$data[$groups_prop_map{"name"}] . "\'";
   }
@@ -994,7 +994,7 @@ sub add_group
 
   $u = [ @{$$data[$groups_prop_map{"users"}]} ]; sort @$u;
 	
-  if ($gst_dist =~ /^freebsd/)
+  if ($$tool{"platform"} =~ /^freebsd/)
   {
     $users = join (",", @$u);
       
@@ -1023,7 +1023,7 @@ sub change_group
 	my ($old_data, $new_data) = @_;
 	my ($n, $o, $users, $i, $j, $max_n, $max_o, $r, @tmp); # for iterations
 
-  if ($gst_dist =~ /^freebsd/)
+  if ($$tool{"platform"} =~ /^freebsd/)
   {
     $n = [ @{$$new_data[$groups_prop_map{"users"}]} ]; sort @$n;
     $users = join (",", @$n);

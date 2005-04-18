@@ -48,7 +48,7 @@ sub gst_service_sysv_get_paths
 {
   my %dist_map =
       (
-       # gst_dist => [rc.X dirs location, init.d scripts location, relative path location]
+       # dist => [rc.X dirs location, init.d scripts location, relative path location]
        "redhat-5.2"   => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
        "redhat-6.0"   => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
        "redhat-6.1"   => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
@@ -99,8 +99,8 @@ sub gst_service_sysv_get_paths
        );
   my $res;
 
-  $res = $dist_map{$gst_dist};
-  &Utils::Report::do_report ("service_sysv_unsupported", $gst_dist) if ($res eq undef);
+  $res = $dist_map{$$tool{"platform"}};
+  &Utils::Report::do_report ("service_sysv_unsupported", $$tool{"platform"}) if ($res eq undef);
   return @$res;
 }
 
@@ -160,8 +160,8 @@ sub gst_service_sysv_get_runlevels
        );
   my $res;
 
-  $res = $dist_map{$gst_dist};
-  &Utils::Report::do_report ("service_sysv_unsupported", $gst_dist) if ($res eq undef);
+  $res = $dist_map{$$tool{"platform"}};
+  &Utils::Report::do_report ("service_sysv_unsupported", $$tool{"platform"}) if ($res eq undef);
   return @$res;
 }
 
@@ -246,7 +246,7 @@ sub gst_service_get_verbose_runlevels
      "slackware-9.1.0" => {"4" => _("Graphical mode") }
     );
 
-  $distro = $dist_map{$gst_dist};
+  $distro = $dist_map{$$tool{"platform"}};
   $desc = $runlevels{$distro};
 
   return $runlevels{$distro};
@@ -1091,23 +1091,25 @@ sub gst_service_suse_get_services
 # generic functions to get the available services
 sub gst_get_init_type
 {
-  if (($gst_dist =~ /debian/) && (stat ("$gst_prefix/etc/runlevel.conf")))
+  my $dist = $$tool{"platform"};
+    
+  if (($dist =~ /debian/) && (stat ("$gst_prefix/etc/runlevel.conf")))
   {
     return "file-rc";
   }
-  elsif ($gst_dist =~ /slackware/)
+  elsif ($dist =~ /slackware/)
   {
     return "bsd";
   }
-  elsif ($gst_dist =~ /freebsd/)
+  elsif ($dist =~ /freebsd/)
   {
     return "rcng";
   }
-  elsif ($gst_dist =~ /gentoo/)
+  elsif ($dist =~ /gentoo/)
   {
     return "gentoo";
   }
-  elsif ($gst_dist =~ /suse/)
+  elsif ($dist =~ /suse/)
   {
     return "suse";
   }
@@ -1389,7 +1391,7 @@ sub gst_service_rcng_set_status
         # to avoid cluttering rc.conf with duplicated data,
         # we first look in the defaults/rc.conf for the key
         $key = $1;
-        $res = &gst_parse_sh_bool ($default_rcconf, $key);
+        $res = &Utils::Parse::get_sh_bool ($default_rcconf, $key);
 
         if ($res == $action)
         {
@@ -1605,7 +1607,7 @@ sub gst_service_get_status
       );
   my $proc;
 
-  $proc = $dist_map {$gst_dist};
+  $proc = $dist_map {$$tool{"platform"}};
 
   return undef if ($proc eq undef);
 

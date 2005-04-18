@@ -92,7 +92,7 @@ sub do_report_stderr
 {
   my ($major, $key, $res) = @_;
   
-  print STDERR "$gst_name - $major::${key}::$res";
+  print STDERR "$major::${key}::$res";
 }
 
 sub do_report

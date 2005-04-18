@@ -22,10 +22,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-use Utils::Util;
-use Utils::File;
-use Utils::Replace;
-
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 {
@@ -33,10 +29,14 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/boot-grub.pl$DOTIN";
 require "$SCRIPTSDIR/boot-lilo.pl$DOTIN";
 require "$SCRIPTSDIR/boot-yaboot.pl$DOTIN";
+
+use Utils::Util;
+use Utils::File;
+use Utils::Replace;
+use Utils::Parse;
 
 # ----------------------------------------------------------------------------
 # Fix functions.
@@ -208,7 +208,7 @@ sub gst_boot_bootloader_get
   
   if ($current_date eq 0)
   {
-    &Utils::Report::do_report ("platform_no_bootloader", $main::gst_dist);
+    &Utils::Report::do_report ("platform_no_bootloader");
     return undef;
   }
   return $current_tool;
@@ -236,11 +236,11 @@ sub gst_boot_entries_get
   {
     foreach $j (keys (%fn))
     {
-      $tmp = &gst_parse_expand ($fn{$j}, "key", $key);
-      $ {$dist_attrib{"fn"}}{$j} = &gst_parse_expand ($tmp, "label", $entry);
+      $tmp = &Utils::Parse::expand ($fn{$j}, "key", $key);
+      $ {$dist_attrib{"fn"}}{$j} = &Utils::Parse::expand ($tmp, "label", $entry);
     }
 
-    $entry = &gst_parse_from_table ($dist_attrib{"fn"},
+    $entry = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
                                     $dist_attrib{"table"});
 
     if (exists ($$entry {"image"}))
@@ -278,7 +278,7 @@ sub gst_boot_conf_get
          table =>
              [
               [ "partitions", \&gst_partition_scan_info ],
-#              [ "pixmapsup", \&gst_parse_trivial,             0 ],
+#              [ "pixmapsup", \&Utils::Parse::get_trivial,             0 ],
               [ "timeout",   \&gst_boot_lilo_parse_global,    LILO_CONF, "delay" ],
               [ "prompt",    \&gst_boot_lilo_parse_global_kw, LILO_CONF, "prompt"  ],
               [ "default",   \&gst_boot_lilo_parse_global,    LILO_CONF, "default" ],
@@ -299,7 +299,7 @@ sub gst_boot_conf_get
          table =>
              [
               [ "partitions", \&gst_partition_scan_info ],
-#              [ "pixmapsup", \&gst_parse_trivial,           1 ],
+#              [ "pixmapsup", \&Utils::Parse::get_trivial,           1 ],
 #              [ "pixmap",    \&gst_boot_grub_parse_pixmap,  [GRUB_CONF, DEVICE_MAP, MTAB] ],
               [ "timeout",   \&gst_boot_grub_parse_timeout, GRUB_CONF ],
               [ "prompt",    \&gst_boot_grub_parse_prompt,  GRUB_CONF ],
@@ -326,7 +326,7 @@ sub gst_boot_conf_get
        }
   );
        
-  return &gst_parse_from_table ($ {$tool_tables{$bootl}}{"fn"},
+  return &Utils::Parse::get_from_table ($ {$tool_tables{$bootl}}{"fn"},
                                 $ {$tool_tables{$bootl}}{"table"});
 }
 
@@ -346,8 +346,8 @@ sub gst_boot_get_entry_parse_table
          },
          table =>
              [
-              ["key",    \&gst_parse_trivial,          [KEY]],
-              ["label",  \&gst_parse_trivial,          [LABEL]],
+              ["key",    \&Utils::Parse::get_trivial,          [KEY]],
+              ["label",  \&Utils::Parse::get_trivial,          [LABEL]],
               ["root",   \&gst_boot_grub_parse_root,   [GRUB_CONF, DEVICE_MAP, KEY]],
               ["type",   \&gst_boot_grub_parse_type,   [GRUB_CONF, KEY, PARTITION], "%root%"],
               ["image",  \&gst_boot_grub_parse_image,  [GRUB_CONF, DEVICE_MAP, MTAB, KEY]],
@@ -361,7 +361,7 @@ sub gst_boot_get_entry_parse_table
 
   return %tool_tables;
 
-  &Utils::Report::do_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table");
   return undef;
 }
 
@@ -373,7 +373,7 @@ sub gst_boot_entry_set
   %fn = %{$$dist_attrib{"fn"}};
   foreach $j (keys (%fn))
   {
-    $fn{$j} = &gst_parse_expand ($ {$$dist_attrib{"fn"}}{$j}, "key", $$values_hash{"key"});
+    $fn{$j} = &Utils::Parse::expand ($ {$$dist_attrib{"fn"}}{$j}, "key", $$values_hash{"key"});
   }
   
   return &Utils::Replace::set_from_table (\%fn, $$dist_attrib{"table"}, $values_hash);

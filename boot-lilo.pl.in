@@ -21,9 +21,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-use Utils::Util;
-use Utils::File;
-
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 {
@@ -31,8 +28,11 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/partition.pl$DOTIN";
+
+use Utils::Util;
+use Utils::File;
+use Utils::Parse;
 
 my @lilo_global_vars = qw (default prompt delay timeout append boot root);
 my @lilo_common_image_vars = qw (label password);
@@ -134,7 +134,7 @@ sub gst_boot_lilo_parse_global
   {
     chomp $line;
     $line =~ s/^[ \t]+//;
-    $line = &gst_parse_process_sh_line ($line);
+    $line = &Utils::Parse::process_sh_line ($line);
     
     next if ($line eq "");
     last if ($line =~ /^(image|other)/);
@@ -204,7 +204,7 @@ sub gst_boot_lilo_parse_entries
     
     next if $line =~ /^\#/;
 
-    $line = &gst_parse_process_sh_line ($line);
+    $line = &Utils::Parse::process_sh_line ($line);
     next if $line eq "";
     
     my @line = split ("[ \t]*=[ \t]*", $line, 2);    

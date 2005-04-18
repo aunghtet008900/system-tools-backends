@@ -1,3 +1,17 @@
+2005-04-19  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Third round of huge commits
+	* parse.pl.in: removed
+	* Utils/Parse.pm: new place for the file above, plus function renaming
+	* boot-conf.in, boot-grub.pl.in, boot-lilo.pl.in, boot-yaboot.pl.in,
+	boot-pl.in, dhcpd.pl.in, disks-conf.in, filesys.pl.in, ishare.pl.in,
+	media.pl.in, network.pl.in, print.pl.in, service.pl.in, share.pl.in,
+	shares-conf.in, time-conf.in, users-conf.in, Utils/Backend.pm,
+	Utils/Platform.pm, Utils/Replace.pm, Utils/Report.pm, Utils/XML.pm:
+	Use new module, other misc fixes
+	* xml.pl.in, replace.pl.in, platform.pl.in, general.pl.in: Forgot to
+	remove these
+
 2005-04-18  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Second round in huge commits

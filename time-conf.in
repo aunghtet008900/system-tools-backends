@@ -45,7 +45,6 @@ BEGIN {
   }
   
   require "$SCRIPTSDIR/service.pl$DOTIN";
-  require "$SCRIPTSDIR/parse.pl$DOTIN";
 }
 
 use Utils::Util;
@@ -54,6 +53,7 @@ use Utils::XML;
 use Utils::Backend;
 use Utils::Platform;
 use Utils::Replace;
+use Utils::Parse;
 use File::Copy;
 
 # --- Tool information --- #
@@ -323,7 +323,7 @@ sub conf_get
 
   %dist_attrib = &conf_get_parse_table ();
 
-  $hash = &gst_parse_from_table ($dist_attrib{"fn"},
+  $hash = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
                                  $dist_attrib{"table"});
 
   return $hash;
@@ -562,7 +562,7 @@ sub conf_get_parse_table
              [
               [ "local_time",   \&time_get_local_time ],
               [ "timezone",     \&time_get_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
-              [ "sync",         \&gst_parse_split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
+              [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
               [ "sync_active",  \&gst_service_sysv_get_status, "xntpd" ],
               [ "ntpinstalled", \&gst_service_sysv_installed, "xntpd" ],
               ]
@@ -580,7 +580,7 @@ sub conf_get_parse_table
              [
               [ "local_time",   \&time_get_local_time ],
               [ "timezone",     \&time_get_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
-              [ "sync",         \&gst_parse_split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
+              [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
               [ "sync_active",  \&gst_service_sysv_get_status, "ntpd" ],
               [ "ntpinstalled", \&gst_service_sysv_installed, "ntpd" ],
               ]
@@ -598,7 +598,7 @@ sub conf_get_parse_table
              [
               [ "local_time",   \&time_get_local_time ],
               [ "timezone",     \&time_get_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
-              [ "sync",         \&gst_parse_split_first_array_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
+              [ "sync",         \&Utils::Parse::split_first_array_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
               [ "sync_active",  \&gst_service_sysv_get_status, "ntpd" ],
               [ "ntpinstalled", \&gst_service_sysv_installed, "ntp" ],
               ]
@@ -616,7 +616,7 @@ sub conf_get_parse_table
              [
               [ "local_time",   \&time_get_local_time ],
               [ "timezone",     \&time_get_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
-              [ "sync",         \&gst_parse_split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
+              [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
               [ "sync_active",  \&gst_service_sysv_get_status, "ntpd" ],
               [ "ntpinstalled", \&gst_service_sysv_installed, "ntp-server" ],
               ]
@@ -634,7 +634,7 @@ sub conf_get_parse_table
              [
               [ "local_time",   \&time_get_local_time ],
               [ "timezone",     \&time_get_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
-              [ "sync",         \&gst_parse_split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
+              [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
               [ "sync_active",  \&gst_service_sysv_get_status, "xntpd" ],
               [ "ntpinstalled", \&gst_service_sysv_installed, "xntpd" ],
               ]
@@ -652,7 +652,7 @@ sub conf_get_parse_table
          [
           [ "local_time",   \&time_get_local_time ],
           [ "timezone",     \&time_get_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
-          [ "sync",         \&gst_parse_split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
+          [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
           [ "sync_active",  \&gst_service_get_status, "xntpd" ],
           [ "ntpinstalled", \&gst_service_installed,  "xntpd" ],
          ]
@@ -670,7 +670,7 @@ sub conf_get_parse_table
              [
               [ "local_time",   \&time_get_local_time ],
               [ "timezone",     \&time_get_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
-              [ "sync",         \&gst_parse_split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
+              [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
               [ "sync_active",  \&gst_service_sysv_get_status, "ntpd" ],
               [ "ntpinstalled", \&gst_service_sysv_installed, "ntpd" ],
               ]
@@ -688,7 +688,7 @@ sub conf_get_parse_table
          [
           [ "local_time",   \&time_get_local_time ],
           [ "timezone",     \&time_get_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
-          [ "sync",         \&gst_parse_split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
+          [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
           [ "sync_active",  \&gst_service_gentoo_get_status, "ntpd" ],
           [ "ntpinstalled", \&gst_service_list_any_installed, [ "ntpd", "openntpd" ]],
           ]
@@ -706,17 +706,17 @@ sub conf_get_parse_table
          [
           [ "local_time",   \&time_get_local_time ],
           [ "timezone",     \&time_get_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
-          [ "sync",         \&gst_parse_split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
+          [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
           [ "sync_active",  \&gst_service_rcng_get_status, "ntpd" ],
           [ "ntpinstalled", \&gst_service_installed, "ntpd" ],
           ]
         },
        );
 
-  my $dist = $dist_map {$gst_dist};
+  my $dist = $dist_map {$$tool{"platform"}};
   return %{$dist_tables{$dist}} if $dist;
 
-  &Utils::Report::do_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $$tool{"platform"});
   return undef;
 }
 
@@ -933,10 +933,10 @@ sub conf_get_replace_table
         },
        );
 
-  my $dist = $dist_map {$gst_dist};
+  my $dist = $dist_map {$$tool{"platform"}};
   return %{$dist_tables{$dist}} if $dist;
 
-  &Utils::Report::do_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $$tool{"platform"});
   return undef;
 }
 

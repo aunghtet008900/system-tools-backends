@@ -32,7 +32,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
   $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/service.pl$DOTIN";
 require "$SCRIPTSDIR/process.pl$DOTIN";
 
@@ -40,6 +39,7 @@ use Utils::Util;
 use Utils::File;
 use Utils::XML;
 use Utils::Replace;
+use Utils::Parse;
 use Socket;
 
 
@@ -514,7 +514,7 @@ sub gst_network_get_broadcast_ping_cmd
        "freebsd-6"    => "debian-2.2",
        );
 
-  return $cmd_map{$dist_map{$gst_dist}};
+  return $cmd_map{$dist_map{$$tool{"platform"}}};
 }
 
 
@@ -697,7 +697,7 @@ sub gst_network_dialing_get
   &Utils::Report::enter ();
   &Utils::Report::do_report ("network_dialing_get");
   
-  @sections = &gst_parse_ini_sections ($file);
+  @sections = &Utils::Parse::get_ini_sections ($file);
   foreach $i (@sections)
   {
     my %hash;
@@ -716,7 +716,7 @@ sub gst_network_dialing_get
 
     foreach $j (keys %vars)
     {
-      $val = &gst_parse_ini ($file, $i, $j);
+      $val = &Utils::Parse::get_from_ini ($file, $i, $j);
       $hash{$vars{$j}} = $val if ($val ne undef);
     }
 
@@ -1044,7 +1044,7 @@ sub gst_network_debian_ifaces_get_existing
 {
   my (@ret, @stanzas, $stanza);
   
-  @stanzas = &gst_parse_interfaces_stanzas ("$gst_prefix/etc/network/interfaces", "iface");
+  @stanzas = &Utils::Parse::get_interfaces_stanzas ("$gst_prefix/etc/network/interfaces", "iface");
 
   foreach $stanza (@stanzas)
   {
@@ -1069,7 +1069,7 @@ sub gst_network_suse70_ifaces_get_existing
   {
     if ($i =~ /^[ \t]*NETDEV_([0-9]+)=/)
     {
-      push @ret, $1 if &gst_parse_sh ($file, "NETDEV_$1") ne "";
+      push @ret, $1 if &Utils::Parse::get_sh ($file, "NETDEV_$1") ne "";
     }
   }
 
@@ -1166,7 +1166,7 @@ sub gst_network_suse70_parse_iface_num
 
   foreach $i (&gst_network_suse70_ifaces_get_existing ())
   {
-    $ret = &gst_parse_sh ($file, "NETDEV_$i");
+    $ret = &Utils::Parse::get_sh ($file, "NETDEV_$i");
     return $i if $ret eq $dev;
   }
 
@@ -1178,7 +1178,7 @@ sub gst_network_suse70_parse_iface_auto
   my ($file, $iface, $key) = @_;
   my ($val, $i);
   
-  $val = &gst_parse_sh_split ($file, $key, "[ \t]+");
+  $val = &Utils::Parse::get_sh_split ($file, $key, "[ \t]+");
 
   foreach $i (@$val)
   {
@@ -1193,7 +1193,7 @@ sub gst_network_suse70_replace_iface_auto
   my ($file, $iface, $key, $value) = @_;
   my ($val, $i, $found, @ret);
   
-  $val = &gst_parse_sh_split ($file, $key, "[ \t]+");
+  $val = &Utils::Parse::get_sh_split ($file, $key, "[ \t]+");
 
   foreach $i (@$val)
   {
@@ -1212,7 +1212,7 @@ sub gst_network_suse70_parse_iface_sh
   my ($file, $iface, $key) = @_;
   my ($val, $num);
 
-  return &gst_parse_sh ($file, "${key}_$iface");
+  return &Utils::Parse::get_sh ($file, "${key}_$iface");
 }
 
 sub gst_network_suse70_replace_iface_sh
@@ -1495,7 +1495,7 @@ sub gst_network_get_modem_volume
   my ($file) = @_;
   my ($volume);
 
-  $volume = &gst_parse_chat ($file, "AT.*(M0|L[1-3])");
+  $volume = &Utils::Parse::get_from_chatfile ($file, "AT.*(M0|L[1-3])");
 
   return 3 if ($volume eq undef);
 
@@ -1521,7 +1521,7 @@ sub gst_network_set_modem_volume
   my ($file, $volume) = @_;
   my $line;
 
-  $line = &gst_parse_chat ($file, "AT([^DZ][a-z0-9&]+)");
+  $line = &Utils::Parse::get_from_chatfile ($file, "AT([^DZ][a-z0-9&]+)");
   $line =~ s/(M0|L[1-3])//g;
 
   if    ($volume == 0) { $line .= "M0"; }
@@ -1607,10 +1607,10 @@ sub gst_network_interfaces_get
   {
     foreach $j (keys (%fn))
     {
-      $ {$dist_attrib{"fn"}}{$j} = &gst_parse_expand ($fn{$j}, "iface", $i);
+      $ {$dist_attrib{"fn"}}{$j} = &Utils::Parse::expand ($fn{$j}, "iface", $i);
     }
 
-    $iface = &gst_parse_from_table ($dist_attrib{"fn"},
+    $iface = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
                                     $dist_attrib{"table"});
     &gst_network_interface_ensure_broadcast_and_network ($iface);
     $$iface{"file"} = $i if ($$iface{"file"} eq undef);
@@ -1651,7 +1651,7 @@ sub gst_network_conf_get
 
   %dist_attrib = &gst_network_get_parse_table ();
 
-  $hash = &gst_parse_from_table ($dist_attrib{"fn"},
+  $hash = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
                                  $dist_attrib{"table"});
   return $hash;
 }
@@ -1661,7 +1661,7 @@ sub gst_network_rh_get_smb_desc
   my ($file, $section, $var, $hostname) = @_;
   my $val;
 
-  $val = &gst_parse_ini ($file, $section, $var);
+  $val = &Utils::Parse::get_from_ini ($file, $section, $var);
   if (($val =~ /^Samba Server/) && ($hostname ne undef))
   {
     return $hostname;
@@ -1718,7 +1718,7 @@ sub gst_network_suse70_get_file
   $file = "$gst_prefix/etc/rc.config";
 
   $i = 0;
-  $i ++ while (&gst_parse_sh ($file, "NETDEV_$i") ne "");
+  $i ++ while (&Utils::Parse::get_sh ($file, "NETDEV_$i") ne "");
   
   return $i;
 }
@@ -1791,7 +1791,7 @@ sub gst_network_get_file
     "freebsd-6"    => \&gst_network_deb22_get_file,
 	  );
 
-  $proc = $dist_map{$gst_dist};
+  $proc = $dist_map{$$tool{"platform"}};
 
   return &$proc ($iface) if $proc;
 
@@ -2091,15 +2091,15 @@ sub gst_network_slackware91_interface_activate_by_dev
     }
     else
     {
-      if (&gst_parse_rcinet1conf_bool ($file, $dev, USE_DHCP))
+      if (&Utils::Parse::get_rcinet1conf_bool ($file, $dev, USE_DHCP))
       {
         # Use DHCP
         $ret = &Utils::File::run ("dhclient $dev");
       }
       else
       {
-        $address = &gst_parse_rcinet1conf   ($file, $dev, "IPADDR");
-        $netmask = &gst_parse_rcinet1conf   ($file, $dev, "NETMASK");
+        $address = &Utils::Parse::get_rcinet1conf   ($file, $dev, "IPADDR");
+        $netmask = &Utils::Parse::get_rcinet1conf   ($file, $dev, "NETMASK");
         $gateway = &gst_network_get_gateway ($file, "GATEWAY", $address, $netmask);
 
         $ret = &Utils::File::run ("ifconfig $dev $address netmask $netmask up");
@@ -2175,12 +2175,12 @@ sub gst_network_freebsd_interface_activate_by_dev
     }
 
     &Utils::File::close_file ($fd);
-    $command = &gst_parse_sh ($file, "ifconfig_$dev");
+    $command = &Utils::Parse::get_sh ($file, "ifconfig_$dev");
 
     # Bring up the interface
     if ($command =~ /DHCP/i)
     {
-      $dhcp_flags = &gst_parse_sh ($file, "dhcp_flags");
+      $dhcp_flags = &Utils::Parse::get_sh ($file, "dhcp_flags");
       &Utils::File::run ("dhclient $dhcp_flags $dev");
     }
     else
@@ -2189,7 +2189,7 @@ sub gst_network_freebsd_interface_activate_by_dev
     }
 
     # Add the default route
-    $default_route = &gst_parse_sh ($file, "defaultrouter");
+    $default_route = &Utils::Parse::get_sh ($file, "defaultrouter");
     &Utils::File::run ("route add default $default_route") if ($default_route !~ /^no$/i);
   }
   else
@@ -2313,7 +2313,7 @@ sub gst_network_suse90_interface_delete
 {
   my ($old_hash) = @_;
   my $file = $$old_hash{"configuration"}{"file"};
-  my $provider = &gst_parse_sh ("$gst_prefix/etc/sysconfig/network/ifcfg-$file", PROVIDER);
+  my $provider = &Utils::Parse::get_sh ("$gst_prefix/etc/sysconfig/network/ifcfg-$file", PROVIDER);
   my $dev = &gst_network_suse9_get_dev_name ($file);
 
   &gst_network_rh62_interface_activate_by_dev ($dev, 0);
@@ -2404,12 +2404,12 @@ sub gst_network_freebsd_interface_delete
   if ($dev =~ /^tun[0-9]+/)
   {
     # Delete the ppp.conf section
-    $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
+    $section = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
 
     $buff = &Utils::File::load_buffer ($pppconf);
 
-    $line_no     = &gst_parse_pppconf_find_stanza      ($buff, $section);
-    $end_line_no = &gst_parse_pppconf_find_next_stanza ($buff, $line_no + 1);
+    $line_no     = &Utils::Parse::pppconf_find_stanza      ($buff, $section);
+    $end_line_no = &Utils::Parse::pppconf_find_next_stanza ($buff, $line_no + 1);
     $end_line_no = scalar @$buff + 1 if ($end_line_no == -1);
     $end_line_no--;
 
@@ -2467,7 +2467,7 @@ sub gst_network_interface_set
 
   foreach $i (keys (%fn))
   {
-    $ {$dist_attrib{"fn"}}{$i} = &gst_parse_expand ($fn{$i}, "iface", $dev);
+    $ {$dist_attrib{"fn"}}{$i} = &Utils::Parse::expand ($fn{$i}, "iface", $dev);
   }
 
   $res = &Utils::Replace::set_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
@@ -2554,7 +2554,7 @@ sub gst_network_get_pap_passwd
   $login = '"?' . $login . '"?';
   &Utils::Report::enter ();
   &Utils::Report::do_report ("network_get_pap_passwd", $login, $file);
-  $arr = &gst_parse_split_first_array ($file, $login, "[ \t]+", "[ \t]+");
+  $arr = &Utils::Parse::split_first_array ($file, $login, "[ \t]+", "[ \t]+");
 
   $passwd = $$arr[1];
   &Utils::Report::leave ();
@@ -2588,7 +2588,7 @@ sub gst_network_get_ppp_options_re
   &Utils::Report::leave ();
   return undef if !$fd;
 
-  while (($_ = &gst_parse_chomp_line_hash_comment ($fd)) != -1)
+  while (($_ = &Utils::Parse::chomp_line_hash_comment ($fd)) != -1)
   {
     $_ = $$_;
 
@@ -2664,7 +2664,7 @@ sub gst_network_get_ppp_options_unsup
   &Utils::Report::leave ();
   return undef if !$fd;
 
-  GET_LINE: while (($line = &gst_parse_chomp_line_hash_comment ($fd)) != -1)
+  GET_LINE: while (($line = &Utils::Parse::chomp_line_hash_comment ($fd)) != -1)
   {
     $_ = $$line;
     next if /^[ \t]*$/;
@@ -2732,7 +2732,7 @@ sub gst_network_rh62_parse_bootproto
 	  );
   my $ret;
 
-  $ret = &gst_parse_sh ($file, $key);
+  $ret = &Utils::Parse::get_sh ($file, $key);
   
   if (!exists $rh62_to_proto_name{$ret})
   {
@@ -2769,7 +2769,7 @@ sub gst_network_deb22_parse_bootproto
        );
 
   &Utils::Report::enter ();
-  @stanzas = &gst_parse_interfaces_stanzas ($file, "iface");
+  @stanzas = &Utils::Parse::get_interfaces_stanzas ($file, "iface");
 
   foreach $stanza (@stanzas)
   {
@@ -2826,7 +2826,7 @@ sub gst_network_slackware91_parse_bootproto
 {
   my ($file, $iface) = @_;
 
-  if (&gst_parse_rcinet1conf_bool ($file, $iface, USE_DHCP))
+  if (&Utils::Parse::get_rcinet1conf_bool ($file, $iface, USE_DHCP))
   {
     return "dhcp"
   }
@@ -2897,7 +2897,7 @@ sub gst_network_pld10_parse_bootproto
     );
   my $ret;
 
-  $ret = &gst_parse_sh ($file, $key);
+  $ret = &Utils::Parse::get_sh ($file, $key);
   
   if (!exists $pld10_to_proto_name{$ret})
   {
@@ -2925,8 +2925,8 @@ sub gst_network_parse_bootproto
 {
   my ($file, $key) = @_;
 
-  return "dhcp"  if (&gst_parse_sh ($file, $key) =~ /dhcp/i);
-  return "bootp" if (&gst_parse_sh ($file, $key) =~ /bootp/i);
+  return "dhcp"  if (&Utils::Parse::get_sh ($file, $key) =~ /dhcp/i);
+  return "bootp" if (&Utils::Parse::get_sh ($file, $key) =~ /bootp/i);
   return "none";
 }
 
@@ -2984,10 +2984,10 @@ sub gst_network_parse_pppconf
 
   if ($iface =~ /^tun[0-9]+/)
   {
-    $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
+    $section = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
     return undef if ($section eq undef);
 
-    return &gst_parse_pppconf ($pppconf, $section, $key);
+    return &Utils::Parse::get_pppconf ($pppconf, $section, $key);
   }
 }
 
@@ -2998,10 +2998,10 @@ sub gst_network_parse_pppconf_bool
 
   if ($iface =~ /^tun[0-9]+/)
   {
-    $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
+    $section = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
     return undef if ($section eq undef);
 
-    return &gst_parse_pppconf_bool ($pppconf, $section, $key);
+    return &Utils::Parse::get_pppconf_bool ($pppconf, $section, $key);
   }
 }
 
@@ -3012,10 +3012,10 @@ sub gst_network_parse_pppconf_re
 
   if ($iface =~ /^tun[0-9]+/)
   {
-    $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
+    $section = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
     return undef if ($section eq undef);
 
-    return &gst_parse_pppconf_re ($pppconf, $section, $key, $re);
+    return &Utils::Parse::get_pppconf_re ($pppconf, $section, $key, $re);
   }
 }
 
@@ -3026,7 +3026,7 @@ sub gst_network_replace_pppconf
 
   if ($iface =~ /^tun[0-9]+/)
   {
-    $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
+    $section = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
     &Utils::Replace::set_pppconf ($pppconf, $section, $key, $val);
   }
 }
@@ -3038,7 +3038,7 @@ sub gst_network_replace_pppconf_bool
 
   if ($iface =~ /^tun[0-9]+/)
   {
-    $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
+    $section = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
     &Utils::Replace::set_pppconf_bool ($pppconf, $section, $key, $val);
   }
 }
@@ -3050,7 +3050,7 @@ sub gst_network_replace_pppconf_route
 
   if ($iface =~ /^tun[0-9]+/)
   {
-    $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
+    $section = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
     &Utils::Replace::set_pppconf_common ($pppconf, $section, $key,
                                  ($val == 1)? "add default HISADDR" : undef);
   }
@@ -3063,8 +3063,8 @@ sub gst_network_replace_pppconf_dial_command
 
   if ($iface =~ /^tun[0-9]+/)
   {
-    $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
-    $dial = &gst_parse_pppconf ($pppconf, $section, "dial");
+    $section = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
+    $dial = &Utils::Parse::get_pppconf ($pppconf, $section, "dial");
     $dial =~ s/ATD[TP]/$val/;
 
     &Utils::Replace::set_pppconf ($pppconf, $section, "dial", $dial);
@@ -3078,8 +3078,8 @@ sub gst_network_replace_pppconf_volume
 
   if ($iface =~ /^tun[0-9]+/)
   {
-    $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
-    $dial = &gst_parse_pppconf ($pppconf, $section, "dial");
+    $section = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
+    $dial = &Utils::Parse::get_pppconf ($pppconf, $section, "dial");
 
     if ($dial =~ /(.*AT[^ \t]*)([ML][0-3])(.* OK .*)/i)
     {
@@ -3113,7 +3113,7 @@ sub gst_network_get_freebsd5_ppp_persist
 
   if ($iface =~ /^tun[0-9]+/)
   {
-    $val = &gst_parse_startif ($startif, "ppp[ \t]+\-(auto|ddial)[ \t]+");
+    $val = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-(auto|ddial)[ \t]+");
 
     return 1 if ($val eq "ddial");
     return 0;
@@ -3128,7 +3128,7 @@ sub gst_network_pump_get_nodns
   
   return undef if (!&gst_network_pump_iface_supported ($iface));
 
-  return &gst_parse_pump_get_iface_kw_not ($file, $iface, "nodns");
+  return &Utils::Parse::get_pump_iface_kw_not ($file, $iface, "nodns");
 }
 
 sub gst_network_pump_set_nodns
@@ -3149,7 +3149,7 @@ sub gst_network_debian_parse_remote_address
   &Utils::Report::enter ();
   &Utils::Report::do_report ("network_get_remote", $iface);
   
-  @tuples = &gst_parse_interfaces_option_tuple ($file, $iface, "up", 1);
+  @tuples = &Utils::Parse::get_interfaces_option_tuple ($file, $iface, "up", 1);
 
   &Utils::Report::leave ();
   
@@ -3182,7 +3182,7 @@ sub gst_network_debian_woody_get_auto_by_stanza
   my ($file, $iface) = @_;
   my (@stanzas, $stanza, $i);
 
-  @stanzas = &gst_parse_interfaces_stanzas ($file, "auto");
+  @stanzas = &Utils::Parse::get_interfaces_stanzas ($file, "auto");
 
   foreach $stanza (@stanzas)
   {
@@ -3283,7 +3283,7 @@ sub gst_network_slackware91_get_auto
   }
   elsif ($iface =~ /^ppp/)
   {
-    return &gst_parse_kw ($rclocal, "ppp-go");
+    return &Utils::Parse::get_kw ($rclocal, "ppp-go");
   }
 }
 
@@ -3347,8 +3347,8 @@ sub gst_network_freebsd5_get_auto
   my ($file, $defaults_file, $iface) = @_;
   my ($val);
 
-  $val = &gst_parse_sh ($file,          "network_interfaces");
-  $val = &gst_parse_sh ($defaults_file, "network_interfaces") if ($val eq undef);
+  $val = &Utils::Parse::get_sh ($file,          "network_interfaces");
+  $val = &Utils::Parse::get_sh ($defaults_file, "network_interfaces") if ($val eq undef);
 
   return 1 if ($val eq "auto");
   return 1 if ($val =~ /$iface/);
@@ -3360,7 +3360,7 @@ sub gst_network_freebsd5_set_auto
   my ($file, $iface, $active) = @_;
   my ($val);
 
-  $val  = &gst_parse_sh ($file, "network_interfaces");
+  $val  = &Utils::Parse::get_sh ($file, "network_interfaces");
   $val = &Utils::File::run_backtick ("ifconfig -l") if ($val =~ /auto/);
   $val .= " ";
 
@@ -3385,7 +3385,7 @@ sub gst_network_suse90_get_auto
   my ($file, $key) = @_;
   my ($ret);
 
-  $ret = &gst_parse_sh ($file, $key);
+  $ret = &Utils::Parse::get_sh ($file, $key);
 
   return 1 if ($ret =~ /^onboot$/i);
   return 0;
@@ -3413,7 +3413,7 @@ sub gst_network_pld10_get_ipaddr
   my ($ipaddr, $netmask, $ret, $i);
 	my @netmask_prefixes = (0, 128, 192, 224, 240, 248, 252, 254, 255);
   
-  $ipaddr = &gst_parse_sh($file, $key);
+  $ipaddr = &Utils::Parse::get_sh($file, $key);
   return undef if $ipaddr eq "";
   
   if($ipaddr =~ /([^\/]*)\/([[:digit:]]*)/)
@@ -3462,7 +3462,7 @@ sub gst_network_pld10_set_ipaddr
   );
   my ($ipaddr, $netmask);
 
-  $ipaddr = &gst_parse_sh($file, $key);
+  $ipaddr = &Utils::Parse::get_sh($file, $key);
   return undef if $ipaddr eq "";
 
   if($what eq "address")
@@ -3531,7 +3531,7 @@ sub gst_network_get_plip_gateway
   my ($file, $key, $remote_address) = @_;
   my ($gateway);
 
-  $gateway = &gst_parse_sh ($file, $key);
+  $gateway = &Utils::Parse::get_sh ($file, $key);
 
   return $gateway if ($gateway eq $remote_address);
 }
@@ -3543,7 +3543,7 @@ sub gst_network_get_gateway
 
   return undef if ($address eq undef);
 
-  $gateway = &gst_parse_sh ($file, $key);
+  $gateway = &Utils::Parse::get_sh ($file, $key);
 
   return $gateway if &gst_network_is_ip_in_same_network ($address, $gateway, $netmask);
   return undef;
@@ -3552,7 +3552,7 @@ sub gst_network_get_gateway
 sub gst_network_suse90_get_gateway
 {
   my ($file, $address, $netmask) = @_;
-  my ($gateway) = &gst_parse_split_first_array_pos ($file, "default", 0, "[ \t]+", "[ \t]+");
+  my ($gateway) = &Utils::Parse::split_first_array_pos ($file, "default", 0, "[ \t]+", "[ \t]+");
 
   return $gateway if &gst_network_is_ip_in_same_network ($address, $gateway, $netmask);
   return undef;
@@ -3561,7 +3561,7 @@ sub gst_network_suse90_get_gateway
 sub gst_network_suse90_get_plip_gateway
 {
   my ($file, $remote_address) = @_;
-  my ($gateway) = &gst_parse_split_first_array_pos ($file, "default", 0, "[ \t]+", "[ \t]+");
+  my ($gateway) = &Utils::Parse::split_first_array_pos ($file, "default", 0, "[ \t]+", "[ \t]+");
 
   return $gateway if ($gateway eq $remote_address);
   return undef;
@@ -3643,7 +3643,7 @@ sub gst_network_freebsd_create_ppp_startif
 
   if ($dev =~ /^tun[0-9]+/)
   {
-    $section = &gst_parse_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
+    $section = &Utils::Parse::get_startif ($startif, "ppp[ \t]+\-[^ \t]+[ \t]+([^ \t]+)");
     $section = $dev if ($section eq undef);
 
     return &Utils::File::save_buffer ("ppp -ddial $section", $startif) if ($persist eq 1);
@@ -3707,7 +3707,7 @@ sub gst_network_suse9_get_dev_name
   my ($ifaces, $dev, $hwaddr, $d);
   my ($dev);
 
-  $dev = &gst_parse_sh ("/var/run/sysconfig/if-$iface", "interface");
+  $dev = &Utils::Parse::get_sh ("/var/run/sysconfig/if-$iface", "interface");
 
   if ($dev eq undef)
   {
@@ -3826,7 +3826,7 @@ sub gst_network_ensure_loopback_interface
     "freebsd-6"    => "",
 	  );
 
-  $dev = $dist_map {$gst_dist};
+  $dev = $dist_map {$$tool{"platform"}};
 
   return if $dev eq "";
 
@@ -3967,20 +3967,20 @@ sub gst_network_get_parse_table
       },
 	    table =>
 		   [
-		    [ "hostname",      \&gst_parse_sh,                SYSCONFIG_NW, HOSTNAME ],
-        [ "gateway",       \&gst_parse_sh,                SYSCONFIG_NW, GATEWAY ],
-        [ "gatewaydev",    \&gst_parse_sh,                SYSCONFIG_NW, GATEWAYDEV ],
-        [ "userifacectl",  \&gst_parse_trivial,           1 ],
-		    [ "nameserver",    \&gst_parse_split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
-		    [ "searchdomain",  \&gst_parse_split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-		    [ "domain",        \&gst_parse_split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
-		    [ "order",         \&gst_parse_split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
-		    [ "hostmatch",     \&gst_parse_split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
-		    [ "statichost",    \&gst_parse_split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
-		    [ "workgroup",     \&gst_parse_ini,               SMB_CONF,     "global", "workgroup" ],     
+		    [ "hostname",      \&Utils::Parse::get_sh,                SYSCONFIG_NW, HOSTNAME ],
+        [ "gateway",       \&Utils::Parse::get_sh,                SYSCONFIG_NW, GATEWAY ],
+        [ "gatewaydev",    \&Utils::Parse::get_sh,                SYSCONFIG_NW, GATEWAYDEV ],
+        [ "userifacectl",  \&Utils::Parse::get_trivial,           1 ],
+		    [ "nameserver",    \&Utils::Parse::split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
+		    [ "searchdomain",  \&Utils::Parse::split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
+		    [ "domain",        \&Utils::Parse::split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
+		    [ "order",         \&Utils::Parse::split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
+		    [ "hostmatch",     \&Utils::Parse::split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
+		    [ "statichost",    \&Utils::Parse::split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
+		    [ "workgroup",     \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "workgroup" ],     
 		    [ "smbdesc",       \&gst_network_rh_get_smb_desc, SMB_CONF,   "global", "server string", "%hostname%" ],
-		    [ "winsserver",    \&gst_parse_ini,               SMB_CONF,     "global", "wins server" ],
-		    [ "winsuse",       \&gst_parse_ini_bool,          SMB_CONF,     "global", "wins support" ],
+		    [ "winsserver",    \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "wins server" ],
+		    [ "winsuse",       \&Utils::Parse::get_from_ini_bool,          SMB_CONF,     "global", "wins support" ],
         [ "smbuse",        \&gst_service_sysv_get_status_any, "smbd", "nmbd" ],
         [ "smbinstalled",  \&gst_service_sysv_installed,  "smb" ],
         [ "smartdhcpcd",   \&Utils::File::tool_installed, "pump" ],
@@ -4002,20 +4002,20 @@ sub gst_network_get_parse_table
       },
 	    table =>
 		   [
-		    [ "hostname",      \&gst_parse_sh,                SYSCONFIG_NW, HOSTNAME ],
-        [ "gateway",       \&gst_parse_sh,                SYSCONFIG_NW, GATEWAY ],
-        [ "gatewaydev",    \&gst_parse_sh,                SYSCONFIG_NW, GATEWAYDEV ],
-        [ "userifacectl",  \&gst_parse_trivial,           1 ],
-		    [ "nameserver",    \&gst_parse_split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
-		    [ "searchdomain",  \&gst_parse_split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-		    [ "domain",        \&gst_parse_split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
-		    [ "order",         \&gst_parse_split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
-		    [ "hostmatch",     \&gst_parse_split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
-		    [ "statichost",    \&gst_parse_split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
-		    [ "workgroup",     \&gst_parse_ini,               SMB_CONF,     "global", "workgroup" ],     
+		    [ "hostname",      \&Utils::Parse::get_sh,                SYSCONFIG_NW, HOSTNAME ],
+        [ "gateway",       \&Utils::Parse::get_sh,                SYSCONFIG_NW, GATEWAY ],
+        [ "gatewaydev",    \&Utils::Parse::get_sh,                SYSCONFIG_NW, GATEWAYDEV ],
+        [ "userifacectl",  \&Utils::Parse::get_trivial,           1 ],
+		    [ "nameserver",    \&Utils::Parse::split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
+		    [ "searchdomain",  \&Utils::Parse::split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
+		    [ "domain",        \&Utils::Parse::split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
+		    [ "order",         \&Utils::Parse::split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
+		    [ "hostmatch",     \&Utils::Parse::split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
+		    [ "statichost",    \&Utils::Parse::split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
+		    [ "workgroup",     \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "workgroup" ],     
 		    [ "smbdesc",       \&gst_network_rh_get_smb_desc, SMB_CONF,   "global", "server string", "%hostname%" ],
-		    [ "winsserver",    \&gst_parse_ini,               SMB_CONF,     "global", "wins server" ],
-		    [ "winsuse",       \&gst_parse_ini_bool,          SMB_CONF,     "global", "wins support" ],
+		    [ "winsserver",    \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "wins server" ],
+		    [ "winsuse",       \&Utils::Parse::get_from_ini_bool,          SMB_CONF,     "global", "wins support" ],
         [ "smbuse",        \&gst_service_sysv_get_status_any, "smbd", "nmbd" ],
         [ "smbinstalled",  \&gst_service_sysv_installed,  "smb" ],
         [ "smartdhcpcd",   \&Utils::File::tool_installed, "pump" ],
@@ -4041,20 +4041,20 @@ sub gst_network_get_parse_table
       },
 	    table =>
 		   [
-		    [ "hostname",      \&gst_parse_sh,                SYSCONFIG_NW, HOSTNAME ],
-        [ "gateway",       \&gst_parse_sh,                SYSCONFIG_NW, GATEWAY ],
-        [ "gatewaydev",    \&gst_parse_sh,                SYSCONFIG_NW, GATEWAYDEV ],
-        [ "userifacectl",  \&gst_parse_trivial,           1 ],
-		    [ "nameserver",    \&gst_parse_split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
-		    [ "searchdomain",  \&gst_parse_split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-		    [ "domain",        \&gst_parse_split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
-		    [ "order",         \&gst_parse_split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
-		    [ "hostmatch",     \&gst_parse_split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
-		    [ "statichost",    \&gst_parse_split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
-		    [ "workgroup",     \&gst_parse_ini,               SMB_CONF,     "global", "workgroup" ],     
+		    [ "hostname",      \&Utils::Parse::get_sh,                SYSCONFIG_NW, HOSTNAME ],
+        [ "gateway",       \&Utils::Parse::get_sh,                SYSCONFIG_NW, GATEWAY ],
+        [ "gatewaydev",    \&Utils::Parse::get_sh,                SYSCONFIG_NW, GATEWAYDEV ],
+        [ "userifacectl",  \&Utils::Parse::get_trivial,           1 ],
+		    [ "nameserver",    \&Utils::Parse::split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
+		    [ "searchdomain",  \&Utils::Parse::split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
+		    [ "domain",        \&Utils::Parse::split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
+		    [ "order",         \&Utils::Parse::split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
+		    [ "hostmatch",     \&Utils::Parse::split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
+		    [ "statichost",    \&Utils::Parse::split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
+		    [ "workgroup",     \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "workgroup" ],     
 		    [ "smbdesc",       \&gst_network_rh_get_smb_desc, SMB_CONF,   "global", "server string", "%hostname%" ],
-		    [ "winsserver",    \&gst_parse_ini,               SMB_CONF,     "global", "wins server" ],
-		    [ "winsuse",       \&gst_parse_ini_bool,          SMB_CONF,     "global", "wins support" ],
+		    [ "winsserver",    \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "wins server" ],
+		    [ "winsuse",       \&Utils::Parse::get_from_ini_bool,          SMB_CONF,     "global", "wins support" ],
         [ "smbuse",        \&gst_service_sysv_get_status_any, "smbd", "nmbd" ],
         [ "smbinstalled",  \&gst_service_sysv_installed,  "smb" ],
         [ "smartdhcpcd",   \&Utils::File::tool_installed, "pump" ],
@@ -4077,20 +4077,20 @@ sub gst_network_get_parse_table
       },
 	    table =>
           [
-           [ "hostname",      \&gst_parse_line_first,        HOSTNAME ],
+           [ "hostname",      \&Utils::Parse::get_first_line,        HOSTNAME ],
            [ "gatewaydev",    \&gst_network_get_default_gatewaydev ],
-#           [ "gwdevunsup",    \&gst_parse_trivial,           1 ],
-#           [ "userifacectl",  \&gst_parse_trivial,           0 ],
-           [ "domain",				\&gst_parse_split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
-           [ "nameserver",    \&gst_parse_split_all_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
-           [ "searchdomain",  \&gst_parse_split_first_array, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-           [ "order",         \&gst_parse_split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
-           [ "hostmatch",     \&gst_parse_split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
-           [ "statichost",    \&gst_parse_split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
-           [ "workgroup",     \&gst_parse_ini,               SMB_CONF,     "global", "workgroup" ],
-           [ "smbdesc",       \&gst_parse_ini,               SMB_CONF,     "global", "server string" ],
-           [ "winsserver",    \&gst_parse_ini,               SMB_CONF,     "global", "wins server" ],
-           [ "winsuse",       \&gst_parse_ini_bool,          SMB_CONF,     "global", "wins support" ],
+#           [ "gwdevunsup",    \&Utils::Parse::get_trivial,           1 ],
+#           [ "userifacectl",  \&Utils::Parse::get_trivial,           0 ],
+           [ "domain",				\&Utils::Parse::split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
+           [ "nameserver",    \&Utils::Parse::split_all_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
+           [ "searchdomain",  \&Utils::Parse::split_first_array, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
+           [ "order",         \&Utils::Parse::split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
+           [ "hostmatch",     \&Utils::Parse::split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
+           [ "statichost",    \&Utils::Parse::split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
+           [ "workgroup",     \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "workgroup" ],
+           [ "smbdesc",       \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "server string" ],
+           [ "winsserver",    \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "wins server" ],
+           [ "winsuse",       \&Utils::Parse::get_from_ini_bool,          SMB_CONF,     "global", "wins support" ],
            [ "smbuse",        \&gst_service_sysv_get_status_any, "smbd", "nmbd" ],
            [ "smbinstalled",  \&gst_service_sysv_installed,  "samba" ],
            [ "smartdhcpcd",   \&Utils::File::tool_installed, "pump" ],
@@ -4113,26 +4113,26 @@ sub gst_network_get_parse_table
       },
 	    table =>
 		   [
-        [ "hostname",      \&gst_parse_sh_get_hostname,          RC_CONFIG, FQHOSTNAME ],
-        [ "gateway",       \&gst_parse_split_first_str,          ROUTE_CONF, "default", "[ \t]+" ],
-        [ "gateway",       \&gst_parse_split_first_str,          ROUTE_CONF, "0.0.0.0", "[ \t]+" ],
-        [ "gwdevunsup",    \&gst_parse_trivial,                  1 ],
-        [ "userifacectl",  \&gst_parse_trivial,                  0 ],
-		    [ "domain",        \&gst_parse_sh_get_domain,            RC_CONFIG, FQHOSTNAME ],
-		    [ "nameserver",    \&gst_parse_split_all_unique_hash_comment, RESOLV_CONF, "nameserver", "[ \t]+" ],
-		    [ "searchdomain",  \&gst_parse_split_first_array_unique, RESOLV_CONF, "search", "[ \t]+", "[ \t]+" ],
+        [ "hostname",      \&Utils::Parse::get_sh_hostname,          RC_CONFIG, FQHOSTNAME ],
+        [ "gateway",       \&Utils::Parse::split_first_str,          ROUTE_CONF, "default", "[ \t]+" ],
+        [ "gateway",       \&Utils::Parse::split_first_str,          ROUTE_CONF, "0.0.0.0", "[ \t]+" ],
+        [ "gwdevunsup",    \&Utils::Parse::get_trivial,                  1 ],
+        [ "userifacectl",  \&Utils::Parse::get_trivial,                  0 ],
+		    [ "domain",        \&Utils::Parse::get_sh_domain,            RC_CONFIG, FQHOSTNAME ],
+		    [ "nameserver",    \&Utils::Parse::split_all_unique_hash_comment, RESOLV_CONF, "nameserver", "[ \t]+" ],
+		    [ "searchdomain",  \&Utils::Parse::split_first_array_unique, RESOLV_CONF, "search", "[ \t]+", "[ \t]+" ],
 # This was to take the values from SuSEConfig, but a better solution is to get
 # the configuration from /etc/resolv.conf and then replace in rc.config, so those
 # files stay in sync.        
-#		    [ "nameserver",    \&gst_parse_sh_split,                 RC_CONFIG, NAMESERVER, "[ \t]+" ],
-#		    [ "searchdomain",  \&gst_parse_sh_split,                 RC_CONFIG, SEARCHLIST, "[ \t]+" ],
-		    [ "order",         \&gst_parse_split_first_array,        HOST_CONF, "order", "[ \t]+", ",[ \t]*" ],
-		    [ "hostmatch",     \&gst_parse_split_first_bool,         HOST_CONF, "multi", "[ \t]+" ],
-		    [ "statichost",    \&gst_parse_split_hash,               HOSTS,     "[ \t]+", "[ \t]+" ],
-		    [ "workgroup",     \&gst_parse_ini,                      SMB_CONF,  "global", "workgroup" ],     
-		    [ "smbdesc",       \&gst_parse_ini,                      SMB_CONF,  "global", "server string" ],    
-		    [ "winsserver",    \&gst_parse_ini,                      SMB_CONF,  "global", "wins server" ],
-		    [ "winsuse",       \&gst_parse_ini_bool,                 SMB_CONF,  "global", "wins support" ],
+#		    [ "nameserver",    \&Utils::Parse::get_sh_split,                 RC_CONFIG, NAMESERVER, "[ \t]+" ],
+#		    [ "searchdomain",  \&Utils::Parse::get_sh_split,                 RC_CONFIG, SEARCHLIST, "[ \t]+" ],
+		    [ "order",         \&Utils::Parse::split_first_array,        HOST_CONF, "order", "[ \t]+", ",[ \t]*" ],
+		    [ "hostmatch",     \&Utils::Parse::split_first_bool,         HOST_CONF, "multi", "[ \t]+" ],
+		    [ "statichost",    \&Utils::Parse::split_hash,               HOSTS,     "[ \t]+", "[ \t]+" ],
+		    [ "workgroup",     \&Utils::Parse::get_from_ini,                      SMB_CONF,  "global", "workgroup" ],     
+		    [ "smbdesc",       \&Utils::Parse::get_from_ini,                      SMB_CONF,  "global", "server string" ],    
+		    [ "winsserver",    \&Utils::Parse::get_from_ini,                      SMB_CONF,  "global", "wins server" ],
+		    [ "winsuse",       \&Utils::Parse::get_from_ini_bool,                 SMB_CONF,  "global", "wins support" ],
         [ "smbuse",        \&gst_service_sysv_get_status_any,    "smbd",    "nmbd" ],
         [ "smbinstalled",  \&gst_service_sysv_installed,         "smb" ],
         [ "dialinstalled", \&Utils::File::tool_installed,        "wvdial" ],
@@ -4154,23 +4154,23 @@ sub gst_network_get_parse_table
       },
       table =>
       [
-       [ "hostname",      \&gst_parse_fq_hostname, HOSTNAME ],
-       [ "domain",        \&gst_parse_fq_domain,   HOSTNAME ],
-       [ "domain",        \&gst_parse_split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
-       [ "nameserver",    \&gst_parse_split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
-       [ "searchdomain",  \&gst_parse_split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-       [ "order",         \&gst_parse_split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
-       [ "hostmatch",     \&gst_parse_split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
-       [ "statichost",    \&gst_parse_split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
-       [ "workgroup",     \&gst_parse_ini,               SMB_CONF,     "global", "workgroup" ],
+       [ "hostname",      \&Utils::Parse::get_fq_hostname, HOSTNAME ],
+       [ "domain",        \&Utils::Parse::get_fq_domain,   HOSTNAME ],
+       [ "domain",        \&Utils::Parse::split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
+       [ "nameserver",    \&Utils::Parse::split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
+       [ "searchdomain",  \&Utils::Parse::split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
+       [ "order",         \&Utils::Parse::split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
+       [ "hostmatch",     \&Utils::Parse::split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
+       [ "statichost",    \&Utils::Parse::split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
+       [ "workgroup",     \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "workgroup" ],
        [ "smbdesc",       \&gst_network_rh_get_smb_desc, SMB_CONF,   "global", "server string", "%hostname%" ],
-       [ "winsserver",    \&gst_parse_ini,               SMB_CONF,     "global", "wins server" ],
-       [ "winsuse",       \&gst_parse_ini_bool,          SMB_CONF,     "global", "wins support" ],
+       [ "winsserver",    \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "wins server" ],
+       [ "winsuse",       \&Utils::Parse::get_from_ini_bool,          SMB_CONF,     "global", "wins support" ],
        [ "smbuse",        \&gst_service_get_status,      "smb" ],
        [ "smbinstalled",  \&gst_service_installed,       "smb" ],
-       [ "dialinstalled", \&gst_parse_trivial, 1 ],
+       [ "dialinstalled", \&Utils::Parse::get_trivial, 1 ],
        [ "interface",     \&gst_network_interfaces_get ],
-       [ "gateway",       \&gst_parse_split_first_array_pos, ROUTE_CONF, "default", 0, "[ \t]+", "[ \t]+" ],
+       [ "gateway",       \&Utils::Parse::split_first_array_pos, ROUTE_CONF, "default", 0, "[ \t]+", "[ \t]+" ],
        [ "gatewaydev",    \&gst_network_get_gateway_dev_from_address,  "%interface%", "%gateway%" ],
       ]
     },
@@ -4188,20 +4188,20 @@ sub gst_network_get_parse_table
       },
 	    table =>
 		   [
-		    [ "hostname",      \&gst_parse_sh,                SYSCONFIG_NW, HOSTNAME ],
-        [ "gateway",       \&gst_parse_sh,                SYSCONFIG_NW, GATEWAY ],
-        [ "gatewaydev",    \&gst_parse_sh,                SYSCONFIG_NW, GATEWAYDEV ],
-        [ "userifacectl",  \&gst_parse_trivial,           1 ],
-		    [ "nameserver",    \&gst_parse_split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
-		    [ "searchdomain",  \&gst_parse_split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-		    [ "domain",        \&gst_parse_split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
-		    [ "order",         \&gst_parse_split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
-		    [ "hostmatch",     \&gst_parse_split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
-		    [ "statichost",    \&gst_parse_split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
-		    [ "workgroup",     \&gst_parse_ini,               SMB_CONF,     "global", "workgroup" ],     
+		    [ "hostname",      \&Utils::Parse::get_sh,                SYSCONFIG_NW, HOSTNAME ],
+        [ "gateway",       \&Utils::Parse::get_sh,                SYSCONFIG_NW, GATEWAY ],
+        [ "gatewaydev",    \&Utils::Parse::get_sh,                SYSCONFIG_NW, GATEWAYDEV ],
+        [ "userifacectl",  \&Utils::Parse::get_trivial,           1 ],
+		    [ "nameserver",    \&Utils::Parse::split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
+		    [ "searchdomain",  \&Utils::Parse::split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
+		    [ "domain",        \&Utils::Parse::split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
+		    [ "order",         \&Utils::Parse::split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
+		    [ "hostmatch",     \&Utils::Parse::split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
+		    [ "statichost",    \&Utils::Parse::split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
+		    [ "workgroup",     \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "workgroup" ],     
 		    [ "smbdesc",       \&gst_network_rh_get_smb_desc, SMB_CONF,   "global", "server string", "%hostname%" ],
-		    [ "winsserver",    \&gst_parse_ini,               SMB_CONF,     "global", "wins server" ],
-		    [ "winsuse",       \&gst_parse_ini_bool,          SMB_CONF,     "global", "wins support" ],
+		    [ "winsserver",    \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "wins server" ],
+		    [ "winsuse",       \&Utils::Parse::get_from_ini_bool,          SMB_CONF,     "global", "wins support" ],
         [ "smbuse",        \&gst_service_sysv_get_status_any, "smbd", "nmbd" ],
         [ "smbinstalled",  \&gst_service_sysv_installed,  "smb" ],
         [ "smartdhcpcd",   \&Utils::File::tool_installed,     "pump" ],
@@ -4224,22 +4224,22 @@ sub gst_network_get_parse_table
       },
       table =>
       [
-       [ "hostname",      \&gst_parse_fq_hostname, HOSTNAME ],
-       [ "nameserver",    \&gst_parse_split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
-       [ "searchdomain",  \&gst_parse_split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-       [ "domain",        \&gst_parse_split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
-       [ "order",         \&gst_parse_split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
-       [ "hostmatch",     \&gst_parse_split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
-       [ "statichost",    \&gst_parse_split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
-       [ "workgroup",     \&gst_parse_ini,               SMB_CONF,     "global", "workgroup" ],     
+       [ "hostname",      \&Utils::Parse::get_fq_hostname, HOSTNAME ],
+       [ "nameserver",    \&Utils::Parse::split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
+       [ "searchdomain",  \&Utils::Parse::split_first_array_unique, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
+       [ "domain",        \&Utils::Parse::split_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
+       [ "order",         \&Utils::Parse::split_first_array, HOST_CONF,    "order", "[ \t]+", ",[ \t]*" ],
+       [ "hostmatch",     \&Utils::Parse::split_first_bool,  HOST_CONF,    "multi", "[ \t]+" ],
+       [ "statichost",    \&Utils::Parse::split_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
+       [ "workgroup",     \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "workgroup" ],     
        [ "smbdesc",       \&gst_network_rh_get_smb_desc, SMB_CONF,   "global", "server string", "%hostname%" ],
-       [ "winsserver",    \&gst_parse_ini,               SMB_CONF,     "global", "wins server" ],
-       [ "winsuse",       \&gst_parse_ini_bool,          SMB_CONF,     "global", "wins support" ],
+       [ "winsserver",    \&Utils::Parse::get_from_ini,               SMB_CONF,     "global", "wins server" ],
+       [ "winsuse",       \&Utils::Parse::get_from_ini_bool,          SMB_CONF,     "global", "wins support" ],
        [ "smbuse",        \&gst_service_sysv_get_status_any, "smbd", "nmbd" ],
        [ "smbinstalled",  \&gst_service_installed,  "/etc/rc.d/rc.samba" ],
-       [ "dialinstalled", \&gst_parse_trivial, 1 ],
+       [ "dialinstalled", \&Utils::Parse::get_trivial, 1 ],
        [ "interface",     \&gst_network_interfaces_get ],
-       [ "gateway",       \&gst_parse_sh,                RC_INET_CONF, GATEWAY ],
+       [ "gateway",       \&Utils::Parse::get_sh,                RC_INET_CONF, GATEWAY ],
        [ "gatewaydev",    \&gst_network_get_gateway_dev_from_address,  "%interface%", "%gateway%" ],
       ]
     },
@@ -4257,21 +4257,21 @@ sub gst_network_get_parse_table
       },
       table =>
       [
-       [ "hostname",      \&gst_parse_line_first,                    HOSTNAME ],
-       [ "domain",        \&gst_parse_line_first,                    DOMAINNAME ],
-       [ "domain",        \&gst_parse_split_first_str,               RESOLV_CONF,  "domain", "[ \t]+" ],
-       [ "nameserver",    \&gst_parse_split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
-       [ "searchdomain",  \&gst_parse_split_first_array_unique,      RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-       [ "statichost",    \&gst_parse_split_hash,                    HOSTS,        "[ \t]+", "[ \t]+" ],
-       [ "workgroup",     \&gst_parse_ini,                           SMB_CONF,     "global", "workgroup" ],
+       [ "hostname",      \&Utils::Parse::get_first_line,                    HOSTNAME ],
+       [ "domain",        \&Utils::Parse::get_first_line,                    DOMAINNAME ],
+       [ "domain",        \&Utils::Parse::split_first_str,               RESOLV_CONF,  "domain", "[ \t]+" ],
+       [ "nameserver",    \&Utils::Parse::split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
+       [ "searchdomain",  \&Utils::Parse::split_first_array_unique,      RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
+       [ "statichost",    \&Utils::Parse::split_hash,                    HOSTS,        "[ \t]+", "[ \t]+" ],
+       [ "workgroup",     \&Utils::Parse::get_from_ini,                           SMB_CONF,     "global", "workgroup" ],
        [ "smbdesc",       \&gst_network_rh_get_smb_desc,             SMB_CONF,     "global", "server string", "%hostname%" ],
-       [ "winsserver",    \&gst_parse_ini,                           SMB_CONF,     "global", "wins server" ],
-       [ "winsuse",       \&gst_parse_ini_bool,                      SMB_CONF,     "global", "wins support" ],
+       [ "winsserver",    \&Utils::Parse::get_from_ini,                           SMB_CONF,     "global", "wins server" ],
+       [ "winsuse",       \&Utils::Parse::get_from_ini_bool,                      SMB_CONF,     "global", "wins support" ],
        [ "smbuse",        \&gst_service_gentoo_get_status,           "samba" ],
        [ "smbinstalled",  \&gst_service_installed,                   "samba" ],
-       [ "dialinstalled", \&gst_parse_trivial, 1 ],
-       [ "gatewaydev",    \&gst_parse_sh_re,                         NET, gateway, "^(.*)\/" ],
-       [ "gateway",       \&gst_parse_sh_re,                         NET, gateway, "^.*\/([0-9\.]*)\$" ],
+       [ "dialinstalled", \&Utils::Parse::get_trivial, 1 ],
+       [ "gatewaydev",    \&Utils::Parse::get_sh_re,                         NET, gateway, "^(.*)\/" ],
+       [ "gateway",       \&Utils::Parse::get_sh_re,                         NET, gateway, "^.*\/([0-9\.]*)\$" ],
        [ "interface",     \&gst_network_interfaces_get ],
        ]
      },
@@ -4287,29 +4287,29 @@ sub gst_network_get_parse_table
       },
       table =>
       [
-       [ "hostname",      \&gst_parse_sh_re,                          RC_CONF, hostname, "^([^\.]*)\." ],
-       [ "domain",        \&gst_parse_split_first_str,                RESOLV_CONF, "domain", "[ \t]+" ],
-       [ "nameserver",    \&gst_parse_split_all_unique_hash_comment,  RESOLV_CONF,  "nameserver", "[ \t]+" ],
-       [ "searchdomain",  \&gst_parse_split_first_array_unique,       RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-       [ "statichost",    \&gst_parse_split_hash,                     HOSTS,        "[ \t]+", "[ \t]+" ],
-       [ "workgroup",     \&gst_parse_ini,                            SMB_CONF,     "global", "workgroup" ],
+       [ "hostname",      \&Utils::Parse::get_sh_re,                          RC_CONF, hostname, "^([^\.]*)\." ],
+       [ "domain",        \&Utils::Parse::split_first_str,                RESOLV_CONF, "domain", "[ \t]+" ],
+       [ "nameserver",    \&Utils::Parse::split_all_unique_hash_comment,  RESOLV_CONF,  "nameserver", "[ \t]+" ],
+       [ "searchdomain",  \&Utils::Parse::split_first_array_unique,       RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
+       [ "statichost",    \&Utils::Parse::split_hash,                     HOSTS,        "[ \t]+", "[ \t]+" ],
+       [ "workgroup",     \&Utils::Parse::get_from_ini,                            SMB_CONF,     "global", "workgroup" ],
        [ "smbdesc",       \&gst_network_rh_get_smb_desc,              SMB_CONF,     "global", "server string", "%hostname%" ],
-       [ "winsserver",    \&gst_parse_ini,                            SMB_CONF,     "global", "wins server" ],
-       [ "winsuse",       \&gst_parse_ini_bool,                       SMB_CONF,     "global", "wins support" ],
-       [ "dialinstalled", \&gst_parse_trivial, 1 ],
+       [ "winsserver",    \&Utils::Parse::get_from_ini,                            SMB_CONF,     "global", "wins server" ],
+       [ "winsuse",       \&Utils::Parse::get_from_ini_bool,                       SMB_CONF,     "global", "wins support" ],
+       [ "dialinstalled", \&Utils::Parse::get_trivial, 1 ],
        [ "smbinstalled",  \&gst_service_installed,                    "samba" ],
        [ "smbuse",        \&gst_service_rcng_get_status,              "smbd" ],
        [ "interface",     \&gst_network_interfaces_get ],
-       [ "gateway",       \&gst_parse_sh,                             RC_CONF, defaultrouter ],
+       [ "gateway",       \&Utils::Parse::get_sh,                             RC_CONF, defaultrouter ],
        [ "gatewaydev",    \&gst_network_get_gateway_dev_from_address, "%interface%", "%gateway%" ],
        ]
      },
    );
   
-  my $dist = $dist_map{$gst_dist};
+  my $dist = $dist_map{$$tool{"platform"}};
   return %{$dist_tables{$dist}} if $dist;
 
-  &Utils::Report::do_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $$tool{"platform"});
   return undef;
 }
 
@@ -4379,46 +4379,46 @@ sub gst_network_get_interface_parse_table
 	    table =>
           [
            [ "bootproto",          \&gst_network_rh62_parse_bootproto, IFCFG, BOOTPROTO ],
-           [ "auto",               \&gst_parse_sh_bool, IFCFG, ONBOOT ],
-#           [ "user",               \&gst_parse_sh_bool, IFCFG, USERCTL ],
-           [ "dev",                \&gst_parse_sh,      IFCFG, DEVICE ],
-           [ "address",            \&gst_parse_sh,      IFCFG, IPADDR ],
-           [ "netmask",            \&gst_parse_sh,      IFCFG, NETMASK ],
-           [ "broadcast",          \&gst_parse_sh,      IFCFG, BROADCAST ],
-           [ "network",            \&gst_parse_sh,      IFCFG, NETWORK ],
-           [ "gateway",            \&gst_parse_sh,      IFCFG, GATEWAY ],
-           [ "remote_address",     \&gst_parse_sh,      IFCFG, REMIP ],
+           [ "auto",               \&Utils::Parse::get_sh_bool, IFCFG, ONBOOT ],
+#           [ "user",               \&Utils::Parse::get_sh_bool, IFCFG, USERCTL ],
+           [ "dev",                \&Utils::Parse::get_sh,      IFCFG, DEVICE ],
+           [ "address",            \&Utils::Parse::get_sh,      IFCFG, IPADDR ],
+           [ "netmask",            \&Utils::Parse::get_sh,      IFCFG, NETMASK ],
+           [ "broadcast",          \&Utils::Parse::get_sh,      IFCFG, BROADCAST ],
+           [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
+           [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
+           [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #           [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
-#           [ "dns1",               \&gst_parse_sh,      IFCFG, DNS1 ],
-#           [ "dns2",               \&gst_parse_sh,      IFCFG, DNS2 ],
-#           [ "ppp_options",        \&gst_parse_sh,      IFCFG, PPPOPTIONS ],
-           [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, WVDIALSECT ]],
-           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PEERDNS ]],
-           [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MTU ]],
-           [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MRU ]],
-           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, PAPNAME ]],
+#           [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
+#           [ "dns2",               \&Utils::Parse::get_sh,      IFCFG, DNS2 ],
+#           [ "ppp_options",        \&Utils::Parse::get_sh,      IFCFG, PPPOPTIONS ],
+           [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
+           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
+           [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
+           [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MRU ]],
+           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, PAPNAME ]],
            [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, PAP,  "%login%" ]],
            [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, CHAP, "%login%" ]],
-           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MODEMPORT ]],
-           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, LINESPEED ]],
-           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, DEFROUTE ]],
-           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PERSIST ]],
-           [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, ESCAPECHARS ]],
-           [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, HARDFLOWCTL ]],
-           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_chat,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
-           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
-           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
-           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Username" ]],
-           [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Password" ]],
-           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
-           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
-           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
-           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-           [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
-           [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MODEMPORT ]],
+           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, LINESPEED ]],
+           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, DEFROUTE ]],
+           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PERSIST ]],
+           [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, ESCAPECHARS ]],
+           [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, HARDFLOWCTL ]],
+           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_chatfile,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
+           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
+           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
+           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Username" ]],
+           [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Password" ]],
+           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
+           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
+           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
+           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+           [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
+           [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
 #           [ "enabled",            \&gst_network_interface_active, IFACE,
 #                                                                   \&gst_network_active_interfaces_get ],
-#           [ "enabled",            \&gst_parse_trivial, 0 ]
+#           [ "enabled",            \&Utils::Parse::get_trivial, 0 ]
            ]
     },
 
@@ -4440,54 +4440,54 @@ sub gst_network_get_interface_parse_table
 	    table =>
           [
            [ "bootproto",          \&gst_network_rh62_parse_bootproto, IFCFG, BOOTPROTO ],
-           [ "auto",               \&gst_parse_sh_bool, IFCFG, ONBOOT ],
-#           [ "user",               \&gst_parse_sh_bool, IFCFG, USERCTL ],
-#           [ "name",               \&gst_parse_sh,      IFCFG, NAME ],
-#           [ "name",               \&gst_parse_trivial, IFACE ],
-           [ "dev",                \&gst_parse_sh,      IFCFG, DEVICE ],
-           [ "address",            \&gst_parse_sh,      IFCFG, IPADDR ],
-           [ "netmask",            \&gst_parse_sh,      IFCFG, NETMASK ],
-           [ "broadcast",          \&gst_parse_sh,      IFCFG, BROADCAST ],
-           [ "network",            \&gst_parse_sh,      IFCFG, NETWORK ],
-           [ "gateway",            \&gst_parse_sh,      IFCFG, GATEWAY ],
-           [ "essid",              \&gst_parse_sh,      IFCFG, ESSID ],
-           [ "key",                \&gst_parse_sh,      IFCFG, KEY   ],
-           [ "remote_address",     \&gst_parse_sh,      IFCFG, REMIP ],
+           [ "auto",               \&Utils::Parse::get_sh_bool, IFCFG, ONBOOT ],
+#           [ "user",               \&Utils::Parse::get_sh_bool, IFCFG, USERCTL ],
+#           [ "name",               \&Utils::Parse::get_sh,      IFCFG, NAME ],
+#           [ "name",               \&Utils::Parse::get_trivial, IFACE ],
+           [ "dev",                \&Utils::Parse::get_sh,      IFCFG, DEVICE ],
+           [ "address",            \&Utils::Parse::get_sh,      IFCFG, IPADDR ],
+           [ "netmask",            \&Utils::Parse::get_sh,      IFCFG, NETMASK ],
+           [ "broadcast",          \&Utils::Parse::get_sh,      IFCFG, BROADCAST ],
+           [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
+           [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
+           [ "essid",              \&Utils::Parse::get_sh,      IFCFG, ESSID ],
+           [ "key",                \&Utils::Parse::get_sh,      IFCFG, KEY   ],
+           [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #           [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
-#           [ "dns1",               \&gst_parse_sh,      IFCFG, DNS1 ],
-#           [ "dns2",               \&gst_parse_sh,      IFCFG, DNS2 ],
-           [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, WVDIALSECT ]],
-           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PEERDNS ]],
-           [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MTU ]],
-           [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MRU ]],
-           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, PAPNAME ]],
+#           [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
+#           [ "dns2",               \&Utils::Parse::get_sh,      IFCFG, DNS2 ],
+           [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
+           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
+           [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
+           [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MRU ]],
+           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, PAPNAME ]],
            [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, PAP,  "%login%" ]],
            [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, CHAP, "%login%" ]],
-           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MODEMPORT ]],
-           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, LINESPEED ]],
-#           [ "ppp_options",        \&gst_parse_sh,      IFCFG, PPPOPTIONS ],
-           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, DEFROUTE ]],
-#           [ "debug",              \&gst_parse_sh_bool, IFCFG, DEBUG ],
-           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PERSIST ]],
-           [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, ESCAPECHARS ]],
-           [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, HARDFLOWCTL ]],
-           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_chat,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
+           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MODEMPORT ]],
+           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, LINESPEED ]],
+#           [ "ppp_options",        \&Utils::Parse::get_sh,      IFCFG, PPPOPTIONS ],
+           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, DEFROUTE ]],
+#           [ "debug",              \&Utils::Parse::get_sh_bool, IFCFG, DEBUG ],
+           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PERSIST ]],
+           [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, ESCAPECHARS ]],
+           [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, HARDFLOWCTL ]],
+           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_chatfile,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
 #           [ "enabled",            \&gst_network_interface_active, "%dev%",
 #                                                                   \&gst_network_active_interfaces_get ],
 #           [ "enabled",            \&gst_network_interface_active, IFACE,
 #                                                                   \&gst_network_active_interfaces_get ],
-#           [ "enabled",            \&gst_parse_trivial, 0 ]
+#           [ "enabled",            \&Utils::Parse::get_trivial, 0 ]
            # wvdial settings
-           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
-           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
-           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Username" ]],
-           [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Password" ]],
-           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
-           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
-           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
-           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-           [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
-           [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
+           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
+           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Username" ]],
+           [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Password" ]],
+           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
+           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
+           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
+           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+           [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
+           [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
           ]
     },
 
@@ -4509,54 +4509,54 @@ sub gst_network_get_interface_parse_table
 	    table =>
           [
            [ "bootproto",          \&gst_network_rh62_parse_bootproto, IFCFG, BOOTPROTO ],
-           [ "auto",               \&gst_parse_sh_bool, IFCFG, ONBOOT ],
-#           [ "user",               \&gst_parse_sh_bool, IFCFG, USERCTL ],
-#           [ "name",               \&gst_parse_sh,      IFCFG, NAME ],
-#           [ "name",               \&gst_parse_trivial, IFACE ],
-           [ "dev",                \&gst_parse_sh,      IFCFG, DEVICE ],
-           [ "address",            \&gst_parse_sh,      IFCFG, IPADDR ],
-           [ "netmask",            \&gst_parse_sh,      IFCFG, NETMASK ],
-           [ "broadcast",          \&gst_parse_sh,      IFCFG, BROADCAST ],
-           [ "network",            \&gst_parse_sh,      IFCFG, NETWORK ],
-           [ "gateway",            \&gst_parse_sh,      IFCFG, GATEWAY ],
-           [ "essid",              \&gst_parse_sh,      IFCFG, WIRELESS_ESSID ],
-           [ "key",                \&gst_parse_sh,      IFCFG, WIRELESS_KEY ],
-           [ "remote_address",     \&gst_parse_sh,      IFCFG, REMIP ],
+           [ "auto",               \&Utils::Parse::get_sh_bool, IFCFG, ONBOOT ],
+#           [ "user",               \&Utils::Parse::get_sh_bool, IFCFG, USERCTL ],
+#           [ "name",               \&Utils::Parse::get_sh,      IFCFG, NAME ],
+#           [ "name",               \&Utils::Parse::get_trivial, IFACE ],
+           [ "dev",                \&Utils::Parse::get_sh,      IFCFG, DEVICE ],
+           [ "address",            \&Utils::Parse::get_sh,      IFCFG, IPADDR ],
+           [ "netmask",            \&Utils::Parse::get_sh,      IFCFG, NETMASK ],
+           [ "broadcast",          \&Utils::Parse::get_sh,      IFCFG, BROADCAST ],
+           [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
+           [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
+           [ "essid",              \&Utils::Parse::get_sh,      IFCFG, WIRELESS_ESSID ],
+           [ "key",                \&Utils::Parse::get_sh,      IFCFG, WIRELESS_KEY ],
+           [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #           [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
-#           [ "dns1",               \&gst_parse_sh,      IFCFG, DNS1 ],
-#           [ "dns2",               \&gst_parse_sh,      IFCFG, DNS2 ],
-           [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, WVDIALSECT ]],
-           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PEERDNS ]],
-           [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MTU ]],
-           [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MRU ]],
-           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, PAPNAME ]],
+#           [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
+#           [ "dns2",               \&Utils::Parse::get_sh,      IFCFG, DNS2 ],
+           [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
+           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
+           [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
+           [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MRU ]],
+           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, PAPNAME ]],
            [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, PAP,  "%login%" ]],
            [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, CHAP, "%login%" ]],
-           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MODEMPORT ]],
-           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, LINESPEED ]],
-#           [ "ppp_options",        \&gst_parse_sh,      IFCFG, PPPOPTIONS ],
-           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, DEFROUTE ]],
-#           [ "debug",              \&gst_parse_sh_bool, IFCFG, DEBUG ],
-           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PERSIST ]],
-           [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, ESCAPECHARS ]],
-           [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, HARDFLOWCTL ]],
-           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_chat,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
+           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MODEMPORT ]],
+           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, LINESPEED ]],
+#           [ "ppp_options",        \&Utils::Parse::get_sh,      IFCFG, PPPOPTIONS ],
+           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, DEFROUTE ]],
+#           [ "debug",              \&Utils::Parse::get_sh_bool, IFCFG, DEBUG ],
+           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PERSIST ]],
+           [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, ESCAPECHARS ]],
+           [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, HARDFLOWCTL ]],
+           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_chatfile,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
 #           [ "enabled",            \&gst_network_interface_active, "%dev%",
 #                                                                   \&gst_network_active_interfaces_get ],
 #           [ "enabled",            \&gst_network_interface_active, IFACE,
 #                                                                   \&gst_network_active_interfaces_get ],
-#           [ "enabled",            \&gst_parse_trivial, 0 ]
+#           [ "enabled",            \&Utils::Parse::get_trivial, 0 ]
            # wvdial settings
-           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
-           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
-           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Username" ]],
-           [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Password" ]],
-           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
-           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
-           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
-           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-           [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
-           [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
+           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
+           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Username" ]],
+           [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Password" ]],
+           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
+           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
+           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
+           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+           [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
+           [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
           ]
     },
 
@@ -4576,50 +4576,50 @@ sub gst_network_get_interface_parse_table
 	    table =>
       [
        [ "bootproto",          \&gst_network_rh62_parse_bootproto, IFCFG, BOOTPROTO ],
-       [ "auto",               \&gst_parse_sh_bool, IFCFG, ONBOOT ],
-#       [ "user",               \&gst_parse_sh_bool, IFCFG, USERCTL ],
-#       [ "name",               \&gst_parse_sh,      IFCFG, NAME ],
-       [ "dev",                \&gst_parse_sh,      IFCFG, DEVICE ],
-       [ "address",            \&gst_parse_sh,      IFCFG, IPADDR ],
-       [ "netmask",            \&gst_parse_sh,      IFCFG, NETMASK ],
-       [ "broadcast",          \&gst_parse_sh,      IFCFG, BROADCAST ],
-       [ "network",            \&gst_parse_sh,      IFCFG, NETWORK ],
-       [ "gateway",            \&gst_parse_sh,      IFCFG, GATEWAY ],
-       [ "essid",              \&gst_parse_sh,      IFCFG, ESSID ],
-       [ "key",                \&gst_parse_sh,      IFCFG, KEY   ],
-       [ "remote_address",     \&gst_parse_sh,      IFCFG, REMIP ],
+       [ "auto",               \&Utils::Parse::get_sh_bool, IFCFG, ONBOOT ],
+#       [ "user",               \&Utils::Parse::get_sh_bool, IFCFG, USERCTL ],
+#       [ "name",               \&Utils::Parse::get_sh,      IFCFG, NAME ],
+       [ "dev",                \&Utils::Parse::get_sh,      IFCFG, DEVICE ],
+       [ "address",            \&Utils::Parse::get_sh,      IFCFG, IPADDR ],
+       [ "netmask",            \&Utils::Parse::get_sh,      IFCFG, NETMASK ],
+       [ "broadcast",          \&Utils::Parse::get_sh,      IFCFG, BROADCAST ],
+       [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
+       [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
+       [ "essid",              \&Utils::Parse::get_sh,      IFCFG, ESSID ],
+       [ "key",                \&Utils::Parse::get_sh,      IFCFG, KEY   ],
+       [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #       [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
-#       [ "dns1",               \&gst_parse_sh,      IFCFG, DNS1 ],
-#       [ "dns2",               \&gst_parse_sh,      IFCFG, DNS2 ],
-       [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, WVDIALSECT ]],
-       [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PEERDNS ]],
-       [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MTU ]],
-       [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MRU ]],
-       [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, PAPNAME ]],
+#       [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
+#       [ "dns2",               \&Utils::Parse::get_sh,      IFCFG, DNS2 ],
+       [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
+       [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
+       [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
+       [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MRU ]],
+       [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, PAPNAME ]],
        [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, PAP,  "%login%" ]],
        [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, CHAP, "%login%" ]],
-       [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MODEMPORT ]],
-       [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, LINESPEED ]],
-#       [ "ppp_options",        \&gst_parse_sh,      IFCFG, PPPOPTIONS ],
-       [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, DEFROUTE ]],
-#       [ "debug",              \&gst_parse_sh_bool, IFCFG, DEBUG ],
-       [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PERSIST ]],
-       [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, ESCAPECHARS ]],
-       [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, HARDFLOWCTL ]],
-       [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_chat,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
+       [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MODEMPORT ]],
+       [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, LINESPEED ]],
+#       [ "ppp_options",        \&Utils::Parse::get_sh,      IFCFG, PPPOPTIONS ],
+       [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, DEFROUTE ]],
+#       [ "debug",              \&Utils::Parse::get_sh_bool, IFCFG, DEBUG ],
+       [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PERSIST ]],
+       [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, ESCAPECHARS ]],
+       [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, HARDFLOWCTL ]],
+       [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_chatfile,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
 #       [ "enabled",            \&gst_network_interface_active, IFACE, \&gst_network_active_interfaces_get ],
-#       [ "enabled",            \&gst_parse_trivial, 0 ]
+#       [ "enabled",            \&Utils::Parse::get_trivial, 0 ]
        # wvdial settings
-       [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
-       [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
-       [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Username" ]],
-       [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Password" ]],
-       [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
-       [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
-       [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
-       [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-       [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
-       [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+       [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
+       [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
+       [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Username" ]],
+       [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Password" ]],
+       [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
+       [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
+       [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
+       [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+       [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
+       [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
       ]
     },
 
@@ -4639,51 +4639,51 @@ sub gst_network_get_interface_parse_table
 	    table =>
           [
            [ "bootproto",          \&gst_network_rh62_parse_bootproto, IFCFG, BOOTPROTO ],
-           [ "auto",               \&gst_parse_sh_bool, IFCFG, ONBOOT ],
-#           [ "user",               \&gst_parse_sh_bool, IFCFG, USERCTL ],
-#           [ "name",               \&gst_parse_sh,      IFCFG, NAME ],
-           [ "dev",                \&gst_parse_sh,      IFCFG, DEVICE ],
-           [ "address",            \&gst_parse_sh,      IFCFG, IPADDR ],
-           [ "netmask",            \&gst_parse_sh,      IFCFG, NETMASK ],
-           [ "broadcast",          \&gst_parse_sh,      IFCFG, BROADCAST ],
-           [ "network",            \&gst_parse_sh,      IFCFG, NETWORK ],
-           [ "gateway",            \&gst_parse_sh,      IFCFG, GATEWAY ],
-           [ "essid",              \&gst_parse_sh,      IFCFG, WIRELESS_ESSID ],
-           [ "key",                \&gst_parse_sh,      IFCFG, WIRELESS_KEY ],
-           [ "remote_address",     \&gst_parse_sh,      IFCFG, REMIP ],
+           [ "auto",               \&Utils::Parse::get_sh_bool, IFCFG, ONBOOT ],
+#           [ "user",               \&Utils::Parse::get_sh_bool, IFCFG, USERCTL ],
+#           [ "name",               \&Utils::Parse::get_sh,      IFCFG, NAME ],
+           [ "dev",                \&Utils::Parse::get_sh,      IFCFG, DEVICE ],
+           [ "address",            \&Utils::Parse::get_sh,      IFCFG, IPADDR ],
+           [ "netmask",            \&Utils::Parse::get_sh,      IFCFG, NETMASK ],
+           [ "broadcast",          \&Utils::Parse::get_sh,      IFCFG, BROADCAST ],
+           [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
+           [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
+           [ "essid",              \&Utils::Parse::get_sh,      IFCFG, WIRELESS_ESSID ],
+           [ "key",                \&Utils::Parse::get_sh,      IFCFG, WIRELESS_KEY ],
+           [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #           [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
-#           [ "dns1",               \&gst_parse_sh,      IFCFG, DNS1 ],
-#           [ "dns2",               \&gst_parse_sh,      IFCFG, DNS2 ],
-           [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, WVDIALSECT ]],
-           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PEERDNS ]],
-           [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MTU ]],
-           [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MRU ]],
-           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, PAPNAME ]],
+#           [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
+#           [ "dns2",               \&Utils::Parse::get_sh,      IFCFG, DNS2 ],
+           [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
+           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
+           [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
+           [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MRU ]],
+           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, PAPNAME ]],
            [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, PAP,  "%login%" ]],
            [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, CHAP, "%login%" ]],
-           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MODEMPORT ]],
-           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, LINESPEED ]],
-#           [ "ppp_options",        \&gst_parse_sh,      IFCFG, PPPOPTIONS ],
-           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, DEFROUTE ]],
-#           [ "debug",              \&gst_parse_sh_bool, IFCFG, DEBUG ],
-           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PERSIST ]],
-           [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, ESCAPECHARS ]],
-           [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, HARDFLOWCTL ]],
-           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_chat,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
+           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MODEMPORT ]],
+           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, LINESPEED ]],
+#           [ "ppp_options",        \&Utils::Parse::get_sh,      IFCFG, PPPOPTIONS ],
+           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, DEFROUTE ]],
+#           [ "debug",              \&Utils::Parse::get_sh_bool, IFCFG, DEBUG ],
+           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PERSIST ]],
+           [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, ESCAPECHARS ]],
+           [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, HARDFLOWCTL ]],
+           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_chatfile,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
 #           [ "enabled",            \&gst_network_interface_active, IFACE,
 #                                                                   \&gst_network_active_interfaces_get ],
-#           [ "enabled",            \&gst_parse_trivial, 0 ]
+#           [ "enabled",            \&Utils::Parse::get_trivial, 0 ]
            # wvdial settings
-           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
-           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
-           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Username" ]],
-           [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Password" ]],
-           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
-           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
-           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
-           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-           [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
-           [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+           [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
+           [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
+           [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Username" ]],
+           [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Password" ]],
+           [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
+           [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
+           [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
+           [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+           [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
+           [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
           ]
     },
 
@@ -4703,51 +4703,51 @@ sub gst_network_get_interface_parse_table
       table =>
       [
        [ "bootproto",          \&gst_network_rh62_parse_bootproto, IFCFG, BOOTPROTO ],
-       [ "auto",               \&gst_parse_sh_bool, IFCFG, ONBOOT ],
-#       [ "user",               \&gst_parse_sh_bool, IFCFG, USERCTL ],
-#       [ "name",               \&gst_parse_sh,      IFCFG, NAME ],
-       [ "dev",                \&gst_parse_sh,      IFCFG, DEVICE ],
-       [ "address",            \&gst_parse_sh,      IFCFG, IPADDR ],
-       [ "netmask",            \&gst_parse_sh,      IFCFG, NETMASK ],
-       [ "broadcast",          \&gst_parse_sh,      IFCFG, BROADCAST ],
-       [ "network",            \&gst_parse_sh,      IFCFG, NETWORK ],
-       [ "gateway",            \&gst_parse_sh,      IFCFG, GATEWAY ],
-       [ "essid",              \&gst_parse_sh,      IFCFG, WIRELESS_ESSID ],
-       [ "key",                \&gst_parse_sh,      IFCFG, WIRELESS_KEY ],
-       [ "remote_address",     \&gst_parse_sh,      IFCFG, REMIP ],
+       [ "auto",               \&Utils::Parse::get_sh_bool, IFCFG, ONBOOT ],
+#       [ "user",               \&Utils::Parse::get_sh_bool, IFCFG, USERCTL ],
+#       [ "name",               \&Utils::Parse::get_sh,      IFCFG, NAME ],
+       [ "dev",                \&Utils::Parse::get_sh,      IFCFG, DEVICE ],
+       [ "address",            \&Utils::Parse::get_sh,      IFCFG, IPADDR ],
+       [ "netmask",            \&Utils::Parse::get_sh,      IFCFG, NETMASK ],
+       [ "broadcast",          \&Utils::Parse::get_sh,      IFCFG, BROADCAST ],
+       [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
+       [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
+       [ "essid",              \&Utils::Parse::get_sh,      IFCFG, WIRELESS_ESSID ],
+       [ "key",                \&Utils::Parse::get_sh,      IFCFG, WIRELESS_KEY ],
+       [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #       [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
-#       [ "dns1",               \&gst_parse_sh,      IFCFG, DNS1 ],
-#       [ "dns2",               \&gst_parse_sh,      IFCFG, DNS2 ],
-       [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, WVDIALSECT ]],
-       [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PEERDNS ]],
-       [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MTU ]],
-       [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MRU ]],
-       [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, PAPNAME ]],
+#       [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
+#       [ "dns2",               \&Utils::Parse::get_sh,      IFCFG, DNS2 ],
+       [ "section",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
+       [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
+       [ "mtu",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
+       [ "mru",                \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MRU ]],
+       [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, PAPNAME ]],
        [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, PAP,  "%login%" ]],
        [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_network_get_pap_passwd, CHAP, "%login%" ]],
-       [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, MODEMPORT ]],
-       [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, LINESPEED ]],
-       [ "ppp_options",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh,      IFCFG, PPPOPTIONS ]],
-       [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, DEFROUTE ]],
-#       [ "debug",              \&gst_parse_sh_bool, IFCFG, DEBUG ],
-       [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, PERSIST ]],
-       [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, ESCAPECHARS ]],
-       [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_sh_bool, IFCFG, HARDFLOWCTL ]],
-       [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_chat,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
+       [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, MODEMPORT ]],
+       [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, LINESPEED ]],
+       [ "ppp_options",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh,      IFCFG, PPPOPTIONS ]],
+       [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, DEFROUTE ]],
+#       [ "debug",              \&Utils::Parse::get_sh_bool, IFCFG, DEBUG ],
+       [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, PERSIST ]],
+       [ "serial_escapechars", \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, ESCAPECHARS ]],
+       [ "serial_hwctl",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_sh_bool, IFCFG, HARDFLOWCTL ]],
+       [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_chatfile,    CHAT, "^atd[^0-9]*([0-9, -]+)" ]],
 #       [ "enabled",            \&gst_network_interface_active, IFACE,
 #                                                               \&gst_network_active_interfaces_get ],
-#       [ "enabled",            \&gst_parse_trivial, 0 ]
+#       [ "enabled",            \&Utils::Parse::get_trivial, 0 ]
        # wvdial settings
-       [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
-       [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
-       [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Username" ]],
-       [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Password" ]],
-       [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
-       [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
-       [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
-       [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-       [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
-       [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&gst_parse_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+       [ "phone_number",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Phone" ]],
+       [ "update_dns",         \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto DNS" ]],
+       [ "login",              \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Username" ]],
+       [ "password",           \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Password" ]],
+       [ "serial_port",        \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Modem" ]],
+       [ "serial_speed",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Baud" ]],
+       [ "set_default_gw",     \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Check Def Route" ]],
+       [ "persist",            \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+       [ "dial_command",       \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Command" ]],
+       [ "external_line",      \&gst_network_check_type,  ["%dev%", "modem", \&Utils::Parse::get_from_ini,     WVDIAL, "Dialer %section%", "Dial Prefix" ]],
       ]
     },
 
@@ -4767,42 +4767,42 @@ sub gst_network_get_interface_parse_table
       },
 	    table =>
           [
-#           [ "user",               \&gst_parse_trivial,                  0 ], # not supported.
-           [ "dev",                \&gst_parse_trivial,                  IFACE ],
+#           [ "user",               \&Utils::Parse::get_trivial,                  0 ], # not supported.
+           [ "dev",                \&Utils::Parse::get_trivial,                  IFACE ],
            [ "bootproto",          \&gst_network_deb22_parse_bootproto,  [INTERFACES, IFACE]],
-           [ "auto",               \&gst_parse_interfaces_option_kw_not, [INTERFACES, IFACE], "noauto" ],
-#           [ "name",               \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "name" ],
-           [ "address",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "address" ],
-           [ "netmask",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "netmask" ],
-           [ "broadcast",          \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "broadcast" ],
-           [ "network",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "network" ],
-           [ "gateway",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "gateway" ],
-           [ "essid",              \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "wireless_essid" ],
-           [ "key",                \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "wireless_key" ],
+           [ "auto",               \&Utils::Parse::get_interfaces_option_kw_not, [INTERFACES, IFACE], "noauto" ],
+#           [ "name",               \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "name" ],
+           [ "address",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "address" ],
+           [ "netmask",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "netmask" ],
+           [ "broadcast",          \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "broadcast" ],
+           [ "network",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "network" ],
+           [ "gateway",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "gateway" ],
+           [ "essid",              \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wireless_essid" ],
+           [ "key",                \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wireless_key" ],
            [ "remote_address",     \&gst_network_debian_parse_remote_address, [INTERFACES, IFACE]],
-           [ "section",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "provider" ],
-           [ "update_dns",         \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "usepeerdns" ]],
-           [ "noauth",             \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "noauth" ]],
-           [ "mtu",                \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
-           [ "mru",                \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
+           [ "section",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "provider" ],
+           [ "update_dns",         \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
+           [ "noauth",             \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
+           [ "mtu",                \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
+           [ "mru",                \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
            [ "serial_port",        \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
            [ "serial_speed",       \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
            [ "login",              \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^login \"?([^\"]*)\"?" ]],
            [ "password",           \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_pap_passwd, PAP, "%login%" ]],
            [ "password",           \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_pap_passwd, CHAP, "%login%" ]],
            [ "ppp_options",        \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_unsup, PPP_OPTIONS ]],
-           [ "set_default_gw",     \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "defaultroute" ]],
-           [ "debug",              \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "debug" ]],
-           [ "persist",            \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "persist" ]],
-           [ "serial_escapechars", \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_split_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
-           [ "serial_hwctl",       \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "crtscts" ]],
-           [ "external_line",      \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_chat, CHAT, "atd[^0-9]([0-9*#]*)[wW]" ]],
-           [ "phone_number",       \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_chat, CHAT, "atd.*[ptwW]([0-9, -]+)" ]],
-           [ "dial_command",       \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_chat, CHAT, "(atd[tp])[0-9, -w]+" ]],
+           [ "set_default_gw",     \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "defaultroute" ]],
+           [ "debug",              \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "debug" ]],
+           [ "persist",            \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "persist" ]],
+           [ "serial_escapechars", \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
+           [ "serial_hwctl",       \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "crtscts" ]],
+           [ "external_line",      \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "atd[^0-9]([0-9*#]*)[wW]" ]],
+           [ "phone_number",       \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "atd.*[ptwW]([0-9, -]+)" ]],
+           [ "dial_command",       \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "(atd[tp])[0-9, -w]+" ]],
            [ "volume",             \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_modem_volume, CHAT ]],
 #           [ "enabled",            \&gst_network_interface_active,       IFACE,
 #                                                                       \&gst_network_active_interfaces_get ],
-#           [ "enabled",            \&gst_parse_trivial,                  0 ]
+#           [ "enabled",            \&Utils::Parse::get_trivial,                  0 ]
            ]
     },
 
@@ -4821,44 +4821,44 @@ sub gst_network_get_interface_parse_table
       },
 	    table =>
           [
-#           [ "user",               \&gst_parse_trivial,                  0 ], # not supported.
-           [ "dev",                \&gst_parse_trivial,                  IFACE ],
+#           [ "user",               \&Utils::Parse::get_trivial,                  0 ], # not supported.
+           [ "dev",                \&Utils::Parse::get_trivial,                  IFACE ],
            [ "bootproto",          \&gst_network_deb22_parse_bootproto,  [INTERFACES, IFACE]],
            [ "auto",               \&gst_network_debian_woody_get_auto,  [INTERFACES, IFACE]],
-#           [ "name",               \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "name" ],
-           [ "address",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "address" ],
-           [ "netmask",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "netmask" ],
-           [ "broadcast",          \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "broadcast" ],
-           [ "network",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "network" ],
-           [ "gateway",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "gateway" ],
-           [ "essid",              \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "wireless[_-]essid" ],
-           [ "key",                \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "wireless[_-]key1?" ],
+#           [ "name",               \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "name" ],
+           [ "address",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "address" ],
+           [ "netmask",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "netmask" ],
+           [ "broadcast",          \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "broadcast" ],
+           [ "network",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "network" ],
+           [ "gateway",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "gateway" ],
+           [ "essid",              \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wireless[_-]essid" ],
+           [ "key",                \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wireless[_-]key1?" ],
            [ "remote_address",     \&gst_network_debian_parse_remote_address, [INTERFACES, IFACE]],
-           [ "section",            \&gst_parse_interfaces_option_str,    [INTERFACES, IFACE], "provider" ],
-           [ "update_dns",         \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&gst_parse_kw, PPP_OPTIONS, "usepeerdns" ]],
-           [ "noauth",             \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&gst_parse_kw, PPP_OPTIONS, "noauth" ]],
-           [ "mtu",                \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&gst_parse_split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
-           [ "mru",                \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&gst_parse_split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
+           [ "section",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "provider" ],
+           [ "update_dns",         \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
+           [ "noauth",             \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
+           [ "mtu",                \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
+           [ "mru",                \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
            [ "serial_port",        \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
            [ "serial_speed",       \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
            [ "login",              \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^user \"?([^\"]*)\"?" ]],
            [ "password",           \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&gst_network_get_pap_passwd, PAP, "%login%" ]],
            [ "password",           \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&gst_network_get_pap_passwd, CHAP, "%login%" ]],
            [ "ppp_options",        \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_unsup, PPP_OPTIONS ]],
-           [ "set_default_gw",     \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&gst_parse_kw, PPP_OPTIONS, "defaultroute" ]],
-           [ "debug",              \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&gst_parse_kw, PPP_OPTIONS, "debug" ]],
-           [ "persist",            \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&gst_parse_kw, PPP_OPTIONS, "persist" ]],
-           [ "serial_escapechars", \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_split_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
-           [ "serial_hwctl",       \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "crtscts" ]],
-           [ "external_line",      \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_chat, CHAT, "atd[^0-9]([0-9*#]*)[wW]" ]],
+           [ "set_default_gw",     \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "defaultroute" ]],
+           [ "debug",              \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "debug" ]],
+           [ "persist",            \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "persist" ]],
+           [ "serial_escapechars", \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
+           [ "serial_hwctl",       \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "crtscts" ]],
+           [ "external_line",      \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "atd[^0-9]([0-9*#]*)[wW]" ]],
            [ "external_line",      \&gst_network_check_type,            [IFACE, "isdn", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^number[ \t]+(.+)[wW]" ]],
            [ "phone_number",       \&gst_network_check_type,            [IFACE, "isdn", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^number.*[wW \t](.*)" ]],
-           [ "phone_number",       \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_chat, CHAT, "atd.*[ptwW]([0-9, -]+)" ]],
-           [ "dial_command",       \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_chat, CHAT, "(atd[tp])[0-9, -w]+" ]],
+           [ "phone_number",       \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "atd.*[ptwW]([0-9, -]+)" ]],
+           [ "dial_command",       \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "(atd[tp])[0-9, -w]+" ]],
            [ "volume",             \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_modem_volume, CHAT ]],
 #           [ "enabled",            \&gst_network_interface_active,       IFACE,
 #                                                                       \&gst_network_active_interfaces_get ],
-#           [ "enabled",            \&gst_parse_trivial,                  0 ]
+#           [ "enabled",            \&Utils::Parse::get_trivial,                  0 ]
          ]
        },
 
@@ -4874,18 +4874,18 @@ sub gst_network_get_interface_parse_table
           [
            [ "bootproto",          \&gst_network_suse70_parse_bootproto,  [IFCFG, IFACE] ],
            [ "auto",               \&gst_network_suse70_parse_iface_auto, [IFCFG, IFACE], NETCONFIG ],
-           [ "user",               \&gst_parse_trivial,                   0 ], # not supported.
+           [ "user",               \&Utils::Parse::get_trivial,                   0 ], # not supported.
            [ "name",               \&gst_network_suse70_parse_iface_sh,   [IFCFG, IFACE], GST_IFACE_NAME ],
            [ "dev",                \&gst_network_suse70_parse_iface_sh,   [IFCFG, IFACE], NETDEV ],
            [ "address",            \&gst_network_suse70_parse_iface_sh,   [IFCFG, IFACE], IPADDR ],
            [ "netmask",            \&gst_network_suse70_get_ifconfig_arg, [IFCFG, IFACE], netmask ],
            [ "broadcast",          \&gst_network_suse70_get_ifconfig_arg, [IFCFG, IFACE], broadcast ],
-#          [ "network",            \&gst_parse_trivial,                   0 ], # not supported.
-#          [ "gateway",            \&gst_parse_sh,      IFCFG, GATEWAY ], # not supported
+#          [ "network",            \&Utils::Parse::get_trivial,                   0 ], # not supported.
+#          [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ], # not supported
            [ "remote_address",     \&gst_network_suse70_get_ifconfig_arg, [IFCFG, IFACE], pointopoint ],
            [ "enabled",            \&gst_network_interface_active,        IFACE,
                                                                 \&gst_network_suse70_active_interfaces_get ],
-           [ "enabled",            \&gst_parse_trivial,                   0 ]
+           [ "enabled",            \&Utils::Parse::get_trivial,                   0 ]
            ]
        },
 
@@ -4904,23 +4904,23 @@ sub gst_network_get_interface_parse_table
 #       [ "enabled",            \&gst_network_interface_active,        "%dev%", \&gst_network_active_interfaces_get ],
        [ "auto",               \&gst_network_suse90_get_auto,         IFCFG,   STARTMODE      ],
        [ "bootproto",          \&gst_network_parse_bootproto,         IFCFG,   BOOTPROTO      ],
-       [ "address",            \&gst_parse_sh,                        IFCFG,   IPADDR         ],
-       [ "netmask",            \&gst_parse_sh,                        IFCFG,   NETMASK        ],
-       [ "remote_address",     \&gst_parse_sh,                        IFCFG,   REMOTE_IPADDR  ],
-       [ "essid",              \&gst_parse_sh,                        IFCFG,   WIRELESS_ESSID ],
-       [ "key",                \&gst_parse_sh,                        IFCFG,   WIRELESS_KEY   ],
+       [ "address",            \&Utils::Parse::get_sh,                        IFCFG,   IPADDR         ],
+       [ "netmask",            \&Utils::Parse::get_sh,                        IFCFG,   NETMASK        ],
+       [ "remote_address",     \&Utils::Parse::get_sh,                        IFCFG,   REMOTE_IPADDR  ],
+       [ "essid",              \&Utils::Parse::get_sh,                        IFCFG,   WIRELESS_ESSID ],
+       [ "key",                \&Utils::Parse::get_sh,                        IFCFG,   WIRELESS_KEY   ],
        [ "gateway",            \&gst_network_suse90_get_gateway,      ROUTE_CONF, "%address%", "%netmask%" ],
        [ "gateway",            \&gst_network_suse90_get_plip_gateway, ROUTE_CONF, "%remote_address%"       ],
        # Modem stuff goes here
-       [ "serial_port",        \&gst_parse_sh,                        IFCFG,   MODEM_DEVICE   ],
-       [ "serial_speed",       \&gst_parse_sh,                        IFCFG,   SPEED          ],
-       [ "mtu",                \&gst_parse_sh,                        IFCFG,   MTU            ],
-       [ "mru",                \&gst_parse_sh,                        IFCFG,   MRU            ],
-#       [ "ppp_options",        \&gst_parse_sh,                        IFCFG,   PPPD_OPTIONS   ],
-       [ "dial_command",       \&gst_parse_sh,                        IFCFG,   DIALCOMMAND    ],
-       [ "external_line",      \&gst_parse_sh,                        IFCFG,   DIALPREFIX     ],
-       [ "section",            \&gst_parse_sh,                        IFCFG,   PROVIDER       ],
-       [ "volume",             \&gst_parse_sh_re,                     IFCFG,   INIT8, "AT.*[ml]([0-3])" ],
+       [ "serial_port",        \&Utils::Parse::get_sh,                        IFCFG,   MODEM_DEVICE   ],
+       [ "serial_speed",       \&Utils::Parse::get_sh,                        IFCFG,   SPEED          ],
+       [ "mtu",                \&Utils::Parse::get_sh,                        IFCFG,   MTU            ],
+       [ "mru",                \&Utils::Parse::get_sh,                        IFCFG,   MRU            ],
+#       [ "ppp_options",        \&Utils::Parse::get_sh,                        IFCFG,   PPPD_OPTIONS   ],
+       [ "dial_command",       \&Utils::Parse::get_sh,                        IFCFG,   DIALCOMMAND    ],
+       [ "external_line",      \&Utils::Parse::get_sh,                        IFCFG,   DIALPREFIX     ],
+       [ "section",            \&Utils::Parse::get_sh,                        IFCFG,   PROVIDER       ],
+       [ "volume",             \&Utils::Parse::get_sh_re,                     IFCFG,   INIT8, "AT.*[ml]([0-3])" ],
        [ "login",              \&gst_network_suse90_parse_provider_file,       "%section%", USERNAME     ],
        [ "password",           \&gst_network_suse90_parse_provider_file,       "%section%", PASSWORD     ],
        [ "phone_number",       \&gst_network_suse90_parse_provider_file,       "%section%", PHONE        ],
@@ -4948,37 +4948,37 @@ sub gst_network_get_interface_parse_table
 	    table =>
           [
            [ "bootproto",          \&gst_network_pld10_parse_bootproto, IFCFG, BOOTPROTO ],
-           [ "auto",               \&gst_parse_sh_bool, IFCFG, ONBOOT ],
-#           [ "user",               \&gst_parse_sh_bool, IFCFG, USERCTL ],
-#           [ "name",               \&gst_parse_sh,      IFCFG, DEVICE ],
-           [ "dev",                \&gst_parse_sh,      IFCFG, DEVICE ],
+           [ "auto",               \&Utils::Parse::get_sh_bool, IFCFG, ONBOOT ],
+#           [ "user",               \&Utils::Parse::get_sh_bool, IFCFG, USERCTL ],
+#           [ "name",               \&Utils::Parse::get_sh,      IFCFG, DEVICE ],
+           [ "dev",                \&Utils::Parse::get_sh,      IFCFG, DEVICE ],
            [ "address",            \&gst_network_pld10_get_ipaddr, IFCFG, IPADDR, "address" ],
            [ "netmask",            \&gst_network_pld10_get_ipaddr, IFCFG, IPADDR, "netmask" ],
-#           [ "broadcast",          \&gst_parse_sh,      IFCFG, BROADCAST ],
-#           [ "network",            \&gst_parse_sh,      IFCFG, NETWORK ],
-           [ "gateway",            \&gst_parse_sh,      IFCFG, GATEWAY ],
-           [ "remote_address",     \&gst_parse_sh,      IFCFG, REMIP ],
+#           [ "broadcast",          \&Utils::Parse::get_sh,      IFCFG, BROADCAST ],
+#           [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
+           [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
+           [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #           [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
-#           [ "dns1",               \&gst_parse_sh,      IFCFG, DNS1 ],
-#           [ "dns2",               \&gst_parse_sh,      IFCFG, DNS2 ],
-           [ "update_dns",         \&gst_parse_sh_bool, IFCFG, PEERDNS ],
-           [ "mtu",                \&gst_parse_sh,      IFCFG, MTU ],
-           [ "mru",                \&gst_parse_sh,      IFCFG, MRU ],
-           [ "login",              \&gst_parse_sh,      IFCFG, PAPNAME ],
+#           [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
+#           [ "dns2",               \&Utils::Parse::get_sh,      IFCFG, DNS2 ],
+           [ "update_dns",         \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ],
+           [ "mtu",                \&Utils::Parse::get_sh,      IFCFG, MTU ],
+           [ "mru",                \&Utils::Parse::get_sh,      IFCFG, MRU ],
+           [ "login",              \&Utils::Parse::get_sh,      IFCFG, PAPNAME ],
            [ "password",           \&gst_network_get_pap_passwd, PAP,  "%login%" ],
            [ "password",           \&gst_network_get_pap_passwd, CHAP, "%login%" ],
-           [ "serial_port",        \&gst_parse_sh,      IFCFG, MODEMPORT ],
-           [ "serial_speed",       \&gst_parse_sh,      IFCFG, LINESPEED ],
-#           [ "ppp_options",        \&gst_parse_sh,      IFCFG, PPPOPTIONS ],
-#           [ "section",            \&gst_parse_sh,      IFCFG, WVDIALSECT ],
-           [ "set_default_gw",     \&gst_parse_sh_bool, IFCFG, DEFROUTE ],
-#           [ "debug",              \&gst_parse_sh_bool, IFCFG, DEBUG ],
-           [ "persist",            \&gst_parse_sh_bool, IFCFG, PERSIST ],
-           [ "serial_escapechars", \&gst_parse_sh_bool, IFCFG, ESCAPECHARS ],
-           [ "serial_hwctl",       \&gst_parse_sh_bool, IFCFG, HARDFLOWCTL ],
-           [ "phone_number",       \&gst_parse_chat,    CHAT, "^atd[^0-9]*([0-9, -]+)" ],
+           [ "serial_port",        \&Utils::Parse::get_sh,      IFCFG, MODEMPORT ],
+           [ "serial_speed",       \&Utils::Parse::get_sh,      IFCFG, LINESPEED ],
+#           [ "ppp_options",        \&Utils::Parse::get_sh,      IFCFG, PPPOPTIONS ],
+#           [ "section",            \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ],
+           [ "set_default_gw",     \&Utils::Parse::get_sh_bool, IFCFG, DEFROUTE ],
+#           [ "debug",              \&Utils::Parse::get_sh_bool, IFCFG, DEBUG ],
+           [ "persist",            \&Utils::Parse::get_sh_bool, IFCFG, PERSIST ],
+           [ "serial_escapechars", \&Utils::Parse::get_sh_bool, IFCFG, ESCAPECHARS ],
+           [ "serial_hwctl",       \&Utils::Parse::get_sh_bool, IFCFG, HARDFLOWCTL ],
+           [ "phone_number",       \&Utils::Parse::get_from_chatfile,    CHAT, "^atd[^0-9]*([0-9, -]+)" ],
 #           [ "enabled",            \&gst_network_interface_active, IFACE, \&gst_network_active_interfaces_get ],
-#           [ "enabled",            \&gst_parse_trivial, 0 ]
+#           [ "enabled",            \&Utils::Parse::get_trivial, 0 ]
           ]
     },
     "slackware-9.1.0" =>
@@ -4998,35 +4998,35 @@ sub gst_network_get_interface_parse_table
       },
       table =>
       [
-       [ "user",               \&gst_parse_trivial,                  0 ], # not supported.
-       [ "dev",                \&gst_parse_trivial,                  IFACE ],
-       [ "address",            \&gst_parse_rcinet1conf,              [RC_INET_CONF, IFACE], IPADDR ],
-       [ "netmask",            \&gst_parse_rcinet1conf,              [RC_INET_CONF, IFACE], NETMASK ],
+       [ "user",               \&Utils::Parse::get_trivial,                  0 ], # not supported.
+       [ "dev",                \&Utils::Parse::get_trivial,                  IFACE ],
+       [ "address",            \&Utils::Parse::get_rcinet1conf,              [RC_INET_CONF, IFACE], IPADDR ],
+       [ "netmask",            \&Utils::Parse::get_rcinet1conf,              [RC_INET_CONF, IFACE], NETMASK ],
        [ "gateway",            \&gst_network_get_gateway,            RC_INET_CONF, GATEWAY, "%address%", "%netmask%" ],
        [ "auto",               \&gst_network_slackware91_get_auto,   [RC_INET, RC_LOCAL, IFACE]],
        [ "bootproto",          \&gst_network_slackware91_parse_bootproto, [RC_INET_CONF, IFACE]],
-       [ "essid",              \&gst_parse_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, ESSID ],
-       [ "key",                \&gst_parse_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY   ],
+       [ "essid",              \&Utils::Parse::get_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, ESSID ],
+       [ "key",                \&Utils::Parse::get_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY   ],
        [ "enabled",            \&gst_network_interface_active,       IFACE, \&gst_network_active_interfaces_get ],
        # Modem stuff
-       [ "update_dns",         \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "usepeerdns" ]],
-       [ "noauth",             \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "noauth" ]],
-       [ "mtu",                \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
-       [ "mru",                \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
+       [ "update_dns",         \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
+       [ "noauth",             \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
+       [ "mtu",                \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
+       [ "mru",                \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
        [ "serial_port",        \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
        [ "serial_speed",       \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
        [ "login",              \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_re, PPP_OPTIONS, "^name \"?([^\"]*)\"?" ]],
        [ "password",           \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_pap_passwd, PAP, "%login%" ]],
        [ "password",           \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_pap_passwd, CHAP, "%login%" ]],
        [ "ppp_options",        \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_ppp_options_unsup, PPP_OPTIONS ]],
-       [ "set_default_gw",     \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "defaultroute" ]],
-       [ "debug",              \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "debug" ]],
-       [ "persist",            \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "persist" ]],
-       [ "serial_escapechars", \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_split_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
-       [ "serial_hwctl",       \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "crtscts" ]],
-       [ "external_line",      \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_chat, CHAT, "atd[^0-9]*([0-9*#]*)[wW]" ]],
-       [ "phone_number",       \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_chat, CHAT, "atd.*[ptw]([0-9, -]+)" ]],
-       [ "dial_command",       \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_chat, CHAT, "(atd[tp])[0-9, -w]+" ]],
+       [ "set_default_gw",     \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "defaultroute" ]],
+       [ "debug",              \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "debug" ]],
+       [ "persist",            \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "persist" ]],
+       [ "serial_escapechars", \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
+       [ "serial_hwctl",       \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "crtscts" ]],
+       [ "external_line",      \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "atd[^0-9]*([0-9*#]*)[wW]" ]],
+       [ "phone_number",       \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "atd.*[ptw]([0-9, -]+)" ]],
+       [ "dial_command",       \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "(atd[tp])[0-9, -w]+" ]],
        [ "volume",             \&gst_network_check_type,            [IFACE, "modem", \&gst_network_get_modem_volume, CHAT ]],
        ]
       },
@@ -5045,33 +5045,33 @@ sub gst_network_get_interface_parse_table
       table =>
       [
        [ "auto",               \&gst_service_gentoo_get_service_status, INIT, "default" ],
-       [ "user",               \&gst_parse_trivial,                  0 ], # not supported.
-       [ "dev",                \&gst_parse_trivial,                  IFACE ],
-       [ "address",            \&gst_parse_sh_re,                    NET, "iface_%dev%", "^[ \t]*([0-9\.]+)" ],
-       [ "netmask",            \&gst_parse_sh_re,                    NET, "iface_%dev%", "netmask[ \t]+([0-9\.]*)" ],
-       [ "remote_address",     \&gst_parse_sh_re,                    NET, "iface_%dev%", "dest_address[ \t]+([0-9\.]*)" ],
-       [ "gateway",            \&gst_parse_sh_re,                    NET, "gateway", "%dev%/([0-9\.\:]*)" ],
+       [ "user",               \&Utils::Parse::get_trivial,                  0 ], # not supported.
+       [ "dev",                \&Utils::Parse::get_trivial,                  IFACE ],
+       [ "address",            \&Utils::Parse::get_sh_re,                    NET, "iface_%dev%", "^[ \t]*([0-9\.]+)" ],
+       [ "netmask",            \&Utils::Parse::get_sh_re,                    NET, "iface_%dev%", "netmask[ \t]+([0-9\.]*)" ],
+       [ "remote_address",     \&Utils::Parse::get_sh_re,                    NET, "iface_%dev%", "dest_address[ \t]+([0-9\.]*)" ],
+       [ "gateway",            \&Utils::Parse::get_sh_re,                    NET, "gateway", "%dev%/([0-9\.\:]*)" ],
        [ "enabled",            \&gst_network_interface_active,       IFACE, \&gst_network_active_interfaces_get ],
        [ "bootproto",          \&gst_network_parse_bootproto,        NET, "iface_%dev%" ],
-       [ "essid",              \&gst_parse_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, ESSID ],
-       [ "key",                \&gst_parse_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY   ],
+       [ "essid",              \&Utils::Parse::get_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, ESSID ],
+       [ "key",                \&Utils::Parse::get_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY   ],
        # modem stuff
-       [ "update_dns",         \&gst_parse_sh_bool,                  PPPNET, PEERDNS ],
-       [ "mtu",                \&gst_parse_sh,                       PPPNET, MTU ],
-       [ "mru",                \&gst_parse_sh,                       PPPNET, MRU ],
-       [ "serial_port",        \&gst_parse_sh,                       PPPNET, MODEMPORT ],
-       [ "serial_speed",       \&gst_parse_sh,                       PPPNET, LINESPEED ],
-       [ "login",              \&gst_parse_sh,                       PPPNET, USERNAME ],
-       [ "password",           \&gst_parse_sh,                       PPPNET, PASSWORD ],
-       [ "ppp_options",        \&gst_parse_sh,                       PPPNET, PPPOPTIONS ],
-       [ "set_default_gw",     \&gst_parse_sh_bool,                  PPPNET, DEFROUTE ],
-       [ "debug",              \&gst_parse_sh_bool,                  PPPNET, DEBUG ],
-       [ "persist",            \&gst_parse_sh_bool,                  PPPNET, PERSIST ],
-       [ "serial_escapechars", \&gst_parse_sh_bool,                  PPPNET, ESCAPECHARS ],
-       [ "serial_hwctl",       \&gst_parse_sh_bool,                  PPPNET, HARDFLOWCTL ],
-       [ "external_line",      \&gst_parse_sh_re,                    PPPNET, NUMBER, "^([0-9*#]*)wW" ],
-       [ "phone_number",       \&gst_parse_sh_re,                    PPPNET, NUMBER, "w?([0-9]*)\$" ],
-       [ "volume",             \&gst_parse_sh_re,                    PPPNET, INITSTRING, "^at.*[ml]([0-3])" ],
+       [ "update_dns",         \&Utils::Parse::get_sh_bool,                  PPPNET, PEERDNS ],
+       [ "mtu",                \&Utils::Parse::get_sh,                       PPPNET, MTU ],
+       [ "mru",                \&Utils::Parse::get_sh,                       PPPNET, MRU ],
+       [ "serial_port",        \&Utils::Parse::get_sh,                       PPPNET, MODEMPORT ],
+       [ "serial_speed",       \&Utils::Parse::get_sh,                       PPPNET, LINESPEED ],
+       [ "login",              \&Utils::Parse::get_sh,                       PPPNET, USERNAME ],
+       [ "password",           \&Utils::Parse::get_sh,                       PPPNET, PASSWORD ],
+       [ "ppp_options",        \&Utils::Parse::get_sh,                       PPPNET, PPPOPTIONS ],
+       [ "set_default_gw",     \&Utils::Parse::get_sh_bool,                  PPPNET, DEFROUTE ],
+       [ "debug",              \&Utils::Parse::get_sh_bool,                  PPPNET, DEBUG ],
+       [ "persist",            \&Utils::Parse::get_sh_bool,                  PPPNET, PERSIST ],
+       [ "serial_escapechars", \&Utils::Parse::get_sh_bool,                  PPPNET, ESCAPECHARS ],
+       [ "serial_hwctl",       \&Utils::Parse::get_sh_bool,                  PPPNET, HARDFLOWCTL ],
+       [ "external_line",      \&Utils::Parse::get_sh_re,                    PPPNET, NUMBER, "^([0-9*#]*)wW" ],
+       [ "phone_number",       \&Utils::Parse::get_sh_re,                    PPPNET, NUMBER, "w?([0-9]*)\$" ],
+       [ "volume",             \&Utils::Parse::get_sh_re,                    PPPNET, INITSTRING, "^at.*[ml]([0-3])" ],
       ]
     },
 
@@ -5089,17 +5089,17 @@ sub gst_network_get_interface_parse_table
       table =>
       [
        [ "auto",               \&gst_network_freebsd5_get_auto,      [RC_CONF, RC_CONF_DEFAULT, IFACE ]],
-       [ "user",               \&gst_parse_trivial,                  0 ], # not supported.
-       [ "dev",                \&gst_parse_trivial,                  IFACE ],
+       [ "user",               \&Utils::Parse::get_trivial,                  0 ], # not supported.
+       [ "dev",                \&Utils::Parse::get_trivial,                  IFACE ],
        # we need to double check these values both in the start_if and in the rc.conf files, in this order
-       [ "address",            \&gst_parse_startif,                  STARTIF, "inet[ \t]+([0-9\.]+)" ],
-       [ "address",            \&gst_parse_sh_re,                    RC_CONF, "ifconfig_%dev%", "inet[ \t]+([0-9\.]+)" ],
-       [ "netmask",            \&gst_parse_startif,                  STARTIF, "netmask[ \t]+([0-9\.]+)" ],
-       [ "netmask",            \&gst_parse_sh_re,                    RC_CONF, "ifconfig_%dev%", "netmask[ \t]+([0-9\.]+)" ],
-       [ "remote_address",     \&gst_parse_startif,                  STARTIF, "dest_address[ \t]+([0-9\.]+)" ],
-       [ "remote_address",     \&gst_parse_sh_re,                    RC_CONF, "ifconfig_%dev%", "dest_address[ \t]+([0-9\.]+)" ],
-       [ "essid",              \&gst_parse_startif,                  STARTIF, "ssid[ \t]+(\".*\"|[^\"][^ ]+)" ],
-       [ "essid",              \&gst_parse_sh_re,                    RC_CONF, "ifconfig_%dev%", "ssid[ \t]+([^ ]*)" ],
+       [ "address",            \&Utils::Parse::get_startif,                  STARTIF, "inet[ \t]+([0-9\.]+)" ],
+       [ "address",            \&Utils::Parse::get_sh_re,                    RC_CONF, "ifconfig_%dev%", "inet[ \t]+([0-9\.]+)" ],
+       [ "netmask",            \&Utils::Parse::get_startif,                  STARTIF, "netmask[ \t]+([0-9\.]+)" ],
+       [ "netmask",            \&Utils::Parse::get_sh_re,                    RC_CONF, "ifconfig_%dev%", "netmask[ \t]+([0-9\.]+)" ],
+       [ "remote_address",     \&Utils::Parse::get_startif,                  STARTIF, "dest_address[ \t]+([0-9\.]+)" ],
+       [ "remote_address",     \&Utils::Parse::get_sh_re,                    RC_CONF, "ifconfig_%dev%", "dest_address[ \t]+([0-9\.]+)" ],
+       [ "essid",              \&Utils::Parse::get_startif,                  STARTIF, "ssid[ \t]+(\".*\"|[^\"][^ ]+)" ],
+       [ "essid",              \&Utils::Parse::get_sh_re,                    RC_CONF, "ifconfig_%dev%", "ssid[ \t]+([^ ]*)" ],
        # this is for plip interfaces
        [ "gateway",            \&gst_network_get_plip_gateway,       RC_CONF, "defaultrouter", "%remote_address%" ],
        [ "gateway",            \&gst_network_get_gateway,            RC_CONF, "defaultrouter", "%address%", "%netmask%" ],
@@ -5123,10 +5123,10 @@ sub gst_network_get_interface_parse_table
     },
 	  );
   
-  my $dist = $dist_map{$gst_dist};
+  my $dist = $dist_map{$$tool{"platform"}};
   return %{$dist_tables{$dist}} if $dist;
 
-  &Utils::Report::do_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $$tool{"platform"});
   return undef;
 }
 
@@ -5518,10 +5518,10 @@ sub gst_network_get_replace_table
     }
 	  );
   
-  my $dist = $dist_map{$gst_dist};
+  my $dist = $dist_map{$$tool{"platform"}};
   return %{$dist_tables{$dist}} if $dist;
 
-  &Utils::Report::do_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $$tool{"platform"});
   return undef;
 }
 
@@ -5947,7 +5947,7 @@ sub gst_network_get_interface_replace_table
       },
 	    table =>
           [
-# not sup  [ "user",               \&gst_parse_sh_bool, IFCFG, USERCTL ],
+# not sup  [ "user",               \&Utils::Parse::get_sh_bool, IFCFG, USERCTL ],
            [ "_always_",           \&gst_network_deb22_replace_bootproto,  [INTERFACES, IFACE]],
            [ "bootproto",          \&gst_network_deb22_replace_bootproto,  [INTERFACES, IFACE]],
            [ "auto",               \&Utils::Replace::set_interfaces_option_kw_not, [INTERFACES, IFACE], "noauto" ],
@@ -6054,14 +6054,14 @@ sub gst_network_get_interface_replace_table
            [ "bootproto",          \&gst_network_suse70_replace_bootproto,  [IFCFG, IFACE] ],
            [ "auto",               \&gst_network_suse70_replace_iface_auto, [IFCFG, IFACE], NETCONFIG ],
            [ "dev",                \&gst_network_suse70_replace_iface_sh,   [IFCFG, IFACE], NETDEV ],
-# not sup  [ "user",               \&gst_parse_trivial,                   0 ], # not supported.
+# not sup  [ "user",               \&Utils::Parse::get_trivial,                   0 ], # not supported.
            [ "name",               \&gst_network_suse70_replace_iface_sh,   [IFCFG, IFACE], GST_IFACE_NAME ],
            [ "address",            \&gst_network_suse70_replace_iface_sh,   [IFCFG, IFACE], IPADDR ],
            [ "address",            \&gst_network_suse70_set_ifconfig_ip,    [IFCFG, IFACE] ],
            [ "netmask",            \&gst_network_suse70_set_ifconfig_arg,   [IFCFG, IFACE], netmask ],
            [ "broadcast",          \&gst_network_suse70_set_ifconfig_arg,   [IFCFG, IFACE], broadcast ],
-#          [ "network",            \&gst_parse_trivial,                   0 ], # not supported.
-#          [ "gateway",            \&gst_parse_sh,      IFCFG, GATEWAY ], # not supported
+#          [ "network",            \&Utils::Parse::get_trivial,                   0 ], # not supported.
+#          [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ], # not supported
            [ "remote_address",     \&gst_network_suse70_set_ifconfig_arg,   [IFCFG, IFACE], pointopoint ],
            [ "update_dns",         \&Utils::Replace::set_kw,                        PPP_OPTIONS, "usepeerdns" ]
       ]
@@ -6292,10 +6292,10 @@ sub gst_network_get_interface_replace_table
     }
   );
   
-  my $dist = $dist_map{$gst_dist};
+  my $dist = $dist_map{$$tool{"platform"}};
   return %{$dist_tables{$dist}} if $dist;
 
-  &Utils::Report::do_report ("platform_no_table", $gst_dist);
+  &Utils::Report::do_report ("platform_no_table", $$tool{"platform"});
   return undef;
 }
 

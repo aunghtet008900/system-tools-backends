@@ -21,9 +21,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-use Utils::Util;
-use Utils::File;
-
 $SCRIPTSDIR = "@scriptsdir@";
 if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
 {
@@ -31,8 +28,10 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
     $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/parse.pl$DOTIN";
 require "$SCRIPTSDIR/partition.pl$DOTIN";
+
+use Utils::Util;
+use Utils::File;
 
 my @grub_common_image_vars = qw (title);
 my @grub_image_vars = (@grub_common_image_vars, qw (root kernel ));
@@ -60,7 +59,7 @@ sub gst_boot_grub_set_file_path
   my ($mtab, $dir);
 
   $mtab = "$gst_prefix/etc/mtab";
-  $mntopts = &gst_parse_split_first_array ($mtab, $root, "[ \t]+", "[ \t]+");
+  $mntopts = &Utils::Parse::split_first_array ($mtab, $root, "[ \t]+", "[ \t]+");
   $dir = $$mntopts[0];
 
   if ($dir ne "")
@@ -348,7 +347,7 @@ sub gst_boot_grub_grub2system
   my ($device_map, $grubdev) = @_;
   ($drive, $part, @add) = split (',', $grubdev);
 
-  $dev = &gst_parse_split_first_str ($device_map, "\\($drive\\)", "[ \t]+");
+  $dev = &Utils::Parse::split_first_str ($device_map, "\\($drive\\)", "[ \t]+");
 
   if ($dev eq undef)
   {
@@ -622,7 +621,7 @@ sub gst_boot_grub_parse_file_cmd
   $file =~ s/[ \t].*//;
   $dev = &gst_boot_grub_grub2system ($device_map, $grubdev);
   
-  $mntopts = &gst_parse_split_first_array ($mtab, $dev, "[ \t]+", "[ \t]+");
+  $mntopts = &Utils::Parse::split_first_array ($mtab, $dev, "[ \t]+", "[ \t]+");
 
   $res = $$mntopts[0] . "/$file";
   $res =~ s/\/+/\//g;
@@ -886,7 +885,7 @@ sub gst_boot_grub_replace_file_cmd
   $file = $value;
 
   $dev = &gst_boot_grub_find_device ($file);
-  $mntopts = &gst_parse_split_first_array ($mtab, $dev, "[ \t]+", "[ \t]+");
+  $mntopts = &Utils::Parse::split_first_array ($mtab, $dev, "[ \t]+", "[ \t]+");
   $dir = $$mntopts[0];
 
   $file =~ s/^$dir//;

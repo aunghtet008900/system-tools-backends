@@ -1264,11 +1264,7 @@ sub set
   &xml_parse ();
 
   &write_fstab;
-
-  if ($gst_do_immediate)
-  {
-    &set_immediate;
-  }
+  &set_immediate;
   
   &Utils::Report::end ();
 }
