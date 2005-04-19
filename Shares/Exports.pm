@@ -21,6 +21,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+package Shares::Exports;
+
 use Utils::File;
 use Utils::Replace;
 use Utils::Parse;
@@ -487,7 +489,7 @@ sub gst_share_replace_smb_conf
   }
 }
 
-sub gst_share_nfs_exports_get_next_entry_line  # $infd, $outfd
+sub gst_share_nfs_exports_get_next_entry_line
 {
   my ($infd, $outfd) = @_;
 
@@ -754,135 +756,30 @@ sub gst_share_replace_nfs_exports  # filename, table
   } 
 }
 
-
-sub gst_share_get_smbclient_list_cmd
+sub get_distro_files
 {
-  my ($host) = @_;
-  my ($tool_smbclient);
+  my ($smb_comb, $exports);
 
-  $tool_smbclient = &Utils::File::locate_tool ("smbclient");
+  %dist_attrib = &gst_network_get_parse_table ();
+  $smb_conf    = $dist_attrib{"fn"}{"SMB_CONF"};
 
-  return "$tool_smbclient -N -U % -L -I $host";
+  # This is pretty standard
+  $exports = "/etc/exports";
+
+  return ($smb_conf, $exports);
 }
 
-
-sub gst_share_scan_smb_host_call
+sub get_list
 {
-  my ($host) = @_;
-  my ($cmd, $dirs);
-  local *SMBCLIENT;
+  my ($smb_exports, $nfs_exports);
+  my (%dist_attrib, $smb_conf, $exports);
 
-  $cmd = &gst_share_get_smbclient_list_cmd ($host);
-  open (SMBCLIENT, "/bin/sh -c \"$cmd\" 2> /dev/null |");
+  ($smb_conf, $exports) = &get_distro_files ();
 
-  while (<SMBCLIENT>)
-  {
-    last if /^[ \t]+Sharename[ \t]+Type[ \t]+Comment/;
-  }
-  
-  while (<SMBCLIENT>)
-  {
-    chomp;
-    last if /^$/;
-    # Looking for sth like " 	fredsdir       Disk      Fred's Service"
-    if (/^[ \t]*([^ \t]+)[ \t]+Disk/)
-    {
-      $dirs .= ":" . $1;
-    }
-  }
-  close SMBCLIENT;
+  $smb_exports = &gst_share_parse_smb_conf    ($smb_conf);
+  $nfs_exports = &gst_share_parse_nfs_exports ($exports);
 
-  return "$host:$dirs";
-}
-
-
-sub gst_share_scan_smb_start
-{
-  my (@hosts) = @_;
-  my ($host, @procs);
-
-  foreach $host (@hosts)
-  {
-    push @procs, &Utils::Util::process_fork (\&gst_share_scan_smb_host_call, $host);
-  }
-
-  return \@procs;
-}
-
-
-sub gst_share_scan_nfs_host_call
-{
-  my ($host) = @_;
-  my ($cmd, $dirs);
-  local *SHOWMOUNT;
-
-  $cmd = &gst_share_get_showmount_cmd ($host);
-  open (SHOWMOUNT, "/bin/sh -c \"$cmd\" 2> /dev/null |");
-  while (<SHOWMOUNT>)
-  {
-    chomp;
-    $dirs .= ":$_";
-  }
-  close SHOWMOUNT;
-
-  return "$host$dirs";
-}
-
-
-sub gst_share_scan_nfs_start
-{
-  my (@hosts) = @_;
-  my ($host, @procs);
-
-  foreach $host (@hosts)
-  {
-    push @procs, &Utils::Util::process_fork (\&gst_share_scan_nfs_host_call, $host);
-  }
-
-  return \@procs;
-}
-
-
-sub gst_share_scan_share_collect
-{
-  my ($procs, $host2name) = @_;
-  my ($proc, $str, %hash, $host, @dirs);
-
-  foreach $proc (@$procs)
-  {
-    if ($$proc{"ready"})
-    {
-      sysread ($$proc{"fd"}, $str, 4096);
-      @dirs = split (':', $str);
-      $host = shift @dirs;
-      $hash{$$host2name{$host}} = [ @dirs ];
-    }
-    &Utils::Util::process_kill ($proc);
-  }
-
-  return \%hash;
-}
-
-
-sub gst_share_scan_network
-{
-  my ($host, @hosts);
-  my ($proc, @procs, $lookup_procs, $nfs_procs, $smb_procs);
-  my ($i, @names, %host2name, $nfs_table, $smb_table);
-
-  @hosts = &gst_network_find_hosts ();
-  
-  $lookup_procs = &gst_network_lookup_address_start (@hosts);
-  $nfs_procs = &gst_share_scan_nfs_start (@hosts);
-  $smb_procs = &gst_share_scan_smb_start (@hosts);
-
-  &Utils::Util::process_list_check_ready (10, [@$lookup_procs, @$nfs_procs, @$smb_procs]);
-
-  @names = &gst_network_lookup_address_collect ($lookup_procs);
-  # http://tlc.perlarchive.com/articles/perl/ug0001.shtml
-  @host2name{@hosts} = @names;
-
-  return &gst_share_scan_collect ([@$nfs_procs, @$smb_procs], \%host2name);
+  return ($smb_exports, $nfs_exports);
 }
 
 1;

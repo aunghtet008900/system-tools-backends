@@ -1,0 +1,5 @@
+- Replace $$tool with $Utils::Backend::tool everywhere
+- Add NFS to the SharesList object
+- keep refactoring the code (move *pl.in to *pm)
+- add DBus objects for all the things that the backends manage
+

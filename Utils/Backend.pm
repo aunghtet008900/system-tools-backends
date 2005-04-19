@@ -27,6 +27,9 @@ use Utils::Report;
 use Utils::XML;
 use Utils::Platform;
 
+our $DBUS_PREFIX = "org.freedesktop.SystemToolsBackends";
+our $DBUS_PATH   = "/org/freedesktop/SystemToolsBackends";
+our $tool;
 
 eval "use Locale::gettext";
 $eval_gettext = $@;
@@ -294,7 +297,7 @@ sub is_backend
 sub init
 {
   my ($name, $version, $description, $directives, @args) = @_;
-  my (%tool, $arg);
+  my ($arg);
 
   # print a CR for synchronysm with the frontend
   print "\n";

@@ -1,0 +1,44 @@
+#!/usr/bin/env perl
+#-*- Mode: perl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+
+# Loader for the system tools backends.
+#
+# Copyright (C) 2005 Carlos Garnacho
+#
+# Authors: Carlos Garnacho Parro  <carlosg@gnome.org>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Library General Public License as published
+# by the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+
+use Net::DBus;
+use Net::DBus::Service;
+use Net::DBus::Reactor;
+use Utils::Backend;
+
+use SharesList;
+
+# Initialize tool
+&Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+
+# Initialize bus
+my $bus     = Net::DBus->session();
+my $service = Net::DBus::Service->new($Utils::Backend::DBUS_PREFIX, $bus);
+my $reactor = Net::DBus::Reactor->new();
+
+#Initialize all objects
+my $shares_list = SharesList->new ($service);
+
+$reactor->manage($bus->{connection});
+#$reactor->add_timeout (50, Net::DBus::Callback->new(method => \&files_monitor::do_monitor_files));
+$reactor->run();
