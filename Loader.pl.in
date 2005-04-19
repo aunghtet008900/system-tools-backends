@@ -25,6 +25,7 @@ use Net::DBus;
 use Net::DBus::Service;
 use Net::DBus::Reactor;
 use Utils::Backend;
+use Utils::Monitor;
 
 use SharesList;
 
@@ -40,5 +41,5 @@ my $reactor = Net::DBus::Reactor->new();
 my $shares_list = SharesList->new ($service);
 
 $reactor->manage($bus->{connection});
-#$reactor->add_timeout (50, Net::DBus::Callback->new(method => \&files_monitor::do_monitor_files));
+$reactor->add_timeout (50, Net::DBus::Callback->new(method => \&Utils::Monitor::do_monitor_files));
 $reactor->run();

@@ -36,7 +36,8 @@ sub new
                                    ["get"],
                                    @_);
   bless $self, $class;
-#  share::monitor_share_files ($self, $OBJECT_NAME, "changed");
+  Utils::Monitor::monitor_files (&Shares::Exports::get_files (),
+                                 $self, $OBJECT_NAME, "changed");
 
   return $self;
 }

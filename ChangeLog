@@ -1,5 +1,13 @@
 2005-04-20  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* Utils/Monitor.pm: New file for monitoring file changes and emitting
+	DBus signals according to this
+	* Loader.pl.in: added function for monitoring files in a timeout
+	* SharesList.pm: monitor SMB and NFS files and emit "changed" signal
+	* Shares/Exports.pm: misc changes
+
+2005-04-20  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* Loader.pl.in: Added, this will be the application that will load all
 	the backend objects, instead of being each backend an executable
 	* SharesList.pm: Added, this is the DBus object for the shared folders

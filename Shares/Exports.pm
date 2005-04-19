@@ -756,28 +756,29 @@ sub gst_share_replace_nfs_exports  # filename, table
   } 
 }
 
-sub get_distro_files
+sub get_files
 {
   my ($smb_comb, $exports);
+  my (@arr);
 
   %dist_attrib = &gst_network_get_parse_table ();
-  $smb_conf    = $dist_attrib{"fn"}{"SMB_CONF"};
+  push @arr, $dist_attrib{"fn"}{"SMB_CONF"};
 
   # This is pretty standard
-  $exports = "/etc/exports";
+  push @arr, "/etc/exports";
 
-  return ($smb_conf, $exports);
+  return \@arr;
 }
 
 sub get_list
 {
   my ($smb_exports, $nfs_exports);
-  my (%dist_attrib, $smb_conf, $exports);
+  my ($arr);
 
-  ($smb_conf, $exports) = &get_distro_files ();
+  $arr = &get_files ();
 
-  $smb_exports = &gst_share_parse_smb_conf    ($smb_conf);
-  $nfs_exports = &gst_share_parse_nfs_exports ($exports);
+  $smb_exports = &gst_share_parse_smb_conf    ($$arr[0]);
+  $nfs_exports = &gst_share_parse_nfs_exports ($$arr[1]);
 
   return ($smb_exports, $nfs_exports);
 }
