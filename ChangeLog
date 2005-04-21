@@ -1,3 +1,8 @@
+2005-04-21  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* test-backends: Added simple perl script for querying the backends 
+	data
+
 2005-04-20  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Utils/Monitor.pm: New file for monitoring file changes and emitting

@@ -1,0 +1,64 @@
+#!/usr/bin/env perl
+
+use Net::DBus;
+use Net::DBus::Reactor;
+
+sub print_tabified
+{
+  my ($tab, $str, $do_cr) = @_;
+
+  print " " x $tab;
+  print $str;
+  print "\n" if ($do_cr);
+}
+
+sub print_recursive
+{
+  my ($obj, $tab) = @_;
+
+  if (ref $obj eq "ARRAY")
+  {
+    print_tabified ($tab, "ARRAY = [", 1);
+
+    foreach $elem (@{$arr})
+    {
+	 print_recursive ($elem, $tab + 2);
+    }
+
+    print_tabified ($tab, "]", 1);
+  }
+  elsif (ref $obj eq "HASH")
+  {
+    print_tabified ($tab, "HASH = {", 1);
+
+    foreach $elem (keys %$obj)
+    {
+	 $sibling_ref = ref $$obj{$elem};
+
+	 #print child arrays and hashes in a new line
+      print_tabified ($tab + 2, "'$elem'\t=>" , ($sibling_ref eq "ARRAY" || $sibling_ref eq "HASH"));
+      print_recursive ($$obj{$elem}, $tab + 4);
+    }
+
+    print_tabified ($tab, "}", 1);
+  }
+  else
+  {
+    print " $obj\n";
+  }
+}
+
+print "Which backend object do you want to query? (i.e.: SharesList):\n";
+$object = <STDIN>;
+chomp $object;
+
+my $bus = Net::DBus->session();
+
+my $service = $bus->get_service("org.freedesktop.SystemToolsBackends");
+my $object  = $service->get_object("/org/freedesktop/SystemToolsBackends/" . $object,
+							"org.freedesktop.SystemToolsBackends");
+$arr = $object->get ();
+
+print_recursive ($arr, 0);
+
+print "Have a good day!\n";
