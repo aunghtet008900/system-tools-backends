@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 #-*- Mode: perl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 
-# DBus object for the Shares list
+# DBus object for the Services list
 #
 # Copyright (C) 2005 Carlos Garnacho
 #
@@ -21,12 +21,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-package SharesList;
+package ServicesList;
 
 use base qw(Net::DBus::Object);
-use Shares::Exports;
+use Init::Services;
 
-my $OBJECT_NAME = "/SharesList";
+my $OBJECT_NAME = "/ServicesList";
 
 sub new
 {
@@ -37,26 +37,23 @@ sub new
                                        methods => {
                                          "get" => {
                                            params  => [],
-                                           returns => [[ "array", [ "dict", "string", "string" ]]],
+                                           returns => [[ "dict", "string", [ "dict", "string", "string" ]]],
                                          },
                                        },
                                      },
                                    },
                                    @_);
   bless $self, $class;
-  Utils::Monitor::monitor_files (&Shares::Exports::get_files (),
-                                 $self, $OBJECT_NAME, "changed");
   return $self;
 }
 
 sub get
 {
   my ($self) = @_;
-  my ($smb_exports, $nfs_exports);
+  my ($services);
 
-  ($smb_exports, $nfs_exports) = Shares::Exports::get_list ();
-
-  return $smb_exports;
+  $services = Services::Services::gst_service_get_services ();
+  return $services;
 }
 
 1;

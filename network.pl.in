@@ -32,7 +32,6 @@ if ($SCRIPTSDIR =~ /^@scriptsdir[@]/)
   $DOTIN = ".in";
 }
 
-require "$SCRIPTSDIR/service.pl$DOTIN";
 require "$SCRIPTSDIR/process.pl$DOTIN";
 
 use Utils::Util;
@@ -40,6 +39,7 @@ use Utils::File;
 use Utils::XML;
 use Utils::Replace;
 use Utils::Parse;
+use Init::Services;
 use Socket;
 
 

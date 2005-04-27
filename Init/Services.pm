@@ -23,6 +23,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+package Services::Services;
+
 use Utils::Report;
 use Utils::File;
 
@@ -99,8 +101,8 @@ sub gst_service_sysv_get_paths
        );
   my $res;
 
-  $res = $dist_map{$$tool{"platform"}};
-  &Utils::Report::do_report ("service_sysv_unsupported", $$tool{"platform"}) if ($res eq undef);
+  $res = $dist_map{$Utils::Backend::tool{"platform"}};
+  &Utils::Report::do_report ("service_sysv_unsupported", $Utils::Backend::tool{"platform"}) if ($res eq undef);
   return @$res;
 }
 
@@ -160,8 +162,8 @@ sub gst_service_sysv_get_runlevels
        );
   my $res;
 
-  $res = $dist_map{$$tool{"platform"}};
-  &Utils::Report::do_report ("service_sysv_unsupported", $$tool{"platform"}) if ($res eq undef);
+  $res = $dist_map{$Utils::Backend::tool{"platform"}};
+  &Utils::Report::do_report ("service_sysv_unsupported", $Utils::Backend::tool{"platform"}) if ($res eq undef);
   return @$res;
 }
 
@@ -246,7 +248,7 @@ sub gst_service_get_verbose_runlevels
      "slackware-9.1.0" => {"4" => _("Graphical mode") }
     );
 
-  $distro = $dist_map{$$tool{"platform"}};
+  $distro = $dist_map{$Utils::Backend::tool{"platform"}};
   $desc = $runlevels{$distro};
 
   return $runlevels{$distro};
@@ -559,7 +561,7 @@ sub gst_service_sysv_get_service_info
 	$hash{"script"} = $script;
 	$hash{"name"} = $name unless ($name eq undef);
 	$hash{"description"} = $description unless ($description eq undef);
-	$hash{"runlevels"} = $runlevels unless ($runlevels eq undef);
+#	$hash{"runlevels"} = $runlevels unless ($runlevels eq undef);
 	$hash{"priority"} = $priority;
 
 	return \%hash;
@@ -569,7 +571,7 @@ sub gst_service_sysv_get_service_info
 sub gst_service_sysv_get_services
 {
 	my ($service);
-	my (@arr,%ret);
+	my (@arr, %ret);
 	
 	($rcd_path, $initd_path) = &gst_service_sysv_get_paths ();
 
@@ -577,6 +579,7 @@ sub gst_service_sysv_get_services
 	{
 		my (%hash);
 		$hash = &gst_service_sysv_get_service_info ($service);
+
 		if ($hash ne undef)
 		{
       $ret{$service} = $hash;
@@ -1091,8 +1094,8 @@ sub gst_service_suse_get_services
 # generic functions to get the available services
 sub gst_get_init_type
 {
-  my $dist = $$tool{"platform"};
-    
+  my $dist = $Utils::Backend::tool{"platform"};
+
   if (($dist =~ /debian/) && (stat ("$gst_prefix/etc/runlevel.conf")))
   {
     return "file-rc";
@@ -1607,7 +1610,7 @@ sub gst_service_get_status
       );
   my $proc;
 
-  $proc = $dist_map {$$tool{"platform"}};
+  $proc = $dist_map {$Utils::Backend::tool{"platform"}};
 
   return undef if ($proc eq undef);
 

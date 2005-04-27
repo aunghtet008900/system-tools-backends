@@ -1,3 +1,14 @@
+2005-04-27  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Init/Services.pm: added, previously known as service.pl.in
+	* service.pl.in: removed
+	* ServicesList.pm: added, DBus object for accessing services at init
+	* Loader.pl.in: added ServicesList
+	* SharesList.pm: updated to latest DBus bindings api
+	* network.pl.in: use Init::Services
+	* test-backends: don't recurse infinitely with arrays, other
+	improvements
+
 2005-04-21  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* test-backends: Added simple perl script for querying the backends 
