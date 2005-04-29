@@ -24,14 +24,16 @@
 package SharesList;
 
 use base qw(Net::DBus::Object);
+use Utils::Backend;
 use Shares::Exports;
 
-my $OBJECT_NAME = "/SharesList";
+my $OBJECT_NAME = "SharesList";
+my $SHARES_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
 
 sub new
 {
   my $class  = shift;
-  my $self   = $class->SUPER::new ($OBJECT_NAME,
+  my $self   = $class->SUPER::new ($SHARES_PATH,
                                    {
                                      $OBJECT_NAME => {
                                        methods => {

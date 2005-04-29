@@ -1,3 +1,10 @@
+2005-04-29  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* SharesList.pm: put object path correctly
+	* configure.in: use the 2.0 .pc file, bumped version to 1.9.x
+	* system-tools-backends.pc.in: removed
+	* system-tools-backends-2.0.pc.in: added
+
 2005-04-27  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Init/Services.pm: added, previously known as service.pl.in
