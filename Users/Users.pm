@@ -46,6 +46,8 @@
 # chfn: modifying finger information - Name, Office, Office phone, Home phone.
 # pw: modifying users/groups and user/group data on FreeBSD.
 
+package Users::Users;
+
 use Utils::Util;
 use Utils::Report;
 use Utils::File;
@@ -107,7 +109,7 @@ $cmd_pw       = &Utils::File::locate_tool ("pw");
 %users_prop_map = ();
 @users_prop_array = ();
 
-if ($$tool{"platform"} eq "Linux")
+if ($Utils::Backend::tool{"platform"} eq "Linux")
 {
   @users_prop_array = (
     "key", 0,
@@ -218,7 +220,7 @@ sub get_login_defs_prop_array
      "CREATE_HOME",    "create_home",
      "", "");
   
-  if ($$tool{"platform"} =~ /^suse/)
+  if ($Utils::Backend::tool{"platform"} =~ /^suse/)
   {
     @prop_array = @login_defs_prop_array_suse;
   }
@@ -287,7 +289,7 @@ sub get_profiles_prop_array
      "CREATE_HOME" ,   "create_home",
      "", "");
 
-  if ($$tool{"platform"} =~ /suse/)
+  if ($Utils::Backend::tool{"platform"} =~ /suse/)
   {
     @prop_array = @profiles_prop_array_suse;
   }
@@ -488,7 +490,7 @@ sub logindefs_add_defaults
   };
 
   # Distro specific
-  my $dist_specific = $logindefs_dist_map->{$$tool{"platform"}};
+  my $dist_specific = $logindefs_dist_map->{$Utils::Backend::tool{"platform"}};
 
   # Just to be 100% sure SOMETHING gets filled:
   unless ($dist_specific)
@@ -716,13 +718,16 @@ sub read_group
   }
 }
 
-sub read_shells
+sub get_shells
 {
   my ($hash) = @_;
-  my ($ifh, @shells);
+  my ($ifh, @shells, $file, $available);
 
   # Init @shells, I think every *nix has /bin/false.
-  push (@shells, "/bin/false") if (stat ("/bin/false"));
+  if (stat ("/bin/false"))
+  {
+    push @shells, ["/bin/false", 1];
+  }
   
   $ifh = &Utils::File::open_read_from_names(@shell_names);
   return unless $ifh;
@@ -731,12 +736,14 @@ sub read_shells
   {
     next if &Utils::Util::ignore_line ($_);
     chomp;
-    push (@shells, $_) if (stat ($_) ne "");
+    $file = $_;
+    $available = (stat ($_)) ? 1 : 0;
+    push @shells, [$file, $available];
   }
-  &Utils::File::close_file ($ifh);
 
-  $$hash{"shelldb"} = \@shells;
+  &Utils::File::close_file ($ifh);
   &Utils::Report::do_report ('users_read_shells_success');
+  return \@shells;
 }
 
 
@@ -838,7 +845,7 @@ sub del_user
 	my ($data) = @_;
   my ($command);
 	
-  if ($$tool{"platform"} =~ /^freebsd/) {
+  if ($Utils::Backend::tool{"platform"} =~ /^freebsd/) {
     $command = "$cmd_pw userdel -n \'" . $$data[$users_prop_map{"login"}] . "\' ";
   } else {
     $command = "$cmd_userdel \'" . $$data[$users_prop_map{"login"}] . "\'";
@@ -860,7 +867,7 @@ sub change_user_chfn
   # Compare old and new data
   return if (!&arr_cmp_recurse (\@line, \@old_line));
 
-  if ($$tool{"platform"} =~ /^freebsd/)
+  if ($Utils::Backend::tool{"platform"} =~ /^freebsd/)
   {
     $command = "$cmd_pw usermod -n " . $username . " -c \'" . $comment . "\'";
   }
@@ -871,7 +878,8 @@ sub change_user_chfn
     $fname = "-f \'" . $fname . "\'";
     $home_phone = "-h \'" . $home_phone . "\'";
 
-    if ($$tool{"platform"} =~ /^debian/  || $$tool{"platform"} =~ /^archlinux/)
+    if ($Utils::Backend::tool{"platform"} =~ /^debian/ ||
+        $Utils::Backend::tool{"platform"} =~ /^archlinux/)
     {
       $office = "-r \'" . $office . "\'";
       $office_phone = "-w \'" . $office_phone . "\'";
@@ -896,7 +904,7 @@ sub add_user
   $log = $$data[$users_prop_map{"login"}];
   $tool_mkdir = &Utils::File::locate_tool ("mkdir");
 
-  if ($$tool{"platform"} =~ /^freebsd/)
+  if ($Utils::Backend::tool{"platform"} =~ /^freebsd/)
   {
     my $pwdpipe;
     my $home;
@@ -939,7 +947,7 @@ sub change_user
 {
   my ($old_data, $new_data) = @_;
 	
-  if ($$tool{"platform"} =~ /^freebsd/)
+  if ($Utils::Backend::tool{"platform"} =~ /^freebsd/)
   {
     my $pwdpipe;
 
@@ -976,7 +984,7 @@ sub del_group
 {
   my ($data) = @_;
 
-  if ($$tool{"platform"} =~ /^freebsd/)
+  if ($Utils::Backend::tool{"platform"} =~ /^freebsd/)
   {
     $command = "$cmd_pw groupdel -n \'" . $$data[$groups_prop_map{"name"}] . "\'";
   }
@@ -994,7 +1002,7 @@ sub add_group
 
   $u = [ @{$$data[$groups_prop_map{"users"}]} ]; sort @$u;
 	
-  if ($$tool{"platform"} =~ /^freebsd/)
+  if ($Utils::Backend::tool{"platform"} =~ /^freebsd/)
   {
     $users = join (",", @$u);
       
@@ -1023,7 +1031,7 @@ sub change_group
 	my ($old_data, $new_data) = @_;
 	my ($n, $o, $users, $i, $j, $max_n, $max_o, $r, @tmp); # for iterations
 
-  if ($$tool{"platform"} =~ /^freebsd/)
+  if ($Utils::Backend::tool{"platform"} =~ /^freebsd/)
   {
     $n = [ @{$$new_data[$groups_prop_map{"users"}]} ]; sort @$n;
     $users = join (",", @$n);
@@ -1582,36 +1590,4 @@ sub set
   &Utils::Report::end ();
 }
 
-
-# --- Filter config: XML in, XML out --- #
-
-
-sub filter
-{
-  my ($tool) = @_;
-  my ($hash);
-  
-  $hash = &xml_parse ($tool);
-  &Utils::Report::end ();
-  &xml_print ($hash);
-}
-
-
-# --- Main --- #
-
-# get, set and filter are special cases that don't need more parameters than a ref to their function.
-# Read general.pl.in:gst_run_directive to know about the format of this hash.
-
-$directives = {
-  "get"    => [ \&get,    [], "" ],
-  "set"    => [ \&set,    [], "" ],
-  "filter" => [ \&filter, [], "" ]
-    };
-
-$tool = &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
-&Utils::Platform::ensure_supported ($tool, @platforms);
-
-&get_login_defs_prop_array ();
-&get_profiles_prop_array   ();
-
-&Utils::Backend::run ($tool);
+1;

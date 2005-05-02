@@ -52,7 +52,7 @@ sub print_object
 {
   my ($service, $object) = @_;
 
-  my $obj = $service->get_object ("/" . $object,
+  my $obj = $service->get_object ("/org/freedesktop/SystemToolsBackends/" . $object,
                                   "org.freedesktop.SystemToolsBackends");
   my $arr = $obj->get ();
   &print_recursive ($arr, 0);

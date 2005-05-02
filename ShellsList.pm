@@ -21,12 +21,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-package ServicesList;
+package ShellsList;
 
 use base qw(Net::DBus::Object);
-use Init::Services;
+use Users::Users;
 
-my $OBJECT_NAME = "ServicesList";
+my $OBJECT_NAME = "ShellsList";
 my $SERVICES_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
 
 sub new
@@ -38,7 +38,7 @@ sub new
                                        methods => {
                                          "get" => {
                                            params  => [],
-                                           returns => [[ "dict", "string", [ "dict", "string", "string" ]]],
+								   returns => [[ "array", [ "struct", "string", "int32" ]]],
                                          },
                                        },
                                      },
@@ -53,7 +53,7 @@ sub get
   my ($self) = @_;
   my ($services);
 
-  $services = Init::Services::gst_service_get_services ();
+  $services = Users::Users::get_shells ();
   return $services;
 }
 

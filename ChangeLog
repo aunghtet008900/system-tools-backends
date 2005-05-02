@@ -1,3 +1,14 @@
+2005-05-02  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Users/Users.pm: moved from users-conf.in, removed some code that
+	should not be used now
+	* users-conf.in: removed
+	* ShellsList.pm: object for gettings the available shells
+	* Loader.pl.in: add ShellsList to the init code
+	* ServicesList.pm: put object path correctly
+	* test-backends: put object paths correctly
+	* Init/Services.pm: forgot to rename namespace to Init::Services
+
 2005-04-29  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* SharesList.pm: put object path correctly
