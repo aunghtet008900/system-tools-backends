@@ -24,7 +24,7 @@
 package ShellsList;
 
 use base qw(Net::DBus::Object);
-use Users::Users;
+use Users::Shells;
 
 my $OBJECT_NAME = "ShellsList";
 my $SERVICES_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
@@ -38,23 +38,39 @@ sub new
                                        methods => {
                                          "get" => {
                                            params  => [],
-								   returns => [[ "array", [ "struct", "string", "int32" ]]],
+                                           returns => [[ "array", "string" ]],
                                          },
+                                         "set" => {
+                                           params  => [[ "array", "string" ]],
+                                           returns => [],
+                                         },
+                                       },
+                                       signals => {
+                                         "changed" => [],
                                        },
                                      },
                                    },
                                    @_);
   bless $self, $class;
+  Utils::Monitor::monitor_files (&Users::Shells::get_files (),
+                                 $self, $OBJECT_NAME, "changed");
   return $self;
 }
 
 sub get
 {
   my ($self) = @_;
-  my ($services);
+  my ($shells);
 
-  $services = Users::Users::get_shells ();
-  return $services;
+  $shells = Users::Shells::get ();
+  return $shells;
+}
+
+sub set
+{
+  my ($self, $shells) = @_;
+  Users::Shells::set ($shells);
+  return;
 }
 
 1;

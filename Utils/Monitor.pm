@@ -52,19 +52,34 @@ sub do_monitor_files
   }
 }
 
+sub add_file
+{
+  my ($file, $object, $name, $signal) = @_;
+  my ($path);
+  
+  $path = &Cwd::abs_path ($file);
+
+  $objects {$path} = { "object" => $object,
+                       "name"   => $name,
+                       "signal" => $signal};
+  $fam->monitor ($path);
+}
+
 sub monitor_files
 {
   my ($files, $object, $name, $signal) = @_;
-  my ($path, $f);
+  my ($f);
 
-  foreach $f (@$files)
+  if (ref $files eq "ARRAY")
   {
-    $path = &Cwd::abs_path ($f);
-
-    $objects {$path} = { "object" => $object,
-                         "name"   => $name,
-                         "signal" => $signal};
-    $fam->monitor ($path);
+    foreach $f (@$files)
+    {
+      &add_file ($f, $object, $name, $signal);
+    }
+  }
+  else
+  {
+    &add_file ($files, $object, $name, $signal);
   }
 }
 

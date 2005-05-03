@@ -42,6 +42,9 @@ sub new
                                            returns => [[ "array", [ "dict", "string", "string" ]]],
                                          },
                                        },
+                                       signals => {
+                                         "changed" => [],
+                                       },
                                      },
                                    },
                                    @_);

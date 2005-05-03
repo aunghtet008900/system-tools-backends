@@ -1,3 +1,11 @@
+2005-05-04  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* SharesList.pm: adapted signal emitting to new Dbus bindings API
+	* Users/Shells.pm: separated shells handling from Users/Users.pm,
+	implemented set()
+	* ShellsList.pm: use new .pm for shells, monitor /etc/shells
+	* Utils/Monitor.pm: accept both arrays and single file names
+
 2005-05-02  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Users/Users.pm: moved from users-conf.in, removed some code that
