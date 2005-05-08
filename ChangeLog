@@ -1,3 +1,11 @@
+2005-05-08  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* UsersList.pm: added
+	* Loader.pl.in: use UsersList
+	* Users/Users.pm: made passwd/shadow parameters a bit more generic,
+	but still needs some love. Removed unused bits from the get()
+	function, implemented get_files()
+
 2005-05-04  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* SharesList.pm: adapted signal emitting to new Dbus bindings API

@@ -189,8 +189,6 @@ sub print_version
 {
   my ($tool, $exit_code) = @_;
 
-  print "$$tool{name} $$tool{version}\n";
-
   exit $exit_code if $exit_code ne undef;
 }
 
@@ -249,7 +247,7 @@ sub set_prefix
 sub set_dist
 {
   my ($tool, $dist) = @_;
-  
+
   &set_with_param ($tool, "platform", $dist);
   $gst_dist = $dist;
 }

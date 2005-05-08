@@ -30,6 +30,7 @@ use Utils::Monitor;
 use SharesList;
 use ServicesList;
 use ShellsList;
+use UsersList;
 
 # Initialize tool
 &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
@@ -43,6 +44,7 @@ my $reactor = Net::DBus::Reactor->new();
 my $shares_list   = SharesList->new   ($service);
 my $services_list = ServicesList->new ($service);
 my $shells_list   = ShellsList->new   ($service);
+my $users_list    = UsersList->new    ($service);
 
 $reactor->manage($bus->{connection});
 $reactor->add_timeout (50, Net::DBus::Callback->new(method => \&Utils::Monitor::do_monitor_files));

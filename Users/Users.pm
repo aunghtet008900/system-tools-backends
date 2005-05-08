@@ -109,40 +109,16 @@ $cmd_pw       = &Utils::File::locate_tool ("pw");
 %users_prop_map = ();
 @users_prop_array = ();
 
-if ($Utils::Backend::tool{"platform"} eq "Linux")
-{
-  @users_prop_array = (
-    "key", 0,
-    "login", 1,
-    "password", 2,
-    "uid", 3,
-    "gid", 4,
-    "comment", 5,
-    "home", 6,
-    "shell", 7,
-    "last_mod", 8, # Read shadow (5) for these.
-    "passwd_min_life", 9,
-    "passwd_max_life", 10,
-    "passwd_exp_warn", 11,
-    "passwd_exp_disable", 12,
-    "passwd_disable", 13,
-    "reserved", 14,
-    "is_shadow", 15,
-    "", "");
-}
-else
-{
-  @users_prop_array = (
-    "key", 0,
-    "login", 1,
-    "password", 2,
-    "uid", 3,
-    "gid", 4,
-    "comment", 5,
-    "home", 6,
-    "shell", 7,
-    "", "");
-}
+@users_prop_array = (
+  "key", 0,
+  "login", 1,
+  "password", 2,
+  "uid", 3,
+  "gid", 4,
+  "comment", 5,
+  "home", 6,
+  "shell", 7,
+  "", "");
 
 for ($i = 0; $users_prop_array[$i] ne ""; $i += 2)
 {
@@ -583,27 +559,19 @@ sub read_profiledb
   }
 }
 
-sub read_passwd_shadow
+sub get
 {
-  my ($hash) = @_;
-  my ($ifh, @users, %users_hash, $passwd_last_modified);
-  my (@line, $copy, %tmphash);
-  my $login_pos = $users_prop_map{"login"};
+  my ($ifh, @users, %users_hash);
+  my (@line);
+  my $login_pos    = $users_prop_map{"login"};
+  my $comment_pos  = $users_prop_map{"comment"};
+  my $last_arr_pos = $users_prop_map{"passwd_disable"};
   my $i = 0;
 
   # Find the passwd file.
-
   $ifh = &Utils::File::open_read_from_names(@passwd_names);
-  unless ($ifh)
-  {
-    &Utils::Report::do_report ('users_read_users_fail');
-    return;
-  }
-  $passwd_last_modified = (stat ($ifh))[9]; # &get the mtime.
+  return unless ($ifh);
 
-  # Parse the file.
-
-  @users = ();
   %users_hash = ();
 
   while (<$ifh>)
@@ -611,23 +579,22 @@ sub read_passwd_shadow
     chomp;
     # FreeBSD allows comments in the passwd file.
     next if &Utils::Util::ignore_line ($_);
-    $_ = &Utils::XML::quote ($_);
 
-    @line = split ':', $_, -1;
-    unshift @line, sprintf ("%06d", $i);
-    $copy = [@line];
-    $users_hash{sprintf ("%06d", $i)} = $copy;
-    $tmphash{$line[$login_pos]} = $copy;
-    push (@users, $copy);
-    $i ++;
+    @line  = split ':', $_, -1;
+
+    unshift @line, $i;
+    $login = $line[$login_pos];
+    @comment = split ',', $line[$comment_pos], 5;
+    $line[$comment_pos] = [@comment];
+    
+    $$users_hash{$login} = [@line];
+    $i++;
   }
-  &Utils::File::close_file ($ifh);
-	
-  # Find the shadow file.
 
+  &Utils::File::close_file ($ifh);
   $ifh = &Utils::File::open_read_from_names(@shadow_names);
+
   if ($ifh) {
-    my ($login, $passwd);
     my $passwd_pos = $users_prop_map{"password"};
 
     while (<$ifh>)
@@ -635,32 +602,35 @@ sub read_passwd_shadow
       chomp;
       # FreeBSD allows comments in the shadow passwd file.
       next if &Utils::Util::ignore_line ($_);
-      $_ = &Utils::XML::quote ($_);
 
       @line = split ':', $_, -1;
-      push @line, 1;
       $login = shift @line;
       $passwd = shift @line;
-      push @{$tmphash{$login}}, @line;
-      @{$tmphash{$login}}[$passwd_pos] = $passwd;
+
+      $$users_hash{$login}[$passwd_pos] = $passwd;
+      push @{$$users_hash{$login}}, @line;
     }
 
     &Utils::File::close_file ($ifh);
   }
 
-  $$hash{"users"}      = \@users;
-  $$hash{"users_hash"} = \%users_hash;
-  $$hash{"passwd_last_modified"} = $passwd_last_modified;
-  $$hash{"use_md5"} = &check_use_md5 ("passwd");
+  # transform the hash into an array
+  foreach $login (keys %$users_hash)
+  {
+    push @users, \@$arr;
+  }
 
-  if (scalar @users)
-  {
-    &Utils::Report::do_report ('users_read_users_success');
-  }
-  else
-  {
-    &Utils::Report::do_report ('users_read_users_fail');
-  }
+  return \@users;
+}
+
+sub get_files
+{
+  my @arr;
+
+  push @arr, @passwd_names;
+  push @arr, @shadow_names;
+
+  return \@arr;
 }
 
 sub read_group
@@ -1559,15 +1529,6 @@ sub xml_print
 
 # --- Get (read) config --- #
 
-sub get
-{
-  my ($tool) = @_;
-  my ($hash);
-  
-  $hash = &read ();
-  &Utils::Report::end ();
-  &xml_print ($hash);
-}
 
 sub set
 {
