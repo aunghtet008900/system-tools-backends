@@ -169,7 +169,7 @@ sub gst_network_enable_iface
     }
     else
     {
-      $command = "dhcpcd $dev";
+      $command = "dhcpcd -n $dev";
     }
   }
   else

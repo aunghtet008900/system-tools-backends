@@ -1,3 +1,7 @@
+2005-05-15  Christian Meyer  <chrisime@gnome-de.org>
+
+	* network.pl.in: fix small issue with dhcpcd
+
 2005-04-13  Scott J. Harmon  <harmon@ksu.edu>
 
 	* network-conf.in, network.pl.in, platform.pl.in, service.pl.in,
