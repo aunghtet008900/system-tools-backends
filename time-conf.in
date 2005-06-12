@@ -842,11 +842,13 @@ sub conf_get_replace_table
          {
            NTP_CONF     => "/etc/ntp.conf",
            ZONEINFO     => "/usr/share/zoneinfo",
-           LOCAL_TIME    => "/etc/localtime"
+           LOCAL_TIME   => "/etc/localtime",
+           TIMEZONE     => "/etc/timezone"
          },
          table =>
              [
               [ "timezone",    \&time_set_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
+              [ "timezone",    \&gst_replace_line_first, TIMEZONE ],
               [ "local_time",  \&time_set_local_time ],
               [ "sync",        \&time_replace_ntp_servers, NTP_CONF, "server", "[ \t]+" ],
               [ "sync_active", \&gst_service_sysv_set_status, 23, "ntp-server", "%sync_active%" ],
