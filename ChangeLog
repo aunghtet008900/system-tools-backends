@@ -1,3 +1,7 @@
+2005-06-12  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* network.pl.in: added support for WEP key type (ASCII or hexa)
+
 2005-05-15  Christian Meyer  <chrisime@gnome-de.org>
 
 	* network.pl.in: fix small issue with dhcpcd
