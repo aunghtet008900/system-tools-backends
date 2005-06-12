@@ -133,6 +133,7 @@ sub gst_network_config_wireless
 
   $essid = $$hash{"configuration"}{"essid"};
   $key   = $$hash{"configuration"}{"key"};
+  $key_type = $$hash{"configuration"}{"key_type"};
 
   if ($essid)
   {
@@ -141,7 +142,13 @@ sub gst_network_config_wireless
 
     $command .= " $dev";
     $command .= " essid '$essid'" if ($essid);
-    $command .= " key '$key'" if ($key);
+
+    if ($key)
+    {
+      $key = &gst_network_get_full_key ($key, $key_type);
+      $command .= " key '$key'" if ($key);
+    }
+
     &Utils::File::run ($command);
   }
 }
@@ -3774,6 +3781,56 @@ sub gst_network_detect_essids
   return \@arr;
 }
 
+sub gst_network_get_wep_key_type
+{
+  my ($func) = shift @_;
+  my ($val);
+
+  $val = &$func (@_);
+
+  return undef if (!$val);
+  return "ascii" if ($val =~ /^s\:/);
+  return "hexadecimal";
+}
+
+sub gst_network_get_wep_key
+{
+  my ($func) = shift @_;
+  my ($val);
+
+  $val = &$func (@_);
+  $val =~ s/^s\://;
+
+  return $val;
+}
+
+sub gst_network_get_full_key
+{
+  my ($key, $key_type) = @_;
+
+  if ($key_type eq "ascii")
+  {
+    $key = "s:" . $key;
+  }
+
+  return $key;
+}
+
+sub gst_network_set_wep_key_type
+{
+  my ($key, $key_type, $func);
+
+  # seems kind of hackish, but we want to use distro
+  # specific saving functions, so we need to leave
+  # the args as variable as possible
+  $func = shift @_;
+  $key_type = pop @_;
+  $key = pop @_;
+
+  push @_, &gst_network_get_full_key ($key, $key_type);
+  &$func (@_);
+}
+
 # Set dist_map for your distro to "" if you don't want
 # loopback ensuring. See suse-7.0 entry for example.
 sub gst_network_ensure_loopback_interface
@@ -4451,7 +4508,8 @@ sub gst_network_get_interface_parse_table
            [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
            [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
            [ "essid",              \&Utils::Parse::get_sh,      IFCFG, ESSID ],
-           [ "key",                \&Utils::Parse::get_sh,      IFCFG, KEY   ],
+           [ "key_type",           \&gst_network_get_wep_key_type, [ \&Utils::Parse::get_sh, IFCFG, KEY ]],
+           [ "key",                \&gst_network_get_wep_key,      [ \&Utils::Parse::get_sh, IFCFG, KEY ]],
            [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #           [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
 #           [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
@@ -4520,7 +4578,8 @@ sub gst_network_get_interface_parse_table
            [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
            [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
            [ "essid",              \&Utils::Parse::get_sh,      IFCFG, WIRELESS_ESSID ],
-           [ "key",                \&Utils::Parse::get_sh,      IFCFG, WIRELESS_KEY ],
+           [ "key_type",           \&gst_network_get_wep_key_type, [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
+           [ "key",                \&gst_network_get_wep_key,      [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
            [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #           [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
 #           [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
@@ -4586,7 +4645,8 @@ sub gst_network_get_interface_parse_table
        [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
        [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
        [ "essid",              \&Utils::Parse::get_sh,      IFCFG, ESSID ],
-       [ "key",                \&Utils::Parse::get_sh,      IFCFG, KEY   ],
+       [ "key_type",           \&gst_network_get_wep_key_type, [ \&Utils::Parse::get_sh, IFCFG, KEY ]],
+       [ "key",                \&gst_network_get_wep_key,      [ \&Utils::Parse::get_sh, IFCFG, KEY ]],
        [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #       [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
 #       [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
@@ -4649,7 +4709,8 @@ sub gst_network_get_interface_parse_table
            [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
            [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
            [ "essid",              \&Utils::Parse::get_sh,      IFCFG, WIRELESS_ESSID ],
-           [ "key",                \&Utils::Parse::get_sh,      IFCFG, WIRELESS_KEY ],
+           [ "key_type",           \&gst_network_get_wep_key_type, [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
+           [ "key",                \&gst_network_get_wep_key,      [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
            [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #           [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
 #           [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
@@ -4713,7 +4774,8 @@ sub gst_network_get_interface_parse_table
        [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
        [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
        [ "essid",              \&Utils::Parse::get_sh,      IFCFG, WIRELESS_ESSID ],
-       [ "key",                \&Utils::Parse::get_sh,      IFCFG, WIRELESS_KEY ],
+       [ "key_type",           \&gst_network_get_wep_key_type, [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
+       [ "key",                \&gst_network_get_wep_key,      [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
        [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
 #       [ "update_dns",         \&gst_network_pump_get_nodns, PUMP, "%dev%", "%bootproto%" ],
 #       [ "dns1",               \&Utils::Parse::get_sh,      IFCFG, DNS1 ],
@@ -4777,8 +4839,9 @@ sub gst_network_get_interface_parse_table
            [ "broadcast",          \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "broadcast" ],
            [ "network",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "network" ],
            [ "gateway",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "gateway" ],
-           [ "essid",              \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wireless_essid" ],
-           [ "key",                \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wireless_key" ],
+           [ "essid",              \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wireless[_-]essid" ],
+           [ "key_type",           \&gst_network_get_wep_key_type,       [ \&Util::Parse::get_interfaces_option_str, INTERFACES, IFACE, "wireless[_-]key1?" ]],
+           [ "key",                \&gst_network_get_wep_key,            [ \&Util::Parse::get_interfaces_option_str, INTERFACES, IFACE, "wireless[_-]key1?" ]],
            [ "remote_address",     \&gst_network_debian_parse_remote_address, [INTERFACES, IFACE]],
            [ "section",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "provider" ],
            [ "update_dns",         \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
@@ -4832,7 +4895,8 @@ sub gst_network_get_interface_parse_table
            [ "network",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "network" ],
            [ "gateway",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "gateway" ],
            [ "essid",              \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wireless[_-]essid" ],
-           [ "key",                \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wireless[_-]key1?" ],
+           [ "key_type",           \&gst_network_get_wep_key_type,       [ \&Utils::Parse::get_interfaces_option_str, INTERFACES, IFACE, "wireless[_-]key1?" ]],
+           [ "key",                \&gst_network_get_wep_key,            [ \&Utils::Parse::get_interfaces_option_str, INTERFACES, IFACE, "wireless[_-]key1?" ]],
            [ "remote_address",     \&gst_network_debian_parse_remote_address, [INTERFACES, IFACE]],
            [ "section",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "provider" ],
            [ "update_dns",         \&gst_network_check_type,            [IFACE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
@@ -4908,7 +4972,8 @@ sub gst_network_get_interface_parse_table
        [ "netmask",            \&Utils::Parse::get_sh,                        IFCFG,   NETMASK        ],
        [ "remote_address",     \&Utils::Parse::get_sh,                        IFCFG,   REMOTE_IPADDR  ],
        [ "essid",              \&Utils::Parse::get_sh,                        IFCFG,   WIRELESS_ESSID ],
-       [ "key",                \&Utils::Parse::get_sh,                        IFCFG,   WIRELESS_KEY   ],
+       [ "key_type",           \&gst_network_get_wep_key_type,        [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
+       [ "key",                \&gst_network_get_wep_key,             [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
        [ "gateway",            \&gst_network_suse90_get_gateway,      ROUTE_CONF, "%address%", "%netmask%" ],
        [ "gateway",            \&gst_network_suse90_get_plip_gateway, ROUTE_CONF, "%remote_address%"       ],
        # Modem stuff goes here
@@ -5006,7 +5071,8 @@ sub gst_network_get_interface_parse_table
        [ "auto",               \&gst_network_slackware91_get_auto,   [RC_INET, RC_LOCAL, IFACE]],
        [ "bootproto",          \&gst_network_slackware91_parse_bootproto, [RC_INET_CONF, IFACE]],
        [ "essid",              \&Utils::Parse::get_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, ESSID ],
-       [ "key",                \&Utils::Parse::get_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY   ],
+       [ "key_type",           \&gst_network_get_wep_key_type,      [ \&Utils::Parse::get_wireless_opts, [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY ]],
+       [ "key",                \&gst_network_get_wep_key,           [ \&Utils::Parse::get_wireless_opts, [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY ]],
        [ "enabled",            \&gst_network_interface_active,       IFACE, \&gst_network_active_interfaces_get ],
        # Modem stuff
        [ "update_dns",         \&gst_network_check_type,            [IFACE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
@@ -5054,7 +5120,8 @@ sub gst_network_get_interface_parse_table
        [ "enabled",            \&gst_network_interface_active,       IFACE, \&gst_network_active_interfaces_get ],
        [ "bootproto",          \&gst_network_parse_bootproto,        NET, "iface_%dev%" ],
        [ "essid",              \&Utils::Parse::get_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, ESSID ],
-       [ "key",                \&Utils::Parse::get_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY   ],
+       [ "key_type",           \&gst_network_get_wep_key_type,       [ \&Utils::Parse::get_wireless_opts, [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY ]],
+       [ "key",                \&gst_network_get_wep_key,            [ \&Utils::Parse::get_wireless_opts, [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY ]],
        # modem stuff
        [ "update_dns",         \&Utils::Parse::get_sh_bool,                  PPPNET, PEERDNS ],
        [ "mtu",                \&Utils::Parse::get_sh,                       PPPNET, MTU ],
@@ -5660,6 +5727,7 @@ sub gst_network_get_interface_replace_table
         [ "gateway",            \&Utils::Replace::set_sh,      IFCFG, GATEWAY ],
         [ "essid",              \&Utils::Replace::set_sh,      IFCFG, ESSID ],
         [ "key",                \&Utils::Replace::set_sh,      IFCFG, KEY ],
+        [ "key_type",           \&gst_network_set_wep_key_type, [ \&Utils::Replace::set_sh, IFCFG, KEY, "%key%" ]],
         [ "update_dns",         \&gst_network_pump_set_nodns, PUMP, "%dev%", "%bootproto%" ],
         [ "update_dns",         \&Utils::Replace::set_sh_bool, IFCFG, PEERDNS ],
         [ "dns1",               \&Utils::Replace::set_sh,      IFCFG, DNS1 ],
@@ -5721,6 +5789,7 @@ sub gst_network_get_interface_replace_table
         [ "gateway",            \&Utils::Replace::set_sh,      IFCFG, GATEWAY ],
         [ "essid",              \&Utils::Replace::set_sh,      IFCFG, WIRELESS_ESSID ],
         [ "key",                \&Utils::Replace::set_sh,      IFCFG, WIRELESS_KEY   ],
+        [ "key_type",           \&gst_network_set_wep_key_type, [ \&Utils::Replace::set_sh, IFCFG, WIRELESS_KEY, "%key%" ]],
         [ "update_dns",         \&gst_network_pump_set_nodns, PUMP, "%dev%", "%bootproto%" ],
         [ "update_dns",         \&Utils::Replace::set_sh_bool, IFCFG, PEERDNS ],
         [ "dns1",               \&Utils::Replace::set_sh,      IFCFG, DNS1 ],
@@ -5780,6 +5849,7 @@ sub gst_network_get_interface_replace_table
         [ "gateway",            \&Utils::Replace::set_sh,      IFCFG, GATEWAY ],
         [ "essid",              \&Utils::Replace::set_sh,      IFCFG, ESSID ],
         [ "key",                \&Utils::Replace::set_sh,      IFCFG, KEY   ],
+        [ "key_type",           \&gst_network_set_wep_key_type, [ \&Utils::Replace::set_sh, IFCFG, KEY, "%key%" ]],
         [ "update_dns",         \&gst_network_pump_set_nodns, PUMP, "%dev%", "%bootproto%" ],
         [ "update_dns",         \&Utils::Replace::set_sh_bool, IFCFG, PEERDNS ],
         [ "dns1",               \&Utils::Replace::set_sh,      IFCFG, DNS1 ],
@@ -5839,6 +5909,7 @@ sub gst_network_get_interface_replace_table
         [ "gateway",            \&Utils::Replace::set_sh,      IFCFG, GATEWAY ],
         [ "essid",              \&Utils::Replace::set_sh,      IFCFG, WIRELESS_ESSID ],
         [ "key",                \&Utils::Replace::set_sh,      IFCFG, WIRELESS_KEY   ],
+        [ "key_type",           \&gst_network_set_wep_key_type, [ \&Utils::Replace::set_sh, IFCFG, WIRELESS_KEY, "%key%" ]],
         [ "update_dns",         \&gst_network_pump_set_nodns, PUMP, "%dev%", "%bootproto%" ],
         [ "update_dns",         \&Utils::Replace::set_sh_bool, IFCFG, PEERDNS ],
         [ "dns1",               \&Utils::Replace::set_sh,      IFCFG, DNS1 ],
@@ -5898,6 +5969,7 @@ sub gst_network_get_interface_replace_table
       [ "gateway",            \&Utils::Replace::set_sh,      IFCFG, GATEWAY ],
       [ "essid",              \&Utils::Replace::set_sh,      IFCFG, WIRELESS_ESSID ],
       [ "key",                \&Utils::Replace::set_sh,      IFCFG, WIRELESS_KEY ],
+      [ "key_type",           \&gst_network_set_wep_key_type, [ \&Utils::Replace::set_sh, IFCFG, WIRELESS_KEY, "%key%" ]],
       [ "update_dns",         \&gst_network_pump_set_nodns, PUMP, "%dev%", "%bootproto%" ],
       [ "update_dns",         \&Utils::Replace::set_sh_bool, IFCFG, PEERDNS ],
       [ "dns1",               \&Utils::Replace::set_sh,      IFCFG, DNS1 ],
@@ -6005,9 +6077,12 @@ sub gst_network_get_interface_replace_table
            [ "gateway",            \&Utils::Replace::set_interfaces_option_str,   [INTERFACES, IFACE], "gateway" ],
            [ "essid",              \&Utils::Replace::set_interfaces_option_str,   [INTERFACES, IFACE], "wireless-essid" ],
            [ "key",                \&Utils::Replace::set_interfaces_option_str,   [INTERFACES, IFACE], "wireless-key"   ],
+           [ "key_type",           \&gst_network_set_wep_key_type,       [ \&Utils::Replace::set_interfaces_option_str, INTERFACES, IFACE, "wireless-key", "%key%" ]],
            # ugly hack for deleting undesired options (due to syntax duality)
            [ "essid",              \&Utils::Replace::set_interfaces_option_str,   [INTERFACES, IFACE], "wireless_essid", "" ],
            [ "key",                \&Utils::Replace::set_interfaces_option_str,   [INTERFACES, IFACE], "wireless_key", ""   ],
+           [ "key",                \&Utils::Replace::set_interfaces_option_str,   [INTERFACES, IFACE], "wireless_key1", ""   ],
+           # End of hack
            [ "section",            \&Utils::Replace::set_interfaces_option_str,   [INTERFACES, IFACE], "provider" ],
            [ "remote_address",     \&gst_network_debian_replace_remote_address, [INTERFACES, IFACE]],
            # Modem stuff
@@ -6088,6 +6163,7 @@ sub gst_network_get_interface_replace_table
       [ "remote_address",     \&Utils::Replace::set_sh,                        IFCFG,   REMOTE_IPADDR  ],
       [ "essid",              \&Utils::Replace::set_sh,                        IFCFG,   WIRELESS_ESSID ],
       [ "key",                \&Utils::Replace::set_sh,                        IFCFG,   WIRELESS_KEY ],
+      [ "key_type",           \&gst_network_set_wep_key_type,          [ \&Utils::Replace::set_sh, IFCFG, WIRELESS_KEY, "%key%" ]],
       # Modem stuff goes here
       [ "serial_port",        \&Utils::Replace::set_sh,                        IFCFG,   MODEM_DEVICE   ],
       [ "serial_speed",       \&Utils::Replace::set_sh,                        IFCFG,   SPEED          ],
@@ -6181,6 +6257,7 @@ sub gst_network_get_interface_replace_table
       [ "auto",               \&gst_network_slackware91_set_auto,          [ RC_INET, RC_LOCAL, IFACE ] ],
       [ "essid",              \&Utils::Replace::set_wireless_opts,                 [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, ESSID ],
       [ "key",                \&Utils::Replace::set_wireless_opts,                 [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, KEY   ],
+      [ "key_type",           \&gst_network_set_wep_key_type, [ \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, KEY, "%key%" ]],
       # Modem stuff
       [ "phone_number",       \&gst_network_check_type,                   [IFACE, "modem", \&gst_network_create_pppscript, CHAT ]],
       [ "phone_number",       \&gst_network_check_type,                   [IFACE, "modem", \&gst_network_slackware91_create_pppgo ]],
@@ -6230,6 +6307,7 @@ sub gst_network_get_interface_replace_table
       [ "remote_address",     \&Utils::Replace::set_sh_re,                    NET, "iface_%dev%", "[ \t]+dest_address[ \t]+[0-9\.]*", " dest_address %remote_address%" ],
       [ "essid",              \&Utils::Replace::set_wireless_opts,            [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, ESSID ],
       [ "key",                \&Utils::Replace::set_wireless_opts,            [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, KEY   ],
+      [ "key_type",           \&gst_network_set_wep_key_type, [ \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, KEY, "%key%" ]],
       # modem stuff
       [ "dev",                \&gst_network_check_type,              [ IFACE, "modem", \&Utils::Replace::set_sh, PPPNET, PEER ]],
       [ "update_dns",         \&gst_network_check_type,              [ IFACE, "modem", \&Utils::Replace::set_sh_bool, PPPNET, PEERDNS ]],
