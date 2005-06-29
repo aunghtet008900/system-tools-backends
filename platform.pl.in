@@ -41,6 +41,7 @@ $PLATFORM_INFO = {
   "debian-2.2"      => "Debian GNU/Linux 2.2 Potato",
   "debian-3.0"      => "Debian GNU/Linux 3.0 Woody",
   "debian-sarge"    => "Debian GNU/Linux Sarge",
+  "ubuntu-5.04"     => "Ubuntu GNU/Linux Hoary",
   "redhat-5.2"      => "Red Hat Linux 5.2 Apollo",
   "redhat-6.0"      => "Red Hat Linux 6.0 Hedwig",
   "redhat-6.1"      => "Red Hat Linux 6.1 Cartman",
