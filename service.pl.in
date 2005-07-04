@@ -166,7 +166,7 @@ sub gst_service_sysv_get_runlevels
   return @$res;
 }
 
-sub gst_service_get_verbose_runlevels
+sub gst_service_get_runlevel_roles
 {
   my (%dist_map, %runlevels, $desc, $distro);
   %dist_map =
@@ -231,22 +231,28 @@ sub gst_service_get_verbose_runlevels
 
   %runlevels=
     (
-     "redhat-5.2" => {"0" => _("Halting the system"),
-                      "3" => _("Text mode"),
-                      "5" => _("Graphical mode"),
-                      "6" => _("Rebooting the system")
+     "redhat-5.2" => {"0" => "HALT",
+                      "1" => "RECOVER",
+                      "2" => "NONE",
+                      "3" => "TEXT",
+                      "4" => "NONE",
+                      "5" => "GRAPHICAL",
+                      "6" => "REBOOT"
                      },
-     "debian-2.2" => {"0" => _("Halting the system"),
-                      "2" => _("Graphical mode"),
-                      "3" => _("Text mode"),
-                      "6" => _("Rebooting the system")
+     "debian-2.2" => {"0" => "HALT",
+                      "1" => "RECOVER",
+                      "2" => "NONE",
+                      "3" => "NONE",
+                      "4" => "NONE",
+                      "5" => "NONE",
+                      "6" => "REBOOT"
                      },
-     "gentoo"     => {"boot"      => _("Starts all system neccesary services"),
-                      "default"   => _("Default runlevel"),
-                      "nonetwork" => _("Networkless runlevel")
+     "gentoo"     => {"boot"      => "BOOT",
+                      "default"   => "GRAPHICAL",
+                      "nonetwork" => "RECOVER"
                      },
-     "freebsd-5"  => {"rc" => "dude, FreeBSD has no runlevels" },
-     "slackware-9.1.0" => {"4" => _("Graphical mode") }
+     "freebsd-5"  => {"rc" => "GRAPHICAL" },
+     "slackware-9.1.0" => {"4" => "GRAPHICAL" }
     );
 
   $distro = $dist_map{$gst_dist};
@@ -509,9 +515,6 @@ sub gst_service_sysv_get_runlevels_status
 	my ($link);
 	my ($runlevel, $action, $priority);
 	my (@arr, @ret);
-	my ($sum, $count);
-	
-	$sum = $count = 0;
 	
 	foreach $link (<$rcd_path/rc[0-6].d/[SK][0-9][0-9]$service>)
 	{
@@ -520,30 +523,30 @@ sub gst_service_sysv_get_runlevels_status
 		($runlevel,$action,$priority)=($1,$2,$3);
 		if ($action eq "S")
 		{
-			push @arr, { "number" => $runlevel,
-				         "action" => "start" };
-			$sum += $priority;
+      push @arr, { "name"     => $runlevel,
+                   "priority" => $priority,
+                   "action"   => "start" };
 		}
 		elsif ($action eq "K")
 		{
-			push @arr, { "number" => $runlevel,
-			             "action" => "stop" };
-			$sum += (100 -$priority);
+			push @arr, { "name"     => $runlevel,
+                   "priority" => (100 - $priority),
+			             "action"   => "stop" };
 		}
-		$count++;
 	}
 	
-	return (undef,99) if (scalar(@arr) eq 0);
+	return undef if (scalar(@arr) eq 0);
+
 	push @ret, { "runlevel" => \@arr };
-	return (\@ret, int ($sum / $count));
+	return \@ret;
 }
 
 # We are going to extract the information of the service
 sub gst_service_sysv_get_service_info
 {
 	my ($service) = @_;
-	my ($script, $name, $description, @actions, @runlevels);
-	my %hash;
+	my ($script, @actions, @runlevels);
+	my %hash, $role;
 
 	# Return if it's a directory
 	return undef if (-d $service);
@@ -556,14 +559,11 @@ sub gst_service_sysv_get_service_info
 	# We have to check out if the service is in the "forbidden" list
 	return undef if (&gst_service_list_service_is_forbidden ($script));
 
-	($name, $description) = &gst_service_list_get_info ($script);
-	($runlevels, $priority) = &gst_service_sysv_get_runlevels_status($script);
+	$runlevels = &gst_service_sysv_get_runlevels_status($script);
 
 	$hash{"script"} = $script;
-	$hash{"name"} = $name unless ($name eq undef);
-	$hash{"description"} = $description unless ($description eq undef);
-	$hash{"runlevels"} = $runlevels unless ($runlevels eq undef);
-	$hash{"priority"} = $priority;
+  $hash{"runlevels"} = $runlevels unless ($runlevels eq undef);
+  $hash{"role"} = &gst_service_get_role ($script);
 
 	return \%hash;
 }
@@ -592,8 +592,8 @@ sub gst_service_sysv_get_services
 # This functions get an ordered array of the available services from a file-rc system
 sub gst_service_filerc_get_runlevels_status
 {
-  my ($start_service, $stop_service, @arr) = @_;
-  my (@ret);
+  my ($start_service, $stop_service, $priority) = @_;
+  my (@arr, @ret);
 
   # we start with the runlevels in which the service starts
   if ($start_service !~ /-/) {
@@ -603,8 +603,9 @@ sub gst_service_filerc_get_runlevels_status
 
     foreach $runlevel (@runlevels)
     {
-      push @arr, { "number" => $runlevel,
-                   "action" => "start" };
+      push @arr, { "name"     => $runlevel,
+                   "action"   => "start",
+                   "priority" => $priority};
     }
   }
 
@@ -616,8 +617,9 @@ sub gst_service_filerc_get_runlevels_status
 
     foreach $runlevel (@runlevels)
     {
-      push @arr, { "number" => $runlevel,
-                   "action" => "stop" };
+      push @arr, { "name"     => $runlevel,
+                   "action"   => "stop",
+                   "priority" => $priority};
     }
   }
 
@@ -642,17 +644,8 @@ sub gst_service_filerc_get_service_info
 
     $hash{"script"} = $script;
 
-    $hash{"runlevels"} = &gst_service_filerc_get_runlevels_status ($start_service, $stop_service);
-
-    if ($start_service eq "-")
-    {
-      $hash{"priority"} = 100 - $priority;
-      $priority = 100 - $priority;
-    }
-    else
-    {
-      $hash{"priority"} = $priority;
-    }
+    $hash{"runlevels"} = &gst_service_filerc_get_runlevels_status ($start_service, $stop_service, $priority);
+    $hash{"role"} = &gst_service_get_role ($script);
 
     return (\%hash);
   }
@@ -663,7 +656,7 @@ sub gst_service_filerc_get_service_info
 sub gst_service_filerc_get_services
 {
 	my ($script);
-  my %ret;
+  my (%ret);
 	
   open FILE, "$gst_prefix/etc/runlevel.conf" or return undef;
   while ($line = <FILE>)
@@ -680,37 +673,21 @@ sub gst_service_filerc_get_services
 
         if ($ret{$script} eq undef)
         {
-          ($name, $description) = &gst_service_list_get_info ($script);
-          $$hash{"name"} = $name unless ($name eq undef);
-          $$hash{"description"} = $description unless ($description eq undef);
-          $$hash{"count"} = 1;
-
           $ret{$script} = $hash;
         }
         else
         {
-            my (@runlevels);
+          my (@runlevels);
 
-            # We need to mix the runlevels
-            @runlevels = $$hash{"runlevels"}[0]{"runlevel"};
-            foreach $runlevel (@runlevels)
-            {
-                push @{$ret{$script}{"runlevels"}[0]{"runlevel"}}, $runlevel;
-            }
-            
-            $ret{$script}{"priority"} += $$hash{"priority"};
-
-            $ret{$script}{"count"}++;
+          # We need to mix the runlevels
+          @runlevels = $$hash{"runlevels"}[0]{"runlevel"};
+          foreach $runlevel (@runlevels)
+          {
+            push @{$ret{$script}{"runlevels"}[0]{"runlevel"}}, $runlevel;
+          }
         }
       }
     }
-  }
-
-  # we have to return the average priority
-  foreach $i (sort keys %ret)
-  {
-      $ret{$i}{"priority"} = int ($ret{$i}{"priority"} / $ret{$i}{"count"});
-      delete $ret{$i}{"count"};
   }
 
   return \%ret;
@@ -720,7 +697,7 @@ sub gst_service_filerc_get_services
 sub gst_service_bsd_get_service_info
 {
   my ($service) = @_;
-  my ($script, $name, $description);
+  my ($script);
   my (%hash);
 	my (@arr, @rl);
 
@@ -732,27 +709,24 @@ sub gst_service_bsd_get_service_info
 
   return undef if (&gst_service_list_service_is_forbidden ($script));
 
-  ($name, $description) = &gst_service_list_get_info ($script);
-
   $hash {"script"} = $service;
-  $hash{"name"} = $name unless ($name eq undef);
-  $hash{"description"} = $description unless ($description eq undef);
 
   # we hardcode the fourth runlevel, it's the graphical one
   if ( -x $service)
   {
-    push @arr, { "number" => 4,
+    push @arr, { "name"   => 4,
                  "action" => "start" };
   }
   else
   {
-      push @arr, { "number" => 4,
-                   "action" => "stop" };
+    push @arr, { "name"   => 4,
+                 "action" => "stop" };
   }
 
 	push @rl, { "runlevel" => \@arr };
   
 	$hash{"runlevels"} = \@rl;
+  $hash{"role"} = &gst_service_get_role ($script);
   
   return \%hash;
 }
@@ -902,12 +876,12 @@ sub gst_service_gentoo_runlevel_status_by_service
   {
     if (defined $start_runlevels{$runlevel})
     {
-      push @arr, { "number" => $runlevel,
+      push @arr, { "name"   => $runlevel,
                    "action" => "start" };
     }
     else
     {
-      push @arr, { "number" => $runlevel,
+      push @arr, { "name"   => $runlevel,
                    "action" => "stop" };
     }
   }
@@ -919,20 +893,17 @@ sub gst_service_gentoo_runlevel_status_by_service
 sub gst_service_gentoo_get_service_info
 {
 	my ($service) = @_;
-	my ($script, $name, $description, @actions, @runlevels);
+	my ($script, @actions, @runlevels);
 	my %hash;
 	
 	# We have to check out if the service is in the "forbidden" list
 	return undef if (&gst_service_list_service_is_forbidden ($service));
 
-	($name, $description) = &gst_service_list_get_info ($service);
-
 	my($runlevels) = &gst_service_gentoo_runlevel_status_by_service ($service);
 
 	$hash{"script"} = $service;
-	$hash{"name"} = $name unless ($name eq undef);
-	$hash{"description"} = $description unless ($description eq undef);
 	$hash{"runlevels"} = $runlevels unless ($runlevels eq undef);
+  $hash{"role"} = &gst_service_get_role ($service);
 
 	return \%hash;
 }
@@ -981,32 +952,29 @@ sub gst_service_rcng_status_by_service
 sub gst_service_rcng_get_service_info
 {
   my ($service) = @_;
-  my ($script, $name, $description, @actions, @runlevels);
+  my ($script, @actions, @runlevels);
   my (%hash, @arr, @rl);
 
   # We have to check if the service is in the "forbidden" list
   return undef if (&gst_service_list_service_is_forbidden ($service));
 
-  ($name, $description) = &gst_service_list_get_info ($service);
-
   $hash{"script"} = $service;
-  $hash{"name"} = $name unless ($name eq undef);
-  $hash{"description"} = $description unless ($description eq undef);
 
   if (gst_service_rcng_status_by_service ($service))
   {
-    push @arr, { "number" => "rc",
+    push @arr, { "name"   => "rc",
                  "action" => "start" };
   }
   else
   {
-    push @arr, { "number" => "rc",
+    push @arr, { "name"   => "rc",
                  "action" => "stop" };
   }
 
   push @rl,  { "runlevel", \@arr };
 
   $hash {"runlevels"} = \@rl;
+  $hash{"role"} = &gst_service_get_role ($service);
 
   return \%hash;
 }
@@ -1033,17 +1001,12 @@ sub gst_service_rcng_get_services
 sub gst_service_suse_get_service_info ($service)
 {
   my ($service) = @_;
-  my ($name, $description);
   my (%hash, @arr, @ret);
                                                                                                                                                              
   # We have to check if the service is in the "forbidden" list
   return undef if (&gst_service_list_service_is_forbidden ($service));
                                                                                                                                                              
-  ($name, $description) = &gst_service_list_get_info ($service);
-                                                                                                                                                             
   $hash{"script"} = $service;
-  $hash{"name"} = $name unless ($name eq undef);
-  $hash{"description"} = $description unless ($description eq undef);
 
   foreach $link (<$rcd_path/rc[0-9S].d/S[0-9][0-9]$service>)
   {
@@ -1051,13 +1014,13 @@ sub gst_service_suse_get_service_info ($service)
     $link =~ /rc([0-6])\.d\/S[0-9][0-9].*/;
     $runlevel = $1;
 
-    push @arr, { "number" => $runlevel,
+    push @arr, { "name"   => $runlevel,
                  "action" => "start" };
   }
 
   foreach $link (<$rcd_path/boot.d/S[0-9][0-9]$service>)
   {
-    push @arr, {"number" => "B",
+    push @arr, {"name"   => "B",
                 "action" => "start" };
   }
 
@@ -1065,6 +1028,7 @@ sub gst_service_suse_get_service_info ($service)
   {
     push @ret, { "runlevel" => \@arr };
     $hash{"runlevels"} = \@ret;
+    $hash{"role"} = &gst_service_get_role ($service);
   }
 
   return \%hash;
@@ -1193,7 +1157,6 @@ sub gst_service_sysv_set_service
   ($rcd_path, $initd_path, $relative_path) = &gst_service_sysv_get_paths ();
 
   $script = $$service{"script"};
-  $priority = $$service{"priority"};
   $runlevels = $$service{"runlevels"}[0]{"runlevel"};
 
   # pass though all the runlevels checking if the service must be started, stopped or removed
@@ -1204,12 +1167,15 @@ sub gst_service_sysv_set_service
     $action = undef;
     foreach $j (@$runlevels)
     {
-      if ($i == $$j{"number"})
+      if ($i == $$j{"name"})
       {
-        $found = 1;
-        $action = $$j{"action"};
+        $found    = 1;
+        $action   = $$j{"action"};
+        $priority = $$j{"priority"};
+        $priority = 50 if (!$priority); #very rough guess
       }
     }
+
     if ($action ne undef)
     {
       if ($action eq "start")
@@ -1234,6 +1200,49 @@ sub gst_service_sysv_set_services
 	}
 }
 
+sub gst_service_filerc_concat_runlevels
+{
+  my (@runlevels) = @_;
+
+  $str = join (",", sort (@runlevels));
+  return ($str) ? $str : "-";
+}
+
+sub gst_service_filerc_set_service
+{
+  my ($buff, $service) = @_;
+  my (%hash, $priority, $line, $str);
+
+  $arr = $$service{"runlevels"}[0]{"runlevel"};
+
+  foreach $i (@$arr)
+  {
+    $priority = 0 + $$i{"priority"};
+    $priority = 50 if ($priority == 0); #very rough guess
+
+    if ($$i{"action"} eq "start")
+    {
+      $hash{$priority}{"start"} = [] if (!$hash{$priority}{"start"});
+      push @{$hash{$priority}{"start"}}, $$i{"name"};
+    }
+    else
+    {
+      $hash{$priority}{"stop"} = [] if (!$hash{$priority}{"stop"});
+      push @{$hash{$priority}{"stop"}}, $$i{"name"};
+    }
+  }
+
+  foreach $priority (keys %hash)
+  {
+    $line  = sprintf ("%0.2d", $priority) . "\t";
+    $line .= &gst_service_filerc_concat_runlevels (@{$hash{$priority}{"stop"}}) . "\t";
+    $line .= &gst_service_filerc_concat_runlevels (@{$hash{$priority}{"start"}}) . "\t";
+    $line .= "/etc/init.d/" . $$service{"script"} . "\n";
+
+    push @$buff, $line;
+  }
+}
+
 # This is the function for storing the service settings from XML in file-rc
 sub gst_service_filerc_set_services
 {
@@ -1250,9 +1259,10 @@ sub gst_service_filerc_set_services
 
   # We prepare the file for storing the configuration, save the initial comments
   # and delete the rest
-  do {
+  while ($$buff[$lineno] =~ /^#.*/)
+  {
     $lineno++;
-  } while ($$buff[$lineno] =~ /^#.*/);
+  }
 
   for ($i = $lineno; $i < scalar (@$buff); $i++)
   {
@@ -1268,53 +1278,7 @@ sub gst_service_filerc_set_services
   # Now we append the services
   foreach $service (@$services)
   {
-    my (@start, @stop, @arr);
-
-    $arr = $$service{"runlevels"}[0]{"runlevel"};
-
-    # split the runlevels in two arrays
-    foreach $i (@$arr)
-    {
-      if ($$i{"action"} eq "start")
-      {
-        push @start, $$i{"number"};
-      }
-      else
-      {
-        push @stop, $$i{"number"};
-      }
-    }
-
-    if ((scalar (@start) eq 0) && (scalar (@stop) eq 0))
-    {
-      #print a empty line
-      $line = sprintf ("%0.2d",$$service{"priority"}) . "\t";
-      $line .= "-\t-";
-      $line .= "\t\t". "/etc/init.d/" . $$service{"script"} . "\n";
-      push @$buff, $line;
-    }
-    else
-    {      
-      if (scalar (@start) ne 0)
-      {
-        # print the line with the runlevels in which the service starts with priority = $priority
-        $line = sprintf ("%0.2d",$$service{"priority"}) . "\t";
-        $line .= "-" . "\t";
-        $line .= join ",", sort @start;
-        $line .= "\t\t". "/etc/init.d/" . $$service{"script"} . "\n";
-        push @$buff, $line;
-      }
-
-      if (scalar (@stop) ne 0)
-      {
-        # print the line with the runlevels in which the service stops with priority = 100 - $priority
-        $line = sprintf ("%0.2d", 100 - $$service{"priority"}) . "\t";
-        $line .= join ",", sort @stop;
-        $line .= "\t" . "-";
-        $line .= "\t\t". "/etc/init.d/" . $$service{"script"} . "\n";
-        push @$buff, $line;
-      }
-    }
+    &gst_service_filerc_set_service ($buff, $service);
   }
 
   @$buff = sort @$buff;
@@ -1360,7 +1324,7 @@ sub gst_service_gentoo_set_services
     foreach $i (@$arr)
     {
       $action = $$i{"action"};
-      $rl = $$i{"number"};
+      $rl = $$i{"name"};
 
       if ( $action eq "start")
       {
@@ -1453,7 +1417,7 @@ sub gst_service_suse_set_services
     {
       if ($$rl{"action"} eq "start")
       {
-        $rllist .= $$rl{"number"} . ",";
+        $rllist .= $$rl{"name"} . ",";
       }
     }
 
@@ -1752,11 +1716,12 @@ sub gst_service_run_script
   my ($proc, $type);
   my %map =
       (
-       "sysv"   => \&gst_service_sysv_run_initd_script,
-       "bsd"    => \&gst_service_bsd_run_script,
-       "gentoo" => \&gst_service_gentoo_run_script,
-       "rcng"   => \&gst_service_rcng_run_script,
-       "suse"   => \&gst_service_sysv_run_initd_script,
+       "file-rc" => \&gst_service_sysv_run_initd_script,
+       "sysv"    => \&gst_service_sysv_run_initd_script,
+       "bsd"     => \&gst_service_bsd_run_script,
+       "gentoo"  => \&gst_service_gentoo_run_script,
+       "rcng"    => \&gst_service_rcng_run_script,
+       "suse"    => \&gst_service_sysv_run_initd_script,
       );
 
   $type = &gst_get_init_type ();
