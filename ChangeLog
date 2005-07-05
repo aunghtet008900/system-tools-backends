@@ -1,5 +1,9 @@
 2005-07-05  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* Release 1.3.0
+
+2005-07-05  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* service-list.pl.in: added roles stuff
 	* service.pl.in: use roles, separate priorities for each runlevel
 	* services-conf.in: use this stuff

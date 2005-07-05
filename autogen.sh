@@ -68,8 +68,8 @@ libtoolize --copy --force
 
 intltoolize --copy --force --automake
 
-echo $ACLOCAL $ACLOCAL_FLAGS
-$ACLOCAL $ACLOCAL_FLAGS
+echo $ACLOCAL $ACLOCAL_FLAGS -I m4macros
+$ACLOCAL $ACLOCAL_FLAGS -I m4macros
 
 ## optionally feature autoheader
 (autoheader --version)  < /dev/null > /dev/null 2>&1 && autoheader
