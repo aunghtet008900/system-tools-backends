@@ -1,3 +1,8 @@
+2005-07-16  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* network.pl.in: (gst_network_get_gateway_data)
+	(gst_network_get_default_gateway): added, use them for Debian
+
 2005-07-15  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* network.pl.in (gst_network_get_interface_type): set more strict

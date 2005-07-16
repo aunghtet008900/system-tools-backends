@@ -1814,22 +1814,37 @@ sub gst_network_get_file
   return undef;
 }
 
-sub gst_network_get_default_gatewaydev
+sub gst_network_get_gateway_data
 {
-  my ($fd, $gatewaydev);
+  my ($fd, $gateway, $dev);
 
   $fd = &gst_file_run_pipe_read ("route -n");
   while (<$fd>)
   {
-    if (/^0\.0\.0\.0.*[ \t]([a-zA-Z0-9]*)/)
+    if (/^0\.0\.0\.0[\t ]+([^\t ]+).*[ \t]([a-zA-Z0-9]*)/)
     {
-      $gatewaydev = $1;
+      $gateway = $1;
+      $dev = $2;
       last;
     }
   }
 
   &gst_file_close ($fd);
-  return $gatewaydev;
+  return ($gateway, $dev);
+}
+
+sub gst_network_get_default_gatewaydev
+{
+  my ($gateway, $dev) = &gst_network_get_gateway_data ();
+
+  return $dev;
+}
+
+sub gst_network_get_default_gateway
+{
+  my ($gateway, $dev) = &gst_network_get_gateway_data ();
+
+  return $gateway;
 }
 
 sub gst_network_route_set_default_gw
@@ -4147,6 +4162,7 @@ sub gst_network_get_parse_table
 	    table =>
           [
            [ "hostname",      \&gst_parse_line_first,        HOSTNAME ],
+           [ "gateway",       \&gst_network_get_default_gateway ],
            [ "gatewaydev",    \&gst_network_get_default_gatewaydev ],
 #           [ "gwdevunsup",    \&gst_parse_trivial,           1 ],
 #           [ "userifacectl",  \&gst_parse_trivial,           0 ],
