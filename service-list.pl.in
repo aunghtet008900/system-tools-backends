@@ -174,6 +174,10 @@ sub gst_service_list_service_is_forbidden
 # FILE_SERVER: file servers
 # NTP_SERVER: Network time protocol servers
 # SECURE_SHELL_SERVER: Secure shell servers
+# AUTOMOUNTER: automounter daemons and so
+# ANTIVIRUS:
+# FILE_SHARING: for emule-like services
+#
 #
 # If you feel that there are more important/necessary roles,
 # mail me at carlosg@gnome.org
@@ -185,15 +189,27 @@ sub gst_service_get_role
   my %service_roles = (
     "acpid" => "SYSTEM",
     "alsa" => "SOUND",
+    "am-utils" => "AUTOMOUNTER",
+    "amavis" => "ANTIVIRUS",
+    "amavis-ng" => "ANTIVIRUS",
     "apache" => "WEB_SERVER",
+    "apache-perl" => "WEB_SERVER",
+    "apache-ssl" => "WEB_SERVER",
+    "apache2" => "WEB_SERVER",
     "anacron" => "COMMAND_SCHEDULER",
     "apmd" => "SYSTEM",
     "atd" => "COMMAND_SCHEDULER", #FIXME
     "aumix" => "SOUND",
+    "autofs" => "AUTOMOUNTER",
+    "bind" => "NETWORK",
     "binfmt-support" => "SYSTEM",
     "bootlogd" => "SYSTEM",
     "chargen" => "NETWORK",
     "chargen-udp" => "NETWORK",
+    "cherokee" => "WEB_SERVER",
+    "clamav-daemon" => "ANTIVIRUS",
+    "courier" => "MTA",
+    "courier-mta" => "MTA",
     "cpufreqd" => "SYSTEM",
     "cron" => "COMMAND_SCHEDULER",
     "crond" => "COMMAND_SCHEDULER",
@@ -210,6 +226,7 @@ sub gst_service_get_role
     "esound" => "SOUND",
     "exim" => "MTA",
     "fam" => "SYSTEM",
+    "fcron" => "COMMAND_SCHEDULER",
     "firstboot" => "SYSTEM",
     "festival" => "SOUND",	 #FIXME
     "fetchmail" => "MAIL_FETCHER",
@@ -233,8 +250,11 @@ sub gst_service_get_role
     "lircmd" => "SYSTEM",
     "local" => "SYSTEM",
     "lpd" => "PRINTER_SERVICE",
+    "lpdng" => "PRINTER_SERVICE",
+    "mailscanner" => "ANTIVIRUS",
     "makedev" => "SYSTEM",
     "metalog" => "SYSTEM_LOGGER",
+    "mldonkey-server" => "FILE_SHARING",
     "modules" => "SYSTEM",
     "module-init-tools" => "SYSTEM",
     "mysql" => "DATABASE_SERVER",
@@ -242,6 +262,8 @@ sub gst_service_get_role
     "netfs" => "SYSTEM",
     "network" => "SYSTEM",
     "nfs"	=> "FILE_SERVER",
+    "nfs-user-server"	=> "FILE_SERVER",
+    "nfs-kernel-server"	=> "FILE_SERVER",
     "nfslock" => "SYSTEM",
     "nscd" => "NETWORK",
     "ntpd" => "NTP_SERVER",
@@ -255,8 +277,11 @@ sub gst_service_get_role
     "portmap" => "NETWORK",
     "postfix" => "MTA",
     "postgresql" => "DATABASE_SERVER",
+    "postgresql-7.4" => "DATABASE_SERVER",
+    "postgresql-8.0" => "DATABASE_SERVER",
     "ppp"	=> "NETWORK",
     "privoxy" => "NETWORK",
+    "qmail" => "MTA",
     "random" => "SYSTEM",
     "rawdevices" => "SYSTEM",
     "rhnsd" => "SYSTEM",
@@ -281,12 +306,14 @@ sub gst_service_get_role
     "urandom" => "SYSTEM",
     "vcron" => "COMMAND_SCHEDULER",
     "vmware" => "SYSTEM",	 # FIXME
+    "wdm"	=> "DISPLAY_MANAGER",
     "webmin" => "SYSTEM",	 # FIXME as well
     "winbind" => "NETWORK",
     "wine" => "SYSTEM",	 # FIXME like vmware
     "xdm"	=> "DISPLAY_MANAGER",
     "xfs" => "SYSTEM",
     "xinetd" => "NETWORK",
+    "zmailer" => "MTA",
   );
 
   my ($role) = $service_roles{$script};
