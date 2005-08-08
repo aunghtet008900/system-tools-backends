@@ -177,14 +177,16 @@ for ($i = 0; $groups_prop_array[$i] ne ""; $i += 2)
 %groups_desc_map = (
   # TRANSLATORS: this is a list of infinitive actions
   "adm"       => _("Monitor system logs"),
+  "admin"     => _("Administer the system"),
   "audio"     => _("Use audio devices"),
-  "cdrom"     => _("Access to CD-ROM drives"),
-  "dialout"   => _("Access to modem devices"),
-  "dip"       => _("Connect to Internet through modem devices"),
+  "cdrom"     => _("Use CD-ROM drives"),
+  "dialout"   => _("Use modems"),
+  "dip"       => _("Connect to Internet using a modem"),
   "fax"       => _("Send and receive faxes"),
-  "floppy"    => _("Access to floppy drives"),
+  "floppy"    => _("Use floppy drives"),
   "plugdev"   => _("Enable access to external storage devices automatically"),
-  "tape"      => _("Access to tape drives"),
+  "scanner"   => _("Use scanners"),
+  "tape"      => _("Use tape drives"),
   "wheel"     => _("Be able to get administrator privileges"),
 );
 

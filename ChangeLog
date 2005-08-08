@@ -1,5 +1,10 @@
 2005-08-08  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* Applied patch to improve groups descriptions, closes GNOME bug
+	#308685 (Corey Burger, Guillaume Desmottes)
+
+2005-08-08  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* service-list.pl.in: Added role for FTP servers
 
 2005-08-06  Carlos Garnacho Parro  <carlosg@gnome.org>
