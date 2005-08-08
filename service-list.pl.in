@@ -177,6 +177,7 @@ sub gst_service_list_service_is_forbidden
 # AUTOMOUNTER: automounter daemons and so
 # ANTIVIRUS:
 # FILE_SHARING: for emule-like services
+# FTP_SERVER:
 #
 #
 # If you feel that there are more important/necessary roles,
@@ -199,6 +200,7 @@ sub gst_service_get_role
     "anacron" => "COMMAND_SCHEDULER",
     "apmd" => "SYSTEM",
     "atd" => "COMMAND_SCHEDULER", #FIXME
+    "atftpd" => "FTP_SERVER",
     "aumix" => "SOUND",
     "autofs" => "AUTOMOUNTER",
     "bind" => "NETWORK",
@@ -231,8 +233,9 @@ sub gst_service_get_role
     "festival" => "SOUND",	 #FIXME
     "fetchmail" => "MAIL_FETCHER",
     "freenet6" => "NETWORK",
-    "gdm"	=> "DISPLAY_MANAGER",
-    "gpm"	=> "SYSTEM",			#FIXME
+    "ftpd" => "FTP_SERVER",
+    "gdm" => "DISPLAY_MANAGER",
+    "gpm" => "SYSTEM",			#FIXME
     "hdparm" => "SYSTEM",
     "hotplug" => "SYSTEM",
     "httpd"	=> "WEB_SERVER",
@@ -258,6 +261,7 @@ sub gst_service_get_role
     "modules" => "SYSTEM",
     "module-init-tools" => "SYSTEM",
     "mysql" => "DATABASE_SERVER",
+    "muddleftpd" => "FTP_SERVER",
     "named" => "NETWORK",
     "netfs" => "SYSTEM",
     "network" => "SYSTEM",
@@ -270,6 +274,7 @@ sub gst_service_get_role
     "ntpdate" => "NTP_SERVER",
     "ntp-client" => "NTP_CLIENT",
     "ntp-simple" => "NTP_SERVER",
+    "oftpd" => "FTP_SERVER",
     "oops" => "NETWORK",
     "pcmcia" => "SYSTEM",
     "pdnsd" => "NETWORK",
@@ -280,7 +285,9 @@ sub gst_service_get_role
     "postgresql-7.4" => "DATABASE_SERVER",
     "postgresql-8.0" => "DATABASE_SERVER",
     "ppp"	=> "NETWORK",
+    "proftpd" => "FTP_SERVER",
     "privoxy" => "NETWORK",
+    "pure-ftpd" => "FTP_SERVER",
     "qmail" => "MTA",
     "random" => "SYSTEM",
     "rawdevices" => "SYSTEM",
@@ -301,16 +308,20 @@ sub gst_service_get_role
     "sshd" => "SECURE_SHELL_SERVER",
     "sysklogd" => "SYSTEM_LOGGER",
     "syslog" => "SYSTEM_LOGGER",
+    "tftpd-hpa" => "FTP_SERVER",
     "time" => "NETWORK",
     "time-udp" => "NETWORK",
     "urandom" => "SYSTEM",
     "vcron" => "COMMAND_SCHEDULER",
     "vmware" => "SYSTEM",	 # FIXME
+    "vsftpd" => "FTP_SERVER",
     "wdm"	=> "DISPLAY_MANAGER",
     "webmin" => "SYSTEM",	 # FIXME as well
     "winbind" => "NETWORK",
     "wine" => "SYSTEM",	 # FIXME like vmware
-    "xdm"	=> "DISPLAY_MANAGER",
+    "wu-ftpd" => "FTP_SERVER",
+    "wzdftpd" => "FTP_SERVER",
+    "xdm" => "DISPLAY_MANAGER",
     "xfs" => "SYSTEM",
     "xinetd" => "NETWORK",
     "zmailer" => "MTA",

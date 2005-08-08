@@ -1,3 +1,7 @@
+2005-08-08  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* service-list.pl.in: Added role for FTP servers
+
 2005-08-06  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* service-list.pl.in: Added some more services/roles
