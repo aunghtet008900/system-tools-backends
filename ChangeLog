@@ -1,5 +1,9 @@
 2005-08-08  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+        * Release 1.3.2
+
+2005-08-08  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* Applied patch to improve groups descriptions, closes GNOME bug
 	#308685 (Corey Burger, Guillaume Desmottes)
 
