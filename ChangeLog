@@ -1,5 +1,9 @@
 2005-08-13  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* test-backends: improved a bit, removed unused code
+
+2005-08-13  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* Users/Groups.pm: module for managing group settings
 	* GroupsConfig.pm: toplevel object for dealing with groups
 
