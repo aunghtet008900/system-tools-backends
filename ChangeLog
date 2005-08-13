@@ -1,5 +1,9 @@
 2005-08-13  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* Loader.pl.in: use the new objects
+
+2005-08-13  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* Time/NTP.pm: module for handling NTP servers configuration
 	* NTPConfig.pm: toplevel object for dealing with NTP config
 
