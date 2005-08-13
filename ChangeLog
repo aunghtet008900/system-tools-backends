@@ -1,5 +1,10 @@
 2005-08-13  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* Users/Groups.pm: module for managing group settings
+	* GroupsConfig.pm: toplevel object for dealing with groups
+
+2005-08-13  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* ShellsConfig.pm: ShellsList object renamed, all exported objects
 	will be called *Config
 
