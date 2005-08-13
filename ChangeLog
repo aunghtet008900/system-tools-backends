@@ -1,5 +1,10 @@
 2005-08-13  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* ShellsConfig.pm: ShellsList object renamed, all exported objects
+	will be called *Config
+
+2005-08-13  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* Users/Shells.pm: small indenting fix
 	* Users/Users.pm: modify to get data from login.defs and some pam 
 	info (whether to use MD5 to crypt passwords)

@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 #-*- Mode: perl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 
-# DBus object for the Services list
+# DBus object for the Shells configuration
 #
 # Copyright (C) 2005 Carlos Garnacho
 #
@@ -21,12 +21,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-package ShellsList;
+package ShellsConfig;
 
 use base qw(Net::DBus::Object);
 use Users::Shells;
 
-my $OBJECT_NAME = "ShellsList";
+my $OBJECT_NAME = "ShellsConfig";
 my $SERVICES_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
 
 sub new
