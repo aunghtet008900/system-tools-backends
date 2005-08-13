@@ -1,7 +1,4 @@
-#!/usr/bin/env perl
 #-*- Mode: perl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-
-# Users account mannager. Designed to be architecture and distribution independent.
 #
 # Copyright (C) 2000-2001 Ximian, Inc.
 #
@@ -86,7 +83,7 @@ sub set
 
     if (!&Utils::Util::ignore_line ($line))
     {
-	 delete $$buff[$nline] if (stat ($line));
+      delete $$buff[$nline] if (stat ($line));
     }
 
     $nline++;

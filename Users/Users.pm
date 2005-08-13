@@ -1,7 +1,5 @@
-#!/usr/bin/env perl
 #-*- Mode: perl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-
-# Users account mannager. Designed to be architecture and distribution independent.
+# Users account manager. Designed to be architecture and distribution independent.
 #
 # Copyright (C) 2000-2001 Ximian, Inc.
 #
@@ -195,7 +193,7 @@ sub get_login_defs_prop_array
      "USERDEL_CMD",    "del_user_additional_command",
      "CREATE_HOME",    "create_home",
      "", "");
-  
+
   if ($Utils::Backend::tool{"platform"} =~ /^suse/)
   {
     @prop_array = @login_defs_prop_array_suse;
@@ -396,17 +394,6 @@ sub arr_cmp_recurse
 	return 0;
 }
 
-sub get_logindefs
-{
-  my $profiledb = shift;
-  return unless $profiledb;
-
-  foreach my $profile (@$profiledb)
-  {
-    return $profile if (exists ($profile->{'login_defs'}));
-  }
-}
-
 # --- Configuration manipulation --- #
 
 sub read
@@ -421,7 +408,7 @@ sub read
   return \%hash;
 }
 
-sub check_use_md5
+sub do_get_use_md5
 {
   my ($file) = @_;
   my ($fh, @line, $i, $use_md5);
@@ -439,7 +426,7 @@ sub check_use_md5
 
     if ($line[0] eq "\@include")
     {
-      $use_md5 = &check_use_md5 ($line[1]);
+      $use_md5 = &do_get_use_md5 ($line[1]);
     }
     elsif ($line[0] eq "password")
     {
@@ -454,14 +441,15 @@ sub check_use_md5
   return $use_md5;
 }
 
+sub get_use_md5
+{
+  return &do_get_use_md5 ("passwd");
+}
+
 sub logindefs_add_defaults
 {
   # Common for all distros
   my $logindefs = {
-    'name'        => _("Default"),
-    'comment'     => _("Default profile"),
-    'default'     => 1,
-    'login_defs'  => 1,
     'home_prefix' => '/home/$user',
   };
 
@@ -485,16 +473,11 @@ sub logindefs_add_defaults
   return $logindefs;
 }
 
-sub read_logindefs
+sub get_logindefs
 {
-  my $profiledb = shift;
-  my $logindefs =  &get_logindefs ($profiledb);
+  my $logindefs;
 
-  unless ($logindefs)
-  {
-    $logindefs = &logindefs_add_defaults ();
-    push @$profiledb, $logindefs;
-  }
+  $logindefs = &logindefs_add_defaults ();
 
   # Get new data in case someone has changed login_defs manually.
   my $fh = &Utils::File::open_read_from_names (@login_defs_names);
@@ -506,6 +489,7 @@ sub read_logindefs
       next if &Utils::Util::ignore_line ($_);
       chomp;
       my @line = split /[ \t]+/;
+
       if (exists $login_defs_prop_map{$line[0]})
       {
         $logindefs->{$login_defs_prop_map{$line[0]}} = $line[1];
@@ -522,41 +506,8 @@ sub read_logindefs
     $logindefs->{"gmin"} = '1000';
     $logindefs->{"gmax"} = '60000';
   }
-}
 
-sub read_profiledb
-{
-  my ($hash) = @_;
-  my $path;
-  my $profiles = [];
-
-  $$hash{'profiledb'} = $profiles;
-
-  $path = &Utils::File::get_data_path () . "/" . $main::tool->{'name'} . "/" . $profile_file;
-  my $tree = &Utils::XML::scan ($path, $tool);
-
-  if ($tree && scalar @$tree)
-  {
-    if ($$tree[0] eq 'profiledb')
-    {
-      &xml_parse_profiledb ($$tree[1], $hash);
-    }
-    else
-    {
-      &Utils::Report::do_report ('xml_unexp_tag', $$tree[0]);
-    }
-  }
-
-  &read_logindefs ($profiles);
-
-  if (scalar @$profiles)
-  {
-    &Utils::Report::do_report ('users_read_profiledb_success');
-  }
-  else
-  {
-    &Utils::Report::do_report ('users_read_profiledb_fail');
-  }
+  return $logindefs;
 }
 
 sub get
@@ -594,12 +545,14 @@ sub get
   &Utils::File::close_file ($ifh);
   $ifh = &Utils::File::open_read_from_names(@shadow_names);
 
-  if ($ifh) {
+  if ($ifh)
+  {
     my $passwd_pos = $users_prop_map{"password"};
 
     while (<$ifh>)
     {
       chomp;
+
       # FreeBSD allows comments in the shadow passwd file.
       next if &Utils::Util::ignore_line ($_);
 
@@ -617,7 +570,7 @@ sub get
   # transform the hash into an array
   foreach $login (keys %$users_hash)
   {
-    push @users, \@$arr;
+    push @users, $$users_hash{$login};
   }
 
   return \@users;
@@ -631,61 +584,6 @@ sub get_files
   push @arr, @shadow_names;
 
   return \@arr;
-}
-
-sub read_group
-{
-  my ($hash) = @_;
-  my ($ifh, @groups, %groups_hash, $group_last_modified);
-  my (@line, $copy, @a);
-  my $i = 0;
-
-  # Find the file.
-
-  $ifh = &Utils::File::open_read_from_names(@group_names);
-  unless ($ifh)
-  {
-    &Utils::Report::do_report ('users_read_groups_fail');
-    return;
-  }
-  $group_last_modified = (stat ($ifh))[9]; # &get the mtime.
-
-  # Parse the file.
-	
-  @groups = ();
-  %groups_hash = ();
-
-  while (<$ifh>)
-  {
-    chomp;
-
-    # FreeBSD allows comments in the group file. */
-    next if &Utils::Util::ignore_line ($_);
-    $_ = &Utils::XML::unquote ($_);
-
-    @line = split ':', $_, -1;
-    unshift @line, sprintf ("%06d", $i);
-    @a = split ',', pop @line;
-    push @line, [@a];
-    $copy = [@line];
-    $groups_hash{sprintf ("%06d", $i)} = $copy;
-    push (@groups, $copy);
-    $i ++;
-  }
-  &Utils::File::close_file ($ifh);
-
-  $$hash{"groups"}      = \@groups;
-  $$hash{"groups_hash"} = \%groups_hash;
-  $$hash{"group_last_modified"} = $group_last_modified;
-
-  if (scalar @groups)
-  {
-    &Utils::Report::do_report ('users_read_groups_success');
-  }
-  else
-  {
-    &Utils::Report::do_report ('users_read_groups_fail');
-  }
 }
 
 sub get_shells

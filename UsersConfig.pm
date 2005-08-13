@@ -21,13 +21,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-package UsersList;
+package UsersConfig;
 
 use base qw(Net::DBus::Object);
 use Utils::Backend;
 use Users::Users;
 
-my $OBJECT_NAME = "UsersList";
+my $OBJECT_NAME = "UsersConfig";
 my $SHARES_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
 
 sub new
@@ -39,7 +39,8 @@ sub new
                                        methods => {
                                          "get" => {
                                            params  => [],
-                                           returns => [[ "array", [ "struct", "int32", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]]],
+                                           returns => [[ "array", [ "struct", "int32", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
+                                                       "int32", "int32", "int32", "string" ]
                                          },
                                        },
                                        signals => {
@@ -58,10 +59,13 @@ sub new
 sub get
 {
   my ($self) = @_;
-  my $users;
+  my $logindefs, $users, $use_md5;
 
-  $users = Users::Users::get ();
-  return $users;
+  $use_md5 = &Users::Users::get_use_md5 ();
+  $logindefs = &Users::Users::get_logindefs ();
+  $users = &Users::Users::get ();
+
+  return ($users, $use_md5, $$logindefs{"umin"}, $$logindefs{"umax"}, $$logindefs{"home_prefix"});
 }
 
 1;

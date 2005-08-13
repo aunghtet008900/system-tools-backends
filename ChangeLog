@@ -1,3 +1,12 @@
+2005-08-13  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Users/Shells.pm: small indenting fix
+	* Users/Users.pm: modify to get data from login.defs and some pam 
+	info (whether to use MD5 to crypt passwords)
+	* UsersConfig.pm: new toplevel object, contains the users list,	and
+	logindefs info relevant to users. Deprecates UserList
+	* UsersList.pm: deleted
+
 2005-06-12  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* time-conf.in: applied patch to update /etc/timezone in debian based
