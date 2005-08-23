@@ -1,3 +1,8 @@
+2005-08-23  Jean-Philippe Guillemin  <jp.guillemin@free.fr>
+
+	* network.pl.in: patch to enable gateway saving under Slackware
+	and Zenwalk. Closes GNOME Bug #313210
+
 2005-08-08  Carlos Garnacho Parro  <carlosg@gnome.org>
 
         * Release 1.3.2

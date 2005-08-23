@@ -6398,6 +6398,7 @@ sub gst_network_get_interface_replace_table
      [
       [ "address",            \&gst_replace_rcinet1conf,                   [ RC_INET_CONF, IFACE ], IPADDR ],
       [ "netmask",            \&gst_replace_rcinet1conf,                   [ RC_INET_CONF, IFACE ], NETMASK ],
+      [ "gateway",            \&gst_replace_rcinet1conf_global,            RC_INET_CONF, GATEWAY ],
       [ "bootproto",          \&gst_network_slackware91_replace_bootproto, [ RC_INET_CONF, IFACE ] ],
       [ "auto",               \&gst_network_slackware91_set_auto,          [ RC_INET, RC_LOCAL, IFACE ] ],
       [ "essid",              \&gst_replace_wireless_opts,                 [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, ESSID ],
