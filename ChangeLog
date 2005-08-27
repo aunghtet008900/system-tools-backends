@@ -1,3 +1,8 @@
+2005-08-27  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* network.pl.in: explicitly deactivate wireless encription if there's
+	no specified key. Fixes GNOME bug #171927
+
 2005-08-23  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Release 1.3.92

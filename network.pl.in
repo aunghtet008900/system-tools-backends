@@ -147,7 +147,11 @@ sub gst_network_config_wireless
     if ($key)
     {
       $key = &gst_network_get_full_key ($key, $key_type);
-      $command .= " key '$key'" if ($key);
+      $command .= " key '$key'";
+    }
+    else
+    {
+      $command .= " key off";
     }
 
     &gst_file_run ($command);
