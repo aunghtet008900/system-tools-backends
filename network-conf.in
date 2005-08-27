@@ -185,7 +185,7 @@ sub xml_parse_statichost
   }
 
   # common regexp for IPv4 and IPv6
-  if ($ip =~ /([0-9]+[\.:])+/)
+  if ($ip =~ /([0-9a-fA-F\.:])+/)
   {
     $$statichost{$ip} = \@alias;
   }
