@@ -2571,9 +2571,10 @@ sub gst_network_conf_set
   my $old_hash;
   my %dist_attrib;
   
-  &gst_network_ensure_loopback ($values_hash);
-
   $old_hash = &gst_network_conf_get ();
+
+  &gst_network_ensure_loopback ($values_hash, $old_hash);
+
   %dist_attrib = &gst_network_get_replace_table ();
   $res = &gst_replace_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
                                   $values_hash, $old_hash);
@@ -3953,18 +3954,31 @@ sub gst_network_statichost_add_alias
   
   push @$localhost, $alias;
 }
+
+sub gst_network_statichost_remove_alias
+{
+  my ($localhost, $alias) = @_;
+  my $i;
+
+  for ($i = 0; $i < @$localhost; $i++) {
+    if ($$localhost[$i] eq $alias)
+    {
+      delete $$localhost[$i];
+      return;
+    }
+  }
+}
   
 sub gst_network_ensure_loopback_statichost
 {
-  my ($statichost, $hostname, $lo_ip) = @_;
+  my ($statichost, $hostname, $old_hostname, $lo_ip) = @_;
   my $i;
 
   if (exists $$statichost{$lo_ip})
   {
     my $localhost = $$statichost{$lo_ip};
+    &gst_network_statichost_remove_alias ($localhost, $old_hostname) if ($old_hostname);
     &gst_network_statichost_add_alias ($localhost, $hostname);
-    &gst_network_statichost_add_alias ($localhost, "localhost");
-    &gst_network_statichost_add_alias ($localhost, "localhost.localdomain");
   }
   else
   {
@@ -3972,19 +3986,34 @@ sub gst_network_ensure_loopback_statichost
   }
 }
 
-# lo_ip is the ip for localhost (commonly 127.0.0.1).
+sub get_network_get_lo_ip
+{
+  my ($statichost) = @_;
+
+  foreach $i (keys %$statichost)
+  {
+    return $i if ($i =~ /^127\./);
+  }
+
+  return "127.0.0.1";
+}
+
 sub gst_network_ensure_loopback
 {
   my $values_hash = $_[0];
-  my $lo_ip = "127.0.0.1";
+  my $old_values_hash = $_[1];
   my $interface = $$values_hash{"interface"};
   my $hostname = $$values_hash{"hostname"};
   my $statichost = $$values_hash{"statichost"};
+  my $lo_ip = &get_network_get_lo_ip ($statichost);
+
+  # needed for replacing hostname safely
+  my $old_hostname = $$old_values_hash{"hostname"};
 
   &gst_report_enter ();
   &gst_report ("network_ensure_lo");
 
-  &gst_network_ensure_loopback_statichost ($statichost, $hostname, $lo_ip);
+  &gst_network_ensure_loopback_statichost ($statichost, $hostname, $old_hostname, $lo_ip);
   &gst_network_ensure_loopback_interface ($interface, $lo_ip);
 
   &gst_report_leave ();
