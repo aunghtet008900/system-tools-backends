@@ -21,15 +21,26 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+BEGIN {
+  $SCRIPTSDIR = "@scriptsdir@";
+  if ($SCRIPTSDIR !~ /^@scriptsdir[@]/)
+  {
+    push @INC, $SCRIPTSDIR;
+  }
+}
+
 use Net::DBus;
 use Net::DBus::Service;
 use Net::DBus::Reactor;
 use Utils::Backend;
 use Utils::Monitor;
 
+use SMBConfig;
+use NFSConfig;
 use ShellsConfig;
 use UsersConfig;
 use GroupsConfig;
+use TimeConfig;
 use NTPConfig;
 
 # Initialize tool
@@ -41,9 +52,12 @@ my $service = Net::DBus::Service->new($Utils::Backend::DBUS_PREFIX, $bus);
 my $reactor = Net::DBus::Reactor->new();
 
 #Initialize all objects
+my $smb_config     = SMBConfig->new      ($service);
+my $nfs_config     = NFSConfig->new      ($service);
 my $shells_config  = ShellsConfig->new   ($service);
 my $users_config   = UsersConfig->new    ($service);
 my $groups_config  = GroupsConfig->new   ($service);
+my $time_config    = TimeConfig->new     ($service);
 my $ntp_config     = NTPConfig->new      ($service);
 
 $reactor->manage($bus->{connection});

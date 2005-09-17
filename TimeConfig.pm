@@ -1,7 +1,6 @@
-#!/usr/bin/env perl
 #-*- Mode: perl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 
-# DBus object for the Users list
+# DBus object for the Time/Date configuration
 #
 # Copyright (C) 2005 Carlos Garnacho
 #
@@ -21,13 +20,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-package UsersConfig;
+package TimeConfig;
 
 use base qw(Net::DBus::Object);
 use Utils::Backend;
-use Users::Users;
+use Time::TimeDate;
 
-my $OBJECT_NAME = "UsersConfig";
+my $OBJECT_NAME = "TimeConfig";
 my $OBJECT_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
 
 sub new
@@ -39,8 +38,7 @@ sub new
                                        methods => {
                                          "get" => {
                                            params  => [],
-                                           returns => [[ "array", [ "struct", "int32", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
-                                                       "int32", "int32", "int32", "string" ]
+                                           returns => [ "int32", "int32", "int32" ],
                                          },
                                        },
                                        signals => {
@@ -50,8 +48,8 @@ sub new
                                    },
                                    @_);
   bless $self, $class;
-  Utils::Monitor::monitor_files (&Users::Users::get_files (),
-                                 $self, $OBJECT_NAME, "changed");
+#  Utils::Monitor::monitor_files (&Users::Users::get_files (),
+#                                 $self, $OBJECT_NAME, "changed");
 
   return $self;
 }
@@ -59,13 +57,9 @@ sub new
 sub get
 {
   my ($self) = @_;
-  my $logindefs, $users, $use_md5;
+  my $config;
 
-  $use_md5 = &Users::Users::get_use_md5 ();
-  $logindefs = &Users::Users::get_logindefs ();
-  $users = &Users::Users::get ();
-
-  return ($users, $use_md5, $$logindefs{"umin"}, $$logindefs{"umax"}, $$logindefs{"home_prefix"});
+  return Time::TimeDate::get ();
 }
 
 1;

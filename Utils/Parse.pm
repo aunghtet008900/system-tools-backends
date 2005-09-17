@@ -863,8 +863,8 @@ sub get_from_ini_bool
   
   $ret = &get_from_ini ($file, $section, $var);
   
-  return undef if ($ret eq undef);
-  return (&Utils::Util::read_boolean ($ret)? 1: 0);
+  return 0 if ($ret eq undef);
+  return (&Utils::Util::read_boolean ($ret)? 1 : 0);
 }
 
 # Debian interfaces(5) states that files starting with # are comments.

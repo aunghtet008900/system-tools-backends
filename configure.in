@@ -14,12 +14,12 @@ dnl ==============================================================
 dnl Set SCRIPTS_DIR, FILES_DIR & LOCALE_DIR
 dnl ==============================================================
 if test "x${prefix}" = "xNONE"; then
-  scriptsdir="${ac_default_prefix}/share/setup-tool-backends/scripts"
-  filesdir="${ac_default_prefix}/share/setup-tool-backends/files"
+  scriptsdir="${ac_default_prefix}/share/system-tool-backends-2.0/scripts"
+  filesdir="${ac_default_prefix}/share/system-tool-backends-2.0/files"
   localedir="${ac_default_prefix}/share/locale"
 else
-  scriptsdir="${prefix}/share/setup-tool-backends/scripts"
-  filesdir="${prefix}/share/setup-tool-backends/files"
+  scriptsdir="${prefix}/share/system-tool-backends-2.0/scripts"
+  filesdir="${prefix}/share/system-tool-backends-2.0/files"
   localedir="${prefix}/share/locale"
 fi
 
@@ -43,52 +43,13 @@ m4macros/Makefile
 po/Makefile.in
 system-tools-backends-2.0.pc
 files/Makefile
-boot-conf
-dhcpd-conf
-disks-conf
-display-conf
-font-conf
-hardware-conf
-internetsharing-conf
-memory-conf
-mouse-conf
-network-conf
-package-conf
-print-conf
-services-conf
-shares-conf
-time-conf
-users-conf
-boot-grub.pl
-boot-lilo.pl
-boot-yaboot.pl
-boot.pl
-debug.pl
-dhcpd.pl
-file.pl
-filesys.pl
-font.pl
-general.pl
-ishare.pl
-media.pl
+Shares/Makefile
+Time/Makefile
+Users/Makefile
+Utils/Makefile
+Loader.pl
 network.pl
-parse.pl
-partition.pl
-platform.pl
-print.pl
-process.pl
-removable-media.pl
-replace.pl
-report.pl
-service-list.pl
-service.pl
-share.pl
-tokenizer.pl
-util.pl
-xml.pl
-x.pl
 ])
-
 
 echo "
 

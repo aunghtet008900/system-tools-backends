@@ -1,3 +1,19 @@
+2005-09-17  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Loader.pl.in: add some code to check whether the backends are
+	installed and add the install path to @INC in such case. Use
+	objects for SMB, NFS and time/date
+	* Makefile.am, autogen.sh, configure.in: modified to make the 
+	thing actually compile
+	* Shares/Makefile.am, Time/Makefile.am, Users/Makefile.am,
+	Utils/Makefile.am: added
+	* NFSConfig.pm, Shares/NFS.pm: added
+	* SMBConfig.pm, Shares/SMB.pm: added
+	* TimeConfig.pm, Time/TimeDate.pm: added
+	* UsersConfig.pm: fixed a typo
+	* Utils/Parse.pm (get_from_ini_bool): return 0 (not undef) if it
+	couldn't find the value
+
 2005-08-13  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Loader.pl.in: use the new objects
