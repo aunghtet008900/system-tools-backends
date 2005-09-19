@@ -1,3 +1,8 @@
+2005-09-20  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* network.pl.in: Fixed WEP key detection on both slackware and gentoo.
+	Closes GNOME bug #316732
+
 2005-09-04  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Release 1.4.0

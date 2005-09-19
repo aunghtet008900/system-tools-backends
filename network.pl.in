@@ -5165,9 +5165,9 @@ sub gst_network_get_interface_parse_table
        [ "gateway",            \&gst_network_get_gateway,            RC_INET_CONF, GATEWAY, "%address%", "%netmask%" ],
        [ "auto",               \&gst_network_slackware91_get_auto,   [RC_INET, RC_LOCAL, IFACE]],
        [ "bootproto",          \&gst_network_slackware91_parse_bootproto, [RC_INET_CONF, IFACE]],
-       [ "essid",              \&gst_parse_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, ESSID ],
-       [ "key_type",           \&gst_network_get_wep_key_type,      [ \&gst_parse_wireless_opts, [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY ]],
-       [ "key",                \&gst_network_get_wep_key,           [ \&gst_parse_wireless_opts, [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY ]],
+       [ "essid",              \&gst_parse_wireless_opts,            [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, ESSID ],
+       [ "key_type",           \&gst_network_get_wep_key_type,      [ \&gst_parse_wireless_opts, WIRELESS, IFACE, \&gst_network_get_wireless_ifaces, KEY ]],
+       [ "key",                \&gst_network_get_wep_key,           [ \&gst_parse_wireless_opts, WIRELESS, IFACE, \&gst_network_get_wireless_ifaces, KEY ]],
        [ "enabled",            \&gst_network_interface_active,       IFACE, \&gst_network_active_interfaces_get ],
        # Modem stuff
        [ "update_dns",         \&gst_network_check_type,            [IFACE, "modem", \&gst_parse_kw, PPP_OPTIONS, "usepeerdns" ]],
@@ -5215,8 +5215,8 @@ sub gst_network_get_interface_parse_table
        [ "enabled",            \&gst_network_interface_active,       IFACE, \&gst_network_active_interfaces_get ],
        [ "bootproto",          \&gst_network_parse_bootproto,        NET, "iface_%dev%" ],
        [ "essid",              \&gst_parse_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, ESSID ],
-       [ "key_type",           \&gst_network_get_wep_key_type,       [ \&gst_parse_wireless_opts, [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY ]],
-       [ "key",                \&gst_network_get_wep_key,            [ \&gst_parse_wireless_opts, [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, KEY ]],
+       [ "key_type",           \&gst_network_get_wep_key_type,       [ \&gst_parse_wireless_opts, WIRELESS, IFACE, \&gst_network_get_wireless_ifaces, KEY ]],
+       [ "key",                \&gst_network_get_wep_key,            [ \&gst_parse_wireless_opts, WIRELESS, IFACE, \&gst_network_get_wireless_ifaces, KEY ]],
        # modem stuff
        [ "update_dns",         \&gst_parse_sh_bool,                  PPPNET, PEERDNS ],
        [ "mtu",                \&gst_parse_sh,                       PPPNET, MTU ],
