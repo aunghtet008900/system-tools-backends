@@ -42,6 +42,8 @@ use UsersConfig;
 use GroupsConfig;
 use TimeConfig;
 use NTPConfig;
+use HostsConfig;
+use ServicesConfig;
 
 # Initialize tool
 &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
@@ -52,13 +54,15 @@ my $service = Net::DBus::Service->new($Utils::Backend::DBUS_PREFIX, $bus);
 my $reactor = Net::DBus::Reactor->new();
 
 #Initialize all objects
-my $smb_config     = SMBConfig->new      ($service);
-my $nfs_config     = NFSConfig->new      ($service);
-my $shells_config  = ShellsConfig->new   ($service);
-my $users_config   = UsersConfig->new    ($service);
-my $groups_config  = GroupsConfig->new   ($service);
-my $time_config    = TimeConfig->new     ($service);
-my $ntp_config     = NTPConfig->new      ($service);
+my $smb_config      = SMBConfig->new      ($service);
+my $nfs_config      = NFSConfig->new      ($service);
+my $shells_config   = ShellsConfig->new   ($service);
+my $users_config    = UsersConfig->new    ($service);
+my $groups_config   = GroupsConfig->new   ($service);
+my $time_config     = TimeConfig->new     ($service);
+my $ntp_config      = NTPConfig->new      ($service);
+my $hosts_config    = HostsConfig->new    ($service);
+my $services_config = ServicesConfig->new ($service);
 
 $reactor->manage($bus->{connection});
 $reactor->add_timeout (50, Net::DBus::Callback->new(method => \&Utils::Monitor::do_monitor_files));
