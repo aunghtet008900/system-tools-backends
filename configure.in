@@ -14,12 +14,12 @@ dnl ==============================================================
 dnl Set SCRIPTS_DIR, FILES_DIR & LOCALE_DIR
 dnl ==============================================================
 if test "x${prefix}" = "xNONE"; then
-  scriptsdir="${ac_default_prefix}/share/system-tool-backends-2.0/scripts"
-  filesdir="${ac_default_prefix}/share/system-tool-backends-2.0/files"
+  scriptsdir="${ac_default_prefix}/share/system-tools-backends-2.0/scripts"
+  filesdir="${ac_default_prefix}/share/system-tools-backends-2.0/files"
   localedir="${ac_default_prefix}/share/locale"
 else
-  scriptsdir="${prefix}/share/system-tool-backends-2.0/scripts"
-  filesdir="${prefix}/share/system-tool-backends-2.0/files"
+  scriptsdir="${prefix}/share/system-tools-backends-2.0/scripts"
+  filesdir="${prefix}/share/system-tools-backends-2.0/files"
   localedir="${prefix}/share/locale"
 fi
 

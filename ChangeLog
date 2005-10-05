@@ -1,3 +1,7 @@
+2005-10-06  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* configure.in: changed installation path
+
 2005-10-04  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Network/Hosts.pm: added
