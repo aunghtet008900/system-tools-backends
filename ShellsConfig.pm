@@ -24,38 +24,27 @@
 package ShellsConfig;
 
 use base qw(Net::DBus::Object);
+use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Users::Shells;
 
-my $OBJECT_NAME = "ShellsConfig";
-my $SERVICES_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
+my $OBJECT_NAME = "/ShellsConfig";
 
 sub new
 {
-  my $class  = shift;
-  my $self   = $class->SUPER::new ($SERVICES_PATH,
-                                   {
-                                     $OBJECT_NAME => {
-                                       methods => {
-                                         "get" => {
-                                           params  => [],
-                                           returns => [[ "array", "string" ]],
-                                         },
-                                         "set" => {
-                                           params  => [[ "array", "string" ]],
-                                           returns => [],
-                                         },
-                                       },
-                                       signals => {
-                                         "changed" => [],
-                                       },
-                                     },
-                                   },
-                                   @_);
+  my $class   = shift;
+  my $service = shift;
+  my $self    = $class->SUPER::new ($service, $OBJECT_NAME);
+
   bless $self, $class;
+
   Utils::Monitor::monitor_files (&Users::Shells::get_files (),
                                  $self, $OBJECT_NAME, "changed");
   return $self;
 }
+
+dbus_method ("get", [], [[ "array", "string" ]]);
+dbus_method ("set", [[ "array", "string" ]], []);
+dbus_signal ("changed", []);
 
 sub get
 {

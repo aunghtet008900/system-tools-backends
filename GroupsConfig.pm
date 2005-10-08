@@ -23,36 +23,27 @@
 package GroupsConfig;
 
 use base qw(Net::DBus::Object);
+use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Utils::Backend;
 use Users::Groups;
 
-my $OBJECT_NAME = "GroupsConfig";
-my $SHARES_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
+my $OBJECT_NAME = "/GroupsConfig";
 
 sub new
 {
-  my $class = shift;
-  my $self  = $class->SUPER::new ($SHARES_PATH,
-                                  {
-                                    $OBJECT_NAME => {
-                                      methods => {
-                                        "get" => {
-                                          params  => [],
-                                          returns => [[ "array", [ "struct", "int32", "string", "string", "int32", [ "array", "string"]]]],
-                                        },
-                                      },
-                                      signals => {
-                                        "changed" => [],
-                                      },
-                                    },
-                                  },
-                                  @_);
+  my $class   = shift;
+  my $service = shift;
+  my $self    = $class->SUPER::new ($service, $OBJECT_NAME);
+
   bless $self, $class;
+
   Utils::Monitor::monitor_files (&Users::Groups::get_files (),
                                  $self, $OBJECT_NAME, "changed");
-
   return $self;
 }
+
+dbus_method ("get", [], [[ "array", [ "struct", "int32", "string", "string", "int32", [ "array", "string"]]]]);
+dbus_signal ("changed", []);
 
 sub get
 {

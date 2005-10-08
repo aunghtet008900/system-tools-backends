@@ -1,3 +1,10 @@
+2005-10-08  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* GroupsConfig.pm, HostsConfig.pm, Loader.pl.in, NFSConfig.pm,
+	NTPConfig.pm, SMBConfig.pm, ServicesConfig.pm, ShellsConfig.pm,
+	TimeConfig.pm, UsersConfig.pm, test-backends: updated everything to
+	latest perl DBus bindings API
+
 2005-10-06  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* configure.in: changed installation path

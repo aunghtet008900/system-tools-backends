@@ -24,37 +24,30 @@
 package UsersConfig;
 
 use base qw(Net::DBus::Object);
+use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Utils::Backend;
 use Users::Users;
 
-my $OBJECT_NAME = "UsersConfig";
-my $OBJECT_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
+my $OBJECT_NAME = "/UsersConfig";
 
 sub new
 {
-  my $class  = shift;
-  my $self   = $class->SUPER::new ($OBJECT_PATH,
-                                   {
-                                     $OBJECT_NAME => {
-                                       methods => {
-                                         "get" => {
-                                           params  => [],
-                                           returns => [[ "array", [ "struct", "int32", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
-                                                       "int32", "int32", "int32", "string" ]
-                                         },
-                                       },
-                                       signals => {
-                                         "changed" => [],
-                                       },
-                                     },
-                                   },
-                                   @_);
+  my $class   = shift;
+  my $service = shift;
+  my $self    = $class->SUPER::new ($service, $OBJECT_NAME);
+
   bless $self, $class;
+
   Utils::Monitor::monitor_files (&Users::Users::get_files (),
                                  $self, $OBJECT_NAME, "changed");
-
   return $self;
 }
+
+dbus_method ("get", [],
+             [[ "array", [ "struct", "int32", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
+              "int32", "int32", "int32", "string" ]);
+
+dbus_signal ("changed", []);
 
 sub get
 {

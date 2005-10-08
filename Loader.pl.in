@@ -50,7 +50,7 @@ use ServicesConfig;
 
 # Initialize bus
 my $bus     = Net::DBus->session();
-my $service = Net::DBus::Service->new($Utils::Backend::DBUS_PREFIX, $bus);
+my $service = $bus->export_service ($Utils::Backend::DBUS_PREFIX);
 my $reactor = Net::DBus::Reactor->new();
 
 #Initialize all objects
@@ -64,6 +64,5 @@ my $ntp_config      = NTPConfig->new      ($service);
 my $hosts_config    = HostsConfig->new    ($service);
 my $services_config = ServicesConfig->new ($service);
 
-$reactor->manage($bus->{connection});
-$reactor->add_timeout (50, Net::DBus::Callback->new(method => \&Utils::Monitor::do_monitor_files));
-$reactor->run();
+Net::DBus::Reactor->main->add_timeout (50, Net::DBus::Callback->new(method => \&Utils::Monitor::do_monitor_files));
+Net::DBus::Reactor->main->run ();

@@ -53,8 +53,7 @@ sub print_object
   my ($service, $object) = @_;
   my ($item);
 
-  my $obj = $service->get_object ("/org/freedesktop/SystemToolsBackends/" . $object,
-                                  "org.freedesktop.SystemToolsBackends");
+  my $obj = $service->get_object ("/$object");
   my @arr = $obj->get ();
 
   foreach $i (@arr) {

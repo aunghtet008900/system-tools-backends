@@ -23,36 +23,31 @@
 package HostsConfig;
 
 use base qw(Net::DBus::Object);
+use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Network::Hosts;
 
-my $OBJECT_NAME = "HostsConfig";
-my $SHARES_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
+my $OBJECT_NAME = "/HostsConfig";
 
 sub new
 {
-  my $class  = shift;
-  my $self   = $class->SUPER::new ($SHARES_PATH,
-                                   {
-                                     $OBJECT_NAME => {
-                                       methods => {
-                                         "get" => {
-                                           params  => [],
-                                           returns => [[ "array", [ "struct", "string", [ "array", "string" ]]],
-                                                       ["array", "string" ],
-                                                       ["array", "string" ]],
-                                         },
-                                       },
-                                       signals => {
-                                         "changed" => [],
-                                       },
-                                     },
-                                   },
-                                   @_);
+  my $class   = shift;
+  my $service = shift;
+  my $self    = $class->SUPER::new ($service, $OBJECT_NAME);
+
   bless $self, $class;
-#  Utils::Monitor::monitor_files (&Shares::Exports::get_files (),
+
+#  Utils::Monitor::monitor_files (&Users::Groups::get_files (),
 #                                 $self, $OBJECT_NAME, "changed");
+
   return $self;
 }
+
+dbus_method ("get", [],
+             [[ "array", [ "struct", "string", [ "array", "string" ]]],
+              ["array", "string" ],
+              ["array", "string" ]]);
+
+dbus_signal ("changed", []);
 
 sub get
 {

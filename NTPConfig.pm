@@ -23,35 +23,28 @@
 package NTPConfig;
 
 use base qw(Net::DBus::Object);
+use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Utils::Backend;
 use Time::NTP;
 
-my $OBJECT_NAME = "NTPConfig";
-my $SHARES_PATH = $Utils::Backend::DBUS_PATH . "/" . $OBJECT_NAME;
+my $OBJECT_NAME = "/NTPConfig";
 
 sub new
 {
-  my $class  = shift;
-  my $self   = $class->SUPER::new ($SHARES_PATH,
-                                   {
-                                     $OBJECT_NAME => {
-                                       methods => {
-                                         "get" => {
-                                           params  => [],
-                                           returns => [[ "array", "string" ]],
-                                         },
-                                       },
-                                       signals => {
-                                         "changed" => [],
-                                       },
-                                     },
-                                   },
-                                   @_);
+  my $class   = shift;
+  my $service = shift;
+  my $self    = $class->SUPER::new ($service, $OBJECT_NAME);
+
   bless $self, $class;
-#  Utils::Monitor::monitor_files (&Shares::Exports::get_files (),
+
+#  Utils::Monitor::monitor_files (&Users::Groups::get_files (),
 #                                 $self, $OBJECT_NAME, "changed");
+
   return $self;
 }
+
+dbus_method ("get", [], [[ "array", "string" ]]);
+dbus_signal ("changed", []);
 
 sub get
 {
