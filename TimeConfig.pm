@@ -43,7 +43,7 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [], [ "int32", "int32", "int32" ]);
+dbus_method ("get", [], [ "int32", "int32", "int32", "int32", "int32", "int32", "string" ]);
 dbus_signal ("changed", []);
 
 sub get

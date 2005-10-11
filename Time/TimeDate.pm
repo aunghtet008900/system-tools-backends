@@ -323,11 +323,11 @@ sub get
 
   $hash = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
                                  $dist_attrib{"table"});
+  $h = $$hash {"local_time"};
 
-  $h = $$hash{"local_time"};
-
-  return $hash;
-  return (12, 23, 42);
+  return ($$h {"year"}, $$h {"month"},  $$h {"monthday"},
+          $$h {"hour"}, $$h {"minute"}, $$h {"second"},
+          $$hash{"timezone"});
 }
 
 1;

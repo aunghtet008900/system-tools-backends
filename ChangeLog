@@ -1,3 +1,8 @@
+2005-10-11  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* TimeConfig.pm: return the correct number of parameters
+	* Time/TimeDate.pm: return correctly all needed parameters
+
 2005-10-08  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* GroupsConfig.pm, HostsConfig.pm, Loader.pl.in, NFSConfig.pm,
