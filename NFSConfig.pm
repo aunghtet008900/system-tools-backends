@@ -26,23 +26,23 @@ use base qw(Net::DBus::Object);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Shares::NFS;
 
-my $OBJECT_NAME = "/NFSConfig";
+my $OBJECT_NAME = "NFSConfig";
+my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
 
 sub new
 {
   my $class   = shift;
   my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_NAME);
+  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
 
   bless $self, $class;
 
-#  Utils::Monitor::monitor_files (&Shares::SMB::get_distro_smb_file (),
-#                                 $self, $OBJECT_NAME, "changed");
-
+  Utils::Monitor::monitor_files (&Shares::NFS::get_distro_nfs_file (),
+                                 $self, $OBJECT_NAME, "changed");
   return $self;
 }
 
-dbus_method ("get", [], [[ "array", [ "struct", "string", "string", "int32", "int32", "int32", "int32" ]]]);
+dbus_method ("get", [], [[ "array", [ "struct", "string", [ "array", [ "struct", "string", "int32" ]]]]]);
 dbus_signal ("changed", []);
 
 sub get

@@ -1,3 +1,12 @@
+2005-10-13  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* GroupsConfig.pm, HostsConfig.pm, NFSConfig.pm, NTPConfig.pm,
+	SMBConfig.pm, ServicesConfig.pm, ShellsConfig.pm, TimeConfig.pm,
+	UsersConfig.pm: fixed objects paths
+	* test-backends: ditto
+	* Shares/NFS.pm: fixed and simplified things for retrieving
+	information
+
 2005-10-11  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* TimeConfig.pm: return the correct number of parameters

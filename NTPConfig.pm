@@ -27,13 +27,14 @@ use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Utils::Backend;
 use Time::NTP;
 
-my $OBJECT_NAME = "/NTPConfig";
+my $OBJECT_NAME = "NTPConfig";
+my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
 
 sub new
 {
   my $class   = shift;
   my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_NAME);
+  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
 
   bless $self, $class;
 

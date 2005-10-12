@@ -26,19 +26,19 @@ use base qw(Net::DBus::Object);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Shares::SMB;
 
-my $OBJECT_NAME = "/SMBConfig";
+my $OBJECT_NAME = "SMBConfig";
+my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
 
 sub new
 {
   my $class   = shift;
   my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_NAME);
+  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
 
   bless $self, $class;
 
 #  Utils::Monitor::monitor_files (&Shares::SMB::get_distro_smb_file (),
 #                                 $self, $OBJECT_NAME, "changed");
-
   return $self;
 }
 

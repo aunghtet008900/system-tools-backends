@@ -26,13 +26,14 @@ use base qw(Net::DBus::Object);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Init::Services;
 
-my $OBJECT_NAME = "/ServicesConfig";
+my $OBJECT_NAME = "ServicesConfig";
+my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
 
 sub new
 {
   my $class   = shift;
   my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_NAME);
+  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
 
   bless $self, $class;
 
