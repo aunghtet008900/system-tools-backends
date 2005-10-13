@@ -42,7 +42,7 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [], [[ "array", [ "struct", "string", "string", "int32", "int32", "int32", "int32" ]]]);
+dbus_method ("get", [], [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]]]);
 dbus_signal ("changed", []);
 
 sub get

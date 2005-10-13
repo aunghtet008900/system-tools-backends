@@ -145,6 +145,7 @@ sub get_share_info
 
   my $path;
 
+  push @share, $section;
   push @share, &Utils::Parse::get_from_ini      ($smb_conf_name, $section, "path");
   push @share, &Utils::Parse::get_from_ini      ($smb_conf_name, $section, "comment");
   push @share, &Utils::Parse::get_from_ini_bool ($smb_conf_name, $section, "available");
