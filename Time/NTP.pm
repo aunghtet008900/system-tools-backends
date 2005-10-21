@@ -102,9 +102,89 @@ sub get_ntp_servers
   return &Utils::Parse::split_all_array_with_pos ($ntp_conf, "server", 0, "[ \t]+", "[ \t]+");
 }
 
+sub ntp_conf_replace
+{
+  my ($file, $key, $re, $value) = @_;
+  my ($fd, @line, @res);
+  my ($buff, $i);
+  my ($pre_space, $post_comment);
+  my ($line_key, $val, $rest);
+  my ($n, $ret);
+
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("replace_split", $key, $file);
+
+  $buff = &Utils::File::load_buffer ($file);
+  
+  foreach $i (@$buff)
+  {
+    $pre_space = $post_comment = "";
+
+    chomp $i;
+
+    $pre_space    = $1 if $i =~ s/^([ \t]+)//;
+    $post_comment = $1 if $i =~ s/([ \t]*\#.*)//;
+    
+    if ($i ne "")
+    {
+      @line = split ($re, $i, 3);
+      $line_key = shift (@line);
+      $val      = shift (@line);
+      $rest     = shift (@line);
+
+      # found the key?
+      if ($line_key eq $key)
+      {
+        $n = 0;
+
+        while (@$value[$n] && (@$value[$n] ne $val))
+        {
+          $n++;
+        }
+
+        if (@$value[$n] ne $val)
+        {
+          $i = "";
+          next;
+        }
+
+        delete @$value[$n];
+        chomp $val;
+        $i  = &Utils::Replace::set_value ($key, $val, $re) . " " . $rest;
+      }
+    }
+
+    $i = $pre_space . $i . $post_comment . "\n";
+  }
+
+  foreach $i (@$value)
+  {
+    push (@$buff, &Utils::Replace::set_value ($key, $i, $re) . "\n") if ($i ne "");
+  }
+
+  &Utils::File::clean_buffer ($buff);
+  $ret = &Utils::File::save_buffer ($buff, $file);
+  &Utils::Report::leave ();
+  return $ret;
+}
+
+sub set_ntp_servers
+{
+  my (@config) = @_;
+  my ($ntp_conf);
+
+  $ntp_conf = &get_config_file ();
+  return &ntp_conf_replace ($ntp_conf, "server", "[ \t]+", @config);
+}
+
 sub get
 {
   return &get_ntp_servers ();
+}
+
+sub set
+{
+  return &set_ntp_servers (@_);
 }
 
 1;

@@ -43,17 +43,19 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [], [[ "array", [ "struct", "string", "string", [ "array", [ "struct", "string", "string", "int32" ]]]]]);
+dbus_method ("get", [],
+             [[ "array", [ "struct", "string", "string" ]],
+              "string",
+              [ "array", [ "struct", "string", "string", [ "array", [ "struct", "string", "string", "int32" ]]]]]);
 dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
-  my ($config);
 
-  $config = &Init::Services::get ();
-
-  return $config;
+  return (&Init::Services::get_runlevel_roles (),
+          &Init::Services::get_default_runlevel (),
+          &Init::Services::get ());
 }
 
 1;

@@ -25,6 +25,8 @@
 
 package Time::TimeDate;
 
+use File::Copy;
+
 sub get_local_time
 {
   my (%h, $trash);
@@ -36,6 +38,55 @@ sub get_local_time
   $h{"year"} += 1900;
 
   return \%h;
+}
+
+# This function will force date format when setting time
+sub change_timedate
+{
+  my ($time) = @_;
+  my ($command);
+
+  my $system_table = {
+    "Linux"   => "date %02d%02d%02d%02d%04d.%02d",
+    "FreeBSD" => "date -f %%m%%d%%H%%M%%Y.%%S  %02d%02d%02d%02d%04d.%02d"
+  };
+
+  $command = sprintf ($$system_table {$Utils::Backend::tool{"system"}},
+                      $$time{"month"}, $$time{"monthday"},
+                      $$time{"hour"},  $$time{"minute"}, 
+                      $$time{"year"},  $$time{"second"});
+
+  &Utils::Report::do_report ("time_localtime_set", $command);
+
+  return &Utils::File::run ($command);
+}
+
+sub set_local_time
+{
+  my ($time) = @_;
+  my ($res, $xscreensaver_owners);
+
+  &Utils::Report::enter ();
+
+  # FIXME: restore this, take into account other screensavers
+  # Kill screensaver, so it doesn't confuse the users.
+#  $xscreensaver_owners = &gst_service_proc_get_owners ("xscreensaver");
+#  &gst_service_proc_stop_all  ("xscreensaver");
+
+  $res = &change_timedate ($time);
+
+  # Restart screensaver.
+#  &gst_service_proc_start_all ("xscreensaver -no-splash", $xscreensaver_owners);
+
+  &Utils::Report::leave ();
+  return -1 if $res;
+  return 0;
+}
+
+sub time_sync_hw_from_sys
+{
+  &Utils::File::run ("hwclock --systohc");
+  return 0;
 }
 
 sub get_timezone
@@ -82,6 +133,30 @@ sub get_timezone
   close (TZLIST);
 }
 
+sub set_timezone
+{
+  my ($localtime, $zonebase, $timezone) = @_;
+
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("time_timezone_set", $timezone);
+
+  $tz = "$zonebase/$timezone";
+
+  if (stat($tz) ne "")
+  {
+    unlink $localtime;  # Important, since it might be a symlink.
+    
+    &Utils::Report::enter ();
+    $res = copy ($tz, $localtime);
+    &Utils::Report::leave ();
+    return -1 unless $res;
+    return 0;
+  }
+
+  &Utils::Report::leave ();
+  return -1;
+}
+
 sub conf_get_parse_table
 {
   my %dist_map =
@@ -90,55 +165,55 @@ sub conf_get_parse_table
    "redhat-6.1"      => "redhat-6.2",
    "redhat-6.2"      => "redhat-6.2",
 
-   "redhat-7.0"      => "redhat-7.0",
-   "redhat-7.1"      => "redhat-7.0",
-   "redhat-7.2"      => "redhat-7.0",
-   "redhat-7.3"      => "redhat-7.0",
-   "redhat-8.0"      => "redhat-7.0",
-   "redhat-9"        => "redhat-7.0",
-   "openna-1.0"      => "redhat-7.0",
+   "redhat-7.0"      => "redhat-6.2",
+   "redhat-7.1"      => "redhat-6.2",
+   "redhat-7.2"      => "redhat-6.2",
+   "redhat-7.3"      => "redhat-6.2",
+   "redhat-8.0"      => "redhat-6.2",
+   "redhat-9"        => "redhat-6.2",
+   "openna-1.0"      => "redhat-6.2",
 
-   "mandrake-7.1"    => "redhat-7.0",
-   "mandrake-7.2"    => "redhat-7.0",
-   "mandrake-9.0"    => "redhat-7.0",
-   "mandrake-9.1"    => "redhat-7.0",
-   "mandrake-9.2"    => "redhat-7.0",
-   "mandrake-10.0"   => "redhat-7.0",
-   "mandrake-10.1"   => "redhat-7.0",
+   "mandrake-7.1"    => "redhat-6.2",
+   "mandrake-7.2"    => "redhat-6.2",
+   "mandrake-9.0"    => "redhat-6.2",
+   "mandrake-9.1"    => "redhat-6.2",
+   "mandrake-9.2"    => "redhat-6.2",
+   "mandrake-10.0"   => "redhat-6.2",
+   "mandrake-10.1"   => "redhat-6.2",
 
-   "debian-2.2"      => "debian-2.2",
+   "debian-2.2"      => "redhat-6.2",
    "debian-3.0"      => "debian-3.0",
    "debian-sarge"    => "debian-3.0",
 
-   "suse-7.0"        => "suse-7.0",
-   "suse-9.0"        => "suse-9.0",
-   "suse-9.1"        => "suse-9.0",
+   "suse-7.0"        => "redhat-6.2",
+   "suse-9.0"        => "redhat-6.2",
+   "suse-9.1"        => "redhat-6.2",
 
-   "turbolinux-7.0"  => "redhat-7.0",
+   "turbolinux-7.0"  => "redhat-6.2",
    
-   "slackware-8.0.0" => "debian-2.2",
-   "slackware-8.1"   => "debian-2.2",
-   "slackware-9.0.0" => "debian-2.2",
-   "slackware-9.1.0" => "debian-2.2",
-   "slackware-10.0.0" => "debian-2.2",
-   "slackware-10.1.0" => "debian-2.2",
+   "slackware-8.0.0" => "redhat-6.2",
+   "slackware-8.1"   => "redhat-6.2",
+   "slackware-9.0.0" => "redhat-6.2",
+   "slackware-9.1.0" => "redhat-6.2",
+   "slackware-10.0.0" => "redhat-6.2",
+   "slackware-10.1.0" => "redhat-6.2",
 
-   "gentoo"          => "gentoo",
+   "gentoo"          => "redhat-6.2",
 
-   "pld-1.0"         => "pld-1.0",
-   "pld-1.1"         => "pld-1.0",
-   "pld-1.99"        => "pld-1.0",
-   "fedora-1"        => "redhat-7.0",
-   "fedora-2"        => "redhat-7.0",
-   "fedora-3"        => "redhat-7.0",
+   "pld-1.0"         => "redhat-6.2",
+   "pld-1.1"         => "redhat-6.2",
+   "pld-1.99"        => "redhat-6.2",
+   "fedora-1"        => "redhat-6.2",
+   "fedora-2"        => "redhat-6.2",
+   "fedora-3"        => "redhat-6.2",
    
-   "specifix"        => "redhat-7.0",
+   "specifix"        => "redhat-6.2",
 
-   "vine-3.0"        => "redhat-7.0",
-   "vine-3.1"        => "redhat-7.0",
+   "vine-3.0"        => "redhat-6.2",
+   "vine-3.1"        => "redhat-6.2",
 
-   "freebsd-5"       => "freebsd-5",
-   "freebsd-6"       => "freebsd-5",
+   "freebsd-5"       => "redhat-6.2",
+   "freebsd-6"       => "redhat-6.2",
    );
 
   my %dist_tables =
@@ -147,116 +222,6 @@ sub conf_get_parse_table
    {
      fn =>
      {
-       NTP_CONF     => "/etc/ntp.conf",
-       STEP_TICKERS => "/etc/ntp/step-tickers",
-       ZONEINFO     => "/usr/share/zoneinfo",
-       LOCAL_TIME    => "/etc/localtime"
-     },
-     table =>
-     [
-      [ "local_time",   \&get_local_time ],
-      [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
-#      [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
-#      [ "sync_active",  \&gst_service_sysv_get_status, "xntpd" ],
-#      [ "ntpinstalled", \&gst_service_sysv_installed, "xntpd" ],
-     ]
-   },
-
-   "redhat-7.0" =>
-   {
-     fn =>
-     {
-       NTP_CONF     => "/etc/ntp.conf",
-       ZONEINFO     => "/usr/share/zoneinfo",
-       LOCAL_TIME    => "/etc/localtime"
-     },
-     table =>
-     [
-      [ "local_time",   \&get_local_time ],
-      [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
-#      [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
-#      [ "sync_active",  \&gst_service_sysv_get_status, "ntpd" ],
-#      [ "ntpinstalled", \&gst_service_sysv_installed, "ntpd" ],
-     ]
-   },
-
-   "debian-2.2" =>
-   {
-     fn =>
-     {
-       NTP_CONF     => "/etc/ntp.conf",
-       ZONEINFO     => "/usr/share/zoneinfo",
-       LOCAL_TIME    => "/etc/localtime"
-     },
-     table =>
-     [
-      [ "local_time",   \&get_local_time ],
-      [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
-#      [ "sync",         \&Utils::Parse::split_first_array_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
-#      [ "sync_active",  \&gst_service_sysv_get_status, "ntpd" ],
-#      [ "ntpinstalled", \&gst_service_sysv_installed, "ntp" ],
-     ]
-   },
-
-   "debian-3.0" =>
-   {
-     fn =>
-     {
-       NTP_CONF     => "/etc/ntp.conf",
-       ZONEINFO     => "/usr/share/zoneinfo",
-       LOCAL_TIME    => "/etc/localtime"
-     },
-     table =>
-     [
-      [ "local_time",   \&get_local_time ],
-      [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
-#      [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
-#      [ "sync_active",  \&gst_service_sysv_get_status, "ntpd" ],
-#      [ "ntpinstalled", \&gst_service_sysv_installed, "ntp-server" ],
-     ]
-   },
-
-   "suse-7.0" =>
-   {
-     fn =>
-     {
-       NTP_CONF     => "/etc/ntp.conf",
-       ZONEINFO     => "/usr/share/zoneinfo",
-       LOCAL_TIME    => "/etc/localtime"
-     },
-     table =>
-     [
-      [ "local_time",   \&get_local_time ],
-      [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
-#      [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
-#      [ "sync_active",  \&gst_service_sysv_get_status, "xntpd" ],
-#      [ "ntpinstalled", \&gst_service_sysv_installed, "xntpd" ],
-     ]
-   },
-
-   "suse-9.0" =>
-   {
-     fn =>
-     {
-       NTP_CONF     => "/etc/ntp.conf",
-       ZONEINFO     => "/usr/share/zoneinfo",
-       LOCAL_TIME    => "/etc/localtime"
-     },
-     table =>
-     [
-      [ "local_time",   \&get_local_time ],
-      [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
-#      [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
-#      [ "sync_active",  \&gst_service_get_status, "xntpd" ],
-#      [ "ntpinstalled", \&gst_service_installed,  "xntpd" ],
-     ]
-   },
-
-   "pld-1.0" =>
-   {
-     fn =>
-     {
-       NTP_CONF     => "/etc/ntp/ntp.conf",
        ZONEINFO     => "/usr/share/zoneinfo",
        LOCAL_TIME   => "/etc/localtime"
      },
@@ -264,45 +229,117 @@ sub conf_get_parse_table
      [
       [ "local_time",   \&get_local_time ],
       [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
-#      [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
-#      [ "sync_active",  \&gst_service_sysv_get_status, "ntpd" ],
-#      [ "ntpinstalled", \&gst_service_sysv_installed, "ntpd" ],
      ]
    },
 
-   "gentoo" =>
+   "debian-3.0" =>
    {
      fn =>
      {
-       NTP_CONF     => "/etc/ntp.conf",
        ZONEINFO     => "/usr/share/zoneinfo",
-       LOCAL_TIME    => "/etc/localtime"
+       LOCAL_TIME   => "/etc/localtime"
      },
      table =>
      [
       [ "local_time",   \&get_local_time ],
       [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
-#      [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
-#      [ "sync_active",  \&gst_service_gentoo_get_status, "ntpd" ],
-#      [ "ntpinstalled", \&gst_service_list_any_installed, [ "ntpd", "openntpd" ]],
      ]
    },
+  );
 
-   "freebsd-5" =>
+  my $dist = $dist_map {$Utils::Backend::tool{"platform"}};
+  return %{$dist_tables{$dist}} if $dist;
+
+  &Utils::Report::do_report ("platform_no_table", $$tool{"platform"});
+  return undef;
+}
+
+sub conf_get_replace_table
+{
+  my %dist_map =
+  (
+   "redhat-6.0"      => "redhat-6.2",
+   "redhat-6.1"      => "redhat-6.2",
+   "redhat-6.2"      => "redhat-6.2",
+   
+   "redhat-7.0"      => "redhat-6.2",
+   "redhat-7.1"      => "redhat-6.2",
+   "redhat-7.2"      => "redhat-6.2",
+   "redhat-7.3"      => "redhat-6.2",
+   "redhat-8.0"      => "redhat-6.2",
+   "redhat-9"        => "redhat-6.2",
+   "openna-1.0"      => "redhat-6.2",
+
+   "mandrake-7.1"    => "redhat-6.2",
+   "mandrake-7.2"    => "redhat-6.2",
+   "mandrake-9.0"    => "redhat-6.2",
+   "mandrake-9.1"    => "redhat-6.2",
+   "mandrake-9.2"    => "redhat-6.2",
+   "mandrake-10.0"   => "redhat-6.2",
+   "mandrake-10.1"   => "redhat-6.2",
+
+   "debian-2.2"      => "redhat-6.2",
+   "debian-3.0"      => "debian-3.0",
+   "debian-sarge"    => "debian-3.0",
+
+   "suse-7.0"        => "redhat-6.2",
+   "suse-9.0"        => "redhat-6.2",
+   "suse-9.1"        => "redhat-6.2",
+
+   "turbolinux-7.0"  => "redhat-6.2",
+   
+   "slackware-8.0.0" => "redhat-6.2",
+   "slackware-9.0.0" => "redhat-6.2",
+   "slackware-9.1.0" => "redhat-6.2",
+   "slackware-10.0.0" => "redhat-6.2",
+   "slackware-10.1.0" => "redhat-6.2",
+
+   "gentoo"          => "redhat-6.2",
+
+   "pld-1.0"         => "redhat-6.2",
+   "pld-1.1"         => "redhat-6.2",
+   "pld-1.99"        => "redhat-6.2",
+   "fedora-1"        => "redhat-6.2",
+   "fedora-2"        => "redhat-6.2",
+   "fedora-3"        => "redhat-6.2",
+   "specifix"        => "redhat-6.2",
+
+   "vine-3.0"        => "redhat-6.2",
+   "vine-3.1"        => "redhat-6.2",
+
+   "freebsd-5"       => "redhat-6.2",
+   "freebsd-6"       => "redhat-6.2",
+   );
+
+  my %dist_tables =
+  (
+   "redhat-6.2" =>
    {
      fn =>
      {
-       NTP_CONF     => "/etc/ntp.conf",
        ZONEINFO     => "/usr/share/zoneinfo",
        LOCAL_TIME    => "/etc/localtime"
      },
      table =>
      [
-      [ "local_time",   \&get_local_time ],
-      [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
-#      [ "sync",         \&Utils::Parse::split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
-#      [ "sync_active",  \&gst_service_rcng_get_status, "ntpd" ],
-#      [ "ntpinstalled", \&gst_service_installed, "ntpd" ],
+      [ "timezone",    \&set_timezone, [LOCAL_TIME, ZONEINFO] ],
+      [ "local_time",  \&set_local_time ],
+     ]
+   },
+       
+   "debian-3.0" =>
+   {
+     fn =>
+     {
+       ZONEINFO     => "/usr/share/zoneinfo",
+       LOCAL_TIME   => "/etc/localtime",
+       TIMEZONE     => "/etc/timezone"
+     },
+     table =>
+     [
+      [ "timezone",    \&set_timezone, [LOCAL_TIME, ZONEINFO] ],
+      [ "timezone",    \&Utils::Replace::set_first_line, TIMEZONE ],
+      [ "local_time",  \&set_local_time ],
      ]
    },
   );
@@ -322,12 +359,37 @@ sub get
   %dist_attrib = &conf_get_parse_table ();
 
   $hash = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
-                                 $dist_attrib{"table"});
+                                         $dist_attrib{"table"});
   $h = $$hash {"local_time"};
 
   return ($$h {"year"}, $$h {"month"},  $$h {"monthday"},
           $$h {"hour"}, $$h {"minute"}, $$h {"second"},
           $$hash{"timezone"});
+}
+
+sub set
+{
+  my (@config) = @_;
+  my ($hash, %localtime);
+
+  %localtime = (
+    "year"     => $config[0],
+    "month"    => $config[1],
+    "monthday" => $config[2],
+    "hour"     => $config[3],
+    "minute"   => $config[4],
+    "second"   => $config[5]
+  );
+
+  $$hash{"local_time"} = \%localtime;
+  $$hash{"timezone"}   = $config[6];
+
+  %dist_attrib = &conf_get_replace_table ();
+
+  $res = &Utils::Replace::set_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"}, $hash);
+  &time_sync_hw_from_sys ();
+
+  return $res;
 }
 
 1;

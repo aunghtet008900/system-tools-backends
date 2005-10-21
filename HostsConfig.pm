@@ -59,4 +59,13 @@ sub get
           Network::Hosts::get_search_domains ());
 }
 
+sub set
+{
+  my ($self, @config) = @_;
+
+  Network::Hosts::set ($config[0]);
+  Network::Hosts::set_dns ($config[1]);
+  Network::Hosts::set_search_domains ($config[2]);
+}
+
 1;

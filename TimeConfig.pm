@@ -45,6 +45,7 @@ sub new
 }
 
 dbus_method ("get", [], [ "int32", "int32", "int32", "int32", "int32", "int32", "string" ]);
+dbus_method ("set", [ "int32", "int32", "int32", "int32", "int32", "int32", "string" ], []);
 dbus_signal ("changed", []);
 
 sub get
@@ -53,6 +54,13 @@ sub get
   my $config;
 
   return Time::TimeDate::get ();
+}
+
+sub set
+{
+  my ($self, @config) = @_;
+
+  Time::TimeDate::set (@config);
 }
 
 1;

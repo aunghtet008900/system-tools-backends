@@ -45,13 +45,21 @@ sub new
 }
 
 dbus_method ("get", [], [[ "array", "string" ]]);
+dbus_method ("set", [[ "array", "string" ]], []);
 dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
 
-  return Time::NTP::get ();
+  return &Time::NTP::get ();
+}
+
+sub set
+{
+  my ($self, @config) = @_;
+
+  &Time::NTP::set (@config);  
 }
 
 1;

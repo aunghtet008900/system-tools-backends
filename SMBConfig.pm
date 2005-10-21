@@ -37,8 +37,8 @@ sub new
 
   bless $self, $class;
 
-#  Utils::Monitor::monitor_files (&Shares::SMB::get_distro_smb_file (),
-#                                 $self, $OBJECT_NAME, "changed");
+  Utils::Monitor::monitor_files (&Shares::SMB::get_distro_smb_file (),
+                                 $self, $OBJECT_NAME, "changed");
   return $self;
 }
 

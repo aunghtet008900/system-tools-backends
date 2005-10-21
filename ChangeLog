@@ -1,3 +1,13 @@
+2005-10-21  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* HostsConfig.pm, Network/Hosts.pm: Implemented set() methods
+	* NTPConfig.pm, Time/NTP.pm: ditto
+	* TimeConfig.pm, Time/TimeDate.pm: ditto
+	* SMBConfig.pm: monitor SMB config files
+	* ServicesConfig.pm, Init/Services.pm: added runlevel roles, plus
+	default runlevel
+	* TODO: updated
+
 2005-10-13  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* SMBConfig.pm, Shares/SMB.pm: include share name in the provided

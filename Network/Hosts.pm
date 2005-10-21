@@ -55,4 +55,32 @@ sub get_search_domains
   return @search_domains;
 }
 
+sub set
+{
+  my (@config) = @_;
+  my ($i, %hash);
+
+  foreach $i (@config)
+  {
+    $hash{$i[0]} = $i[1];
+  }
+
+  return &Utils::Parse::split_hash ("/etc/hosts", "[ \t]+", "[ \t]+", %hash);
+}
+
+sub set_dns
+{
+  my (@dns) = @_;
+
+  return &Utils::Parse::split_all_unique_hash_comment ("/etc/resolv.conf", "nameserver", "[ \t]+", @dns);
+}
+
+sub set_search_domains
+{
+  my (@search_domains) = @_;
+
+  return &Utils::Parse::split_first_array_unique ("/etc/resolv.conf", "search",
+                                                  "[ \t]+", "[ \t]+", @search_domains);
+}
+
 1;

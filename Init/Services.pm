@@ -26,6 +26,122 @@ package Init::Services;
 
 use Init::ServicesList;
 
+sub get_runlevel_roles
+{
+  my (%dist_map, %runlevels);
+  my ($desc, $distro);
+
+  %dist_map =
+    (
+     "redhat-5.2"     => "redhat-5.2",
+     "redhat-6.0"     => "redhat-5.2",
+     "redhat-6.1"     => "redhat-5.2",
+     "redhat-6.2"     => "redhat-5.2",
+     "redhat-7.0"     => "redhat-5.2",
+     "redhat-7.1"     => "redhat-5.2",
+     "redhat-7.2"     => "redhat-5.2",
+     "redhat-7.3"     => "redhat-5.2",
+     "redhat-8.0"     => "redhat-5.2",
+     "redhat-9"       => "redhat-5.2",
+     "openna-1.0"     => "redhat-5.2",
+     
+     "mandrake-7.1"   => "redhat-5.2",
+     "mandrake-7.2"   => "redhat-5.2",
+     "mandrake-9.0"   => "redhat-5.2",
+     "mandrake-9.1"   => "redhat-5.2",
+     "mandrake-9.2"   => "redhat-5.2",
+     "mandrake-10.0"  => "redhat-5.2",
+     "mandrake-10.1"  => "redhat-5.2",
+     
+     "blackpanther-4.0" => "redhat-5.2",
+
+     "conectiva-9"    => "redhat-5.2",
+     "conectiva-10"   => "redhat-5.2",
+     
+     "debian-2.2"     => "debian-2.2",
+     "debian-3.0"     => "debian-2.2",
+     "debian-sarge"   => "debian-2.2",
+     "ubuntu-5.04"    => "debian-2.2",     
+          
+     "suse-7.0"       => "redhat-5.2",
+     "suse-9.0"       => "redhat-5.2",
+     "suse-9.1"       => "redhat-5.2",
+     
+     "turbolinux-7.0" => "redhat-5.2",
+     "pld-1.0"        => "redhat-5.2",
+     "pld-1.1"        => "redhat-5.2",
+     "pld-1.99"       => "redhat-5.2",
+     "fedora-1"       => "redhat-5.2",
+     "fedora-2"       => "redhat-5.2",
+     "fedora-3"       => "redhat-5.2",
+
+     "specifix"       => "redhat-5.2",
+
+     "vine-3.0"       => "redhat-5.2",
+     "vine-3.1"       => "redhat-5.2",
+
+     "slackware-9.1.0"  => "slackware-9.1.0",
+     "slackware-10.0.0" => "slackware-9.1.0",
+     "slackware-10.1.0" => "slackware-9.1.0",
+
+     "gentoo"         => "gentoo",
+     "vlos-1.2"       => "gentoo",
+
+     "freebsd-5"      => "freebsd-5",
+     "freebsd-6"      => "freebsd-5",
+    );
+
+  %runlevels=
+    (
+     "redhat-5.2"      => [["0",         "HALT"      ],
+                           ["1",         "RECOVER"   ],
+                           ["2",         "NONE"      ],
+                           ["3",         "TEXT"      ],
+                           ["4",         "NONE"      ],
+                           ["5",         "GRAPHICAL" ],
+                           ["6",         "REBOOT"    ]],
+
+     "debian-2.2"      => [["0",         "HALT"      ],
+                           ["1",         "RECOVER"   ],
+                           ["2",         "NONE"      ],
+                           ["3",         "NONE"      ],
+                           ["4",         "NONE"      ],
+                           ["5",         "NONE"      ],
+                           ["6",         "REBOOT"    ]],
+
+     "gentoo"          => [["boot",      "BOOT"      ],
+                           ["default",   "GRAPHICAL" ],
+                           ["nonetwork", "RECOVER"   ]],
+
+     "freebsd-5"       => [["default",   "GRAPHICAL" ]],
+
+     "slackware-9.1.0" => [["default",   "GRAPHICAL" ]]
+    );
+
+  $distro = $dist_map{$Utils::Backend::tool{"platform"}};
+  $desc = $runlevels{$distro};
+
+  return $desc;
+}
+
+# This function gets the runlevel that is in use
+sub get_sysv_default_runlevel
+{
+	my (@arr);
+	@arr = split / /, `/sbin/runlevel` ;
+  chomp $arr[1];
+
+	return $arr[1];
+}
+
+sub get_default_runlevel
+{
+  my $type = &get_init_type ();
+
+  return "default" if ($type eq "gentoo" || $type eq "rcng" || $type eq "bsd");
+  return &get_sysv_default_runlevel ();
+}
+
 sub get_sysv_paths
 {
   my %dist_map =
@@ -543,12 +659,12 @@ sub get_rcng_service_info
 
   if (gst_service_rcng_status_by_service ($service))
   {
-    push @arr, { "name"   => "rc",
+    push @arr, { "name"   => "default",
                  "action" => "start" };
   }
   else
   {
-    push @arr, { "name"   => "rc",
+    push @arr, { "name"   => "default",
                  "action" => "stop" };
   }
 
