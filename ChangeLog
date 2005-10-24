@@ -1,3 +1,7 @@
+2005-10-24  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Utils/Backend.pm, Report.pm: fix args parsing and verbose reports
+
 2005-10-21  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* HostsConfig.pm, Network/Hosts.pm: Implemented set() methods

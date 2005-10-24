@@ -125,7 +125,7 @@ sub do_report
   $format = "$str\n";
   $res = sprintf ($format, @args);
 
-  if ($gst_do_verbose   ||
+  if ($Utils::Backend::do_verbose   ||
       $major eq "error" ||
       $major eq "debug")
   {
@@ -133,7 +133,7 @@ sub do_report
   }
 
   # Report (--report) output is machine-readable.
-  if ($gst_do_report)
+  if ($Utils::Backend::do_report)
   {
     print STDOUT join ("::", $major, $key, $str, @args) . "\n";
   }

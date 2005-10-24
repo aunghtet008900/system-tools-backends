@@ -69,9 +69,9 @@ else
 
 # We should get rid of all these globals.
 
-$gst_prefix = "";
-$gst_do_verbose = 0;
-$gst_do_report = 0;
+our $prefix = "";
+our $do_verbose = 0;
+our $do_report = 0;
 
 sub print_usage_synopsis
 {
@@ -330,12 +330,12 @@ sub init
     elsif ($arg eq "--platform")                  { &set_dist      (\%tool, shift @args); }
     elsif ($arg eq "--verbose"   || $arg eq "-v")
     {
-      $tool{"do_verbose"} = $gst_do_verbose = 1;
+      $tool{"do_verbose"} = $do_verbose = 1;
       &Utils::Report::set_threshold (99);
     }
     elsif ($arg eq "--report")
     {
-      $tool{"do_report"} = $gst_do_report = 1;
+      $tool{"do_report"} = $do_report = 1;
       &Utils::Report::set_threshold (99);
     }
     else
