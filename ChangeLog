@@ -1,3 +1,14 @@
+2005-10-04  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* network.pl.in: combined and modified patch from Christian Meyer
+	<chrisime@gnome.org> and Florian Schricker <fschricker@web.de> for 
+	supporting new network configuration sintax in both Vidalinux and 
+	Gentoo. Fixes bugs #317841, #311946 and #153490
+	* parse.pl.in, replace.pl.in: added functions to parse/replace files
+	like gentoo's /etc/conf.d/net
+	* file.pl.in (gst_file_copy): make copy not fail miserably if the orig
+	file doesn't exist
+
 2005-09-20  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* network.pl.in: Fixed WEP key detection on both slackware and gentoo.

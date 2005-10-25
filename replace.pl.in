@@ -1715,3 +1715,56 @@ sub gst_replace_pppconf_bool
   &gst_replace_pppconf_common ($pppconf, $section, $key,
                                ($value == 1)? "enable $key" : "disable $key");
 }
+
+sub gst_replace_confd_net_re
+{
+  my ($file, $key, $re, $value) = @_;
+  my ($str, $contents, $i, $found, $done);
+
+  $found = $done = 0;
+  $contents = &gst_file_buffer_load ($file);
+
+  for ($i = 0; $i <= scalar (@$contents); $i++)
+  {
+    # search for key
+    if ($$contents[$i] =~ /^$key[ \t]*=[ \t]*\(/)
+    {
+      $found = 1;
+
+      do {
+        if ($$contents[$i] =~ /\"([^\"]*)\"/)
+        {
+          $str = $1;
+
+          if ($str =~ /$re/)
+          {
+            $str =~ s/$re/$value/;
+          }
+          else
+          {
+            $str .= $value;
+          }
+
+          $$contents[$i] =~ s/\"([^\"]*)\"/\"$str\"/;
+          $done = 1;
+        }
+
+        $i++;
+      } while (!$done);
+    }
+  }
+
+  if (!$found)
+  {
+    push @$contents, "$key = (\"$value\")\n";
+  }
+
+  return &gst_file_buffer_save ($contents, $file);
+}
+
+sub gst_replace_confd_net
+{
+  my ($file, $key, $value) = @_;
+
+  return &gst_replace_confd_net_re ($file, $key, ".*", $value);
+}

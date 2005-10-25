@@ -1138,7 +1138,7 @@ sub gst_network_gentoo_ifaces_get_existing
 
   while ($i = <$fd>)
   {
-    if ($i =~ /^iface_(.*)[ \t]*=/)
+    if ($i =~ /^config_([a-zA-Z0-9]*)[ \t]*=/)
     {
       push @ret, $1;
     }
@@ -1596,6 +1596,19 @@ sub gst_network_check_pppd_plugin
 
   return 0 if !version;
   return &gst_file_exists ("/usr/lib/pppd/$version/$plugin.so");
+}
+
+sub gst_network_gentoo_parse_gateway
+{
+  my ($file, $iface) = @_;
+  my ($str);
+
+  $str = &gst_parse_confd_net ($file, "routes_$iface");
+
+  if ($str =~ /default[ \t]+(via|gw)[ \t]+([0-9\.\:]*)/)
+  {
+    return $2;
+  }
 }
 
 sub gst_network_interfaces_get
@@ -2420,7 +2433,7 @@ sub gst_network_gentoo_interface_delete
   else
   {
     $netconf = "/etc/conf.d/net";
-    &gst_replace_sh ($netconf, "iface_$dev", "");
+    &gst_replace_sh ($netconf, "config_$dev", "");
   }
 }
 
@@ -2506,7 +2519,7 @@ sub gst_network_interface_set
 
   $res = &gst_replace_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
                                   $values_hash, $old_hash);
-  
+
   # if success saving the settings for the interface, set up immediatly.
   &$proc ($values_hash, $old_hash, $$values_hash{"enabled"}, 0) if !$res;
 
@@ -2978,16 +2991,24 @@ sub gst_network_suse90_replace_bootproto
   return &gst_replace_sh ($file, $key, $proto_name_to_suse90{$value});
 }
 
+sub gst_network_gentoo_parse_bootproto
+{
+  my ($file, $dev) = @_;
+
+  return "dhcp" if (&gst_parse_confd_net ($file, "config_$dev") =~ /dhcp/i);
+  return "none";
+}
+
 sub gst_network_gentoo_replace_bootproto
 {
   my ($file, $dev, $value) = @_;
 
   return if ($dev =~ /^ppp/);
 
-  return &gst_replace_split ($file, "iface_$dev", "[ \t]*=[ \t]*", "\"dhcp\"") if ($value ne "none");
+  return &gst_replace_confd_net ($file, "config_$dev", "dhcp") if ($value ne "none");
 
   # replace with a fake IP address, I know it's a hack
-  return &gst_replace_split ($file, "iface_$dev", "[ \t]*=[ \t]*", "\"0.0.0.0\"");
+  return &gst_replace_confd_net ($file, "config_$dev", "0.0.0.0");
 }
 
 sub gst_network_freebsd5_replace_bootproto
@@ -4064,7 +4085,7 @@ sub gst_network_get_parse_table
     "slackware-10.0.0" => "slackware-9.1.0",
     "slackware-10.1.0" => "slackware-9.1.0",
     "gentoo"       => "gentoo",
-    "vlos-1.2"     => "vlos-1.2",
+    "vlos-1.2"     => "gentoo",
     "freebsd-5"    => "freebsd-5",
     "freebsd-6"    => "freebsd-5",
 	  );
@@ -4366,40 +4387,8 @@ sub gst_network_get_parse_table
     {
       fn =>
       {
-        HOSTNAME    => "/etc/hostname",
-        DOMAINNAME  => "/etc/dnsdomainname",
-        NET         => "/etc/conf.d/net",
-        RESOLV_CONF => "/etc/resolv.conf",
-        HOSTS       => "/etc/hosts",
-        SMB_CONF    => "/etc/samba/smb.conf"
-      },
-      table =>
-      [
-       [ "hostname",      \&gst_parse_line_first,                    HOSTNAME ],
-       [ "domain",        \&gst_parse_line_first,                    DOMAINNAME ],
-       [ "domain",        \&gst_parse_split_first_str,               RESOLV_CONF,  "domain", "[ \t]+" ],
-       [ "nameserver",    \&gst_parse_split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
-       [ "searchdomain",  \&gst_parse_split_first_array_unique,      RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-       [ "statichost",    \&gst_parse_split_hash,                    HOSTS,        "[ \t]+", "[ \t]+" ],
-       [ "workgroup",     \&gst_parse_ini,                           SMB_CONF,     "global", "workgroup" ],
-       [ "smbdesc",       \&gst_network_rh_get_smb_desc,             SMB_CONF,     "global", "server string", "%hostname%" ],
-       [ "winsserver",    \&gst_parse_ini,                           SMB_CONF,     "global", "wins server" ],
-       [ "winsuse",       \&gst_parse_ini_bool,                      SMB_CONF,     "global", "wins support" ],
-       [ "smbuse",        \&gst_service_gentoo_get_status,           "samba" ],
-       [ "smbinstalled",  \&gst_service_installed,                   "samba" ],
-       [ "dialinstalled", \&gst_parse_trivial, 1 ],
-       [ "gatewaydev",    \&gst_parse_sh_re,                         NET, gateway, "^(.*)\/" ],
-       [ "gateway",       \&gst_parse_sh_re,                         NET, gateway, "^.*\/([0-9\.]*)\$" ],
-       [ "interface",     \&gst_network_interfaces_get ],
-       ]
-     },
-
-    "vlos-1.2" =>
-    {
-      fn =>
-      {
         HOSTNAME    => "/etc/conf.d/hostname",
-        DOMAINNAME  => "/etc/dnsdomainname",
+        DOMAINNAME  => "/etc/conf.d/domainname",
         NET         => "/etc/conf.d/net",
         RESOLV_CONF => "/etc/resolv.conf",
         HOSTS       => "/etc/hosts",
@@ -4407,8 +4396,8 @@ sub gst_network_get_parse_table
       },
       table =>
       [
-       [ "hostname",      \&gst_parse_sh_re,                    HOSTNAME, "HOSTNAME", "^(.*)" ],
-       [ "domain",        \&gst_parse_line_first,                    DOMAINNAME ],
+       [ "hostname",      \&gst_parse_sh,                            HOSTNAME,     "HOSTNAME" ],
+       [ "domain",        \&gst_parse_sh,                            DOMAINNAME,   "DNSDOMAIN" ],
        [ "domain",        \&gst_parse_split_first_str,               RESOLV_CONF,  "domain", "[ \t]+" ],
        [ "nameserver",    \&gst_parse_split_all_unique_hash_comment, RESOLV_CONF,  "nameserver", "[ \t]+" ],
        [ "searchdomain",  \&gst_parse_split_first_array_unique,      RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
@@ -4420,8 +4409,8 @@ sub gst_network_get_parse_table
        [ "smbuse",        \&gst_service_gentoo_get_status,           "samba" ],
        [ "smbinstalled",  \&gst_service_installed,                   "samba" ],
        [ "dialinstalled", \&gst_parse_trivial, 1 ],
-       [ "gatewaydev",    \&gst_parse_sh_re,                         NET, gateway, "^(.*)\/" ],
-       [ "gateway",       \&gst_parse_sh_re,                         NET, gateway, "^.*\/([0-9\.]*)\$" ],
+       [ "gateway",       \&gst_network_get_default_gateway ],
+       [ "gatewaydev",    \&gst_network_get_default_gatewaydev ],
        [ "interface",     \&gst_network_interfaces_get ],
        ]
      },
@@ -4508,7 +4497,7 @@ sub gst_network_get_interface_parse_table
     "slackware-10.0.0" => "slackware-9.1.0",
     "slackware-10.1.0" => "slackware-9.1.0",
     "gentoo"       => "gentoo",
-    "vlos-1.2"     => "vlos-1.2",
+    "vlos-1.2"     => "gentoo",
     "freebsd-5"    => "freebsd-5",
     "freebsd-6"    => "freebsd-5",
 	  );
@@ -5201,51 +5190,6 @@ sub gst_network_get_interface_parse_table
         PPPNET       => "/etc/conf.d/net.#iface#",
         INIT         => "net.#iface#",
         IFACE        => "#iface#",
-        WIRELESS     => "/etc/pcmcia/wireless.opts",
-      },
-      table =>
-      [
-       [ "auto",               \&gst_service_gentoo_get_service_status, INIT, "default" ],
-       [ "user",               \&gst_parse_trivial,                  0 ], # not supported.
-       [ "dev",                \&gst_parse_trivial,                  IFACE ],
-       [ "address",            \&gst_parse_sh_re,                    NET, "iface_%dev%", "^[ \t]*([0-9\.]+)" ],
-       [ "netmask",            \&gst_parse_sh_re,                    NET, "iface_%dev%", "netmask[ \t]+([0-9\.]*)" ],
-       [ "remote_address",     \&gst_parse_sh_re,                    NET, "iface_%dev%", "dest_address[ \t]+([0-9\.]*)" ],
-       [ "gateway",            \&gst_parse_sh_re,                    NET, "gateway", "%dev%/([0-9\.\:]*)" ],
-       [ "enabled",            \&gst_network_interface_active,       IFACE, \&gst_network_active_interfaces_get ],
-       [ "bootproto",          \&gst_network_parse_bootproto,        NET, "iface_%dev%" ],
-       [ "essid",              \&gst_parse_wireless_opts,            [ WIRELESS, IFACE], \&gst_network_get_wireless_ifaces, ESSID ],
-       [ "key_type",           \&gst_network_get_wep_key_type,       [ \&gst_parse_wireless_opts, WIRELESS, IFACE, \&gst_network_get_wireless_ifaces, KEY ]],
-       [ "key",                \&gst_network_get_wep_key,            [ \&gst_parse_wireless_opts, WIRELESS, IFACE, \&gst_network_get_wireless_ifaces, KEY ]],
-       # modem stuff
-       [ "update_dns",         \&gst_parse_sh_bool,                  PPPNET, PEERDNS ],
-       [ "mtu",                \&gst_parse_sh,                       PPPNET, MTU ],
-       [ "mru",                \&gst_parse_sh,                       PPPNET, MRU ],
-       [ "serial_port",        \&gst_parse_sh,                       PPPNET, MODEMPORT ],
-       [ "serial_speed",       \&gst_parse_sh,                       PPPNET, LINESPEED ],
-       [ "login",              \&gst_parse_sh,                       PPPNET, USERNAME ],
-       [ "password",           \&gst_parse_sh,                       PPPNET, PASSWORD ],
-       [ "ppp_options",        \&gst_parse_sh,                       PPPNET, PPPOPTIONS ],
-       [ "set_default_gw",     \&gst_parse_sh_bool,                  PPPNET, DEFROUTE ],
-       [ "debug",              \&gst_parse_sh_bool,                  PPPNET, DEBUG ],
-       [ "persist",            \&gst_parse_sh_bool,                  PPPNET, PERSIST ],
-       [ "serial_escapechars", \&gst_parse_sh_bool,                  PPPNET, ESCAPECHARS ],
-       [ "serial_hwctl",       \&gst_parse_sh_bool,                  PPPNET, HARDFLOWCTL ],
-       [ "external_line",      \&gst_parse_sh_re,                    PPPNET, NUMBER, "^([0-9*#]*)wW" ],
-       [ "phone_number",       \&gst_parse_sh_re,                    PPPNET, NUMBER, "w?([0-9]*)\$" ],
-       [ "volume",             \&gst_parse_sh_re,                    PPPNET, INITSTRING, "^at.*[ml]([0-3])" ],
-      ]
-    },
-
-    "vlos-1.2" =>
-    {
-      ifaces_get => \&gst_network_gentoo_ifaces_get_existing,
-      fn =>
-      {
-        NET          => "/etc/conf.d/net",
-        PPPNET       => "/etc/conf.d/net.#iface#",
-        INIT         => "net.#iface#",
-        IFACE        => "#iface#",
         WIRELESS     => "/etc/conf.d/wireless",
       },
       table =>
@@ -5253,12 +5197,13 @@ sub gst_network_get_interface_parse_table
        [ "auto",               \&gst_service_gentoo_get_service_status, INIT, "default" ],
        [ "user",               \&gst_parse_trivial,                  0 ], # not supported.
        [ "dev",                \&gst_parse_trivial,                  IFACE ],
-       [ "address",            \&gst_parse_sh_re,                    NET, "iface_%dev%", "^[ \t]*([0-9\.]+)" ],
-       [ "netmask",            \&gst_parse_sh_re,                    NET, "iface_%dev%", "netmask[ \t]+([0-9\.]*)" ],
-       [ "remote_address",     \&gst_parse_sh_re,                    NET, "iface_%dev%", "dest_address[ \t]+([0-9\.]*)" ],
-       [ "gateway",            \&gst_parse_sh_re,                    NET, "gateway", "%dev%/([0-9\.\:]*)" ],
+       [ "address",            \&gst_parse_confd_net_re,             NET, "config_%dev%", "^[ \t]*([0-9\.]+)" ],
+       [ "netmask",            \&gst_parse_confd_net_re,             NET, "config_%dev%", "netmask[ \t]+([0-9\.]*)" ],
+       [ "remote_address",     \&gst_parse_confd_net_re,             NET, "config_%dev%", "dest_address[ \t]+([0-9\.]*)" ],
+#       [ "gateway",            \&gst_parse_sh_re,                    NET, "gateway", "%dev%/([0-9\.\:]*)" ],
+       [ "gateway",            \&gst_network_gentoo_parse_gateway,   [ NET, IFACE ]],
        [ "enabled",            \&gst_network_interface_active,       IFACE, \&gst_network_active_interfaces_get ],
-       [ "bootproto",          \&gst_network_parse_bootproto,        NET, "iface_%dev%" ],
+       [ "bootproto",          \&gst_network_gentoo_parse_bootproto, [ NET, IFACE ]],
        [ "essid",              \&gst_parse_sh,                       WIRELESS, "essid_%dev%" ],
        [ "key_type",           \&gst_network_get_wep_key_type,       [ \&gst_parse_sh, WIRELESS, "key_%essid%" ]],
        [ "key",                \&gst_network_get_wep_key,            [ \&gst_parse_sh, WIRELESS, "key_%essid%" ]],
@@ -5281,7 +5226,6 @@ sub gst_network_get_interface_parse_table
        [ "volume",             \&gst_parse_sh_re,                    PPPNET, INITSTRING, "^at.*[ml]([0-3])" ],
       ]
     },
-
 
     "freebsd-5" =>
     {
@@ -5382,7 +5326,7 @@ sub gst_network_get_replace_table
     "slackware-10.0.0" => "slackware-9.1.0",
     "slackware-10.1.0" => "slackware-9.1.0",
     "gentoo"       => "gentoo",
-    "vlos-1.2"     => "vlos-1.2",
+    "vlos-1.2"     => "gentoo",
     "freebsd-5"    => "freebsd-5",
     "freebsd-6"    => "freebsd-5",
 	  );
@@ -5671,41 +5615,8 @@ sub gst_network_get_replace_table
     {
       fn =>
       {
-        HOSTNAME    => "/etc/hostname",
-        DOMAINNAME  => "/etc/dnsdomainname",
-        NET         => "/etc/conf.d/net",
-        RESOLV_CONF => "/etc/resolv.conf",
-        HOSTS       => "/etc/hosts",
-        SMB_CONF    => "/etc/samba/smb.conf"
-      },
-      table =>
-      [
-       [ "hostname",      \&gst_replace_line_first,       HOSTNAME ],
-       [ "hostname",      \&gst_network_run_hostname ],
-       [ "gateway",       \&gst_network_route_set_default_gw, "%gatewaydev%" ],
-       [ "domain",        \&gst_replace_line_first,       DOMAINNAME ],
-       [ "domain",        \&gst_replace_join_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
-       [ "nameserver",    \&gst_replace_join_all,         RESOLV_CONF,  "nameserver", "[ \t]+" ],
-       [ "searchdomain",  \&gst_replace_join_first_array, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
-       [ "statichost",    \&gst_replace_join_hash,        HOSTS,        "[ \t]+", "[ \t]+" ],
-       [ "workgroup",     \&gst_replace_ini,              SMB_CONF,     "global", "workgroup" ],
-       [ "smbdesc",       \&gst_replace_ini,              SMB_CONF,     "global", "server string", "%hostname%" ],
-       [ "winsserver",    \&gst_replace_ini,              SMB_CONF,     "global", "wins server" ],
-       [ "winsuse",       \&gst_replace_ini_bool,         SMB_CONF,     "global", "wins support" ],
-       [ "smbuse",        \&gst_service_gentoo_set_status, "samba", 1 ],
-       # first set the gateway to something like "eth0", then add the IP address like "eth0/1.1.1.1"
-       [ "gatewaydev",    \&gst_replace_sh,               NET, gateway ],
-       [ "gateway",       \&gst_replace_sh_re,            NET, gateway, "\/[0-9\.]*\$", "/%gateway%" ],
-       [ "interface",     \&gst_network_interfaces_set,   OLD_HASH ]
-      ]
-    },
-
-    "vlos-1.2" =>
-    {
-      fn =>
-      {
         HOSTNAME    => "/etc/conf.d/hostname",
-        DOMAINNAME  => "/etc/dnsdomainname",
+        DOMAINNAME  => "/etc/conf.d/domainname",
         NET         => "/etc/conf.d/net",
         RESOLV_CONF => "/etc/resolv.conf",
         HOSTS       => "/etc/hosts",
@@ -5713,10 +5624,10 @@ sub gst_network_get_replace_table
       },
       table =>
       [
-       [ "hostname",      \&gst_replace_sh,       HOSTNAME, HOSTNAME ],
+       [ "hostname",      \&gst_replace_sh,               HOSTNAME,     "HOSTNAME" ],
        [ "hostname",      \&gst_network_run_hostname ],
        [ "gateway",       \&gst_network_route_set_default_gw, "%gatewaydev%" ],
-       [ "domain",        \&gst_replace_line_first,       DOMAINNAME ],
+       [ "domain",        \&gst_replace_sh,               DOMAINNAME,   "DNSDOMAIN" ],
        [ "domain",        \&gst_replace_join_first_str,   RESOLV_CONF,  "domain", "[ \t]+" ],
        [ "nameserver",    \&gst_replace_join_all,         RESOLV_CONF,  "nameserver", "[ \t]+" ],
        [ "searchdomain",  \&gst_replace_join_first_array, RESOLV_CONF,  "search", "[ \t]+", "[ \t]+" ],
@@ -5727,8 +5638,8 @@ sub gst_network_get_replace_table
        [ "winsuse",       \&gst_replace_ini_bool,         SMB_CONF,     "global", "wins support" ],
        [ "smbuse",        \&gst_service_gentoo_set_status, "samba", 1 ],
        # first set the gateway to something like "eth0", then add the IP address like "eth0/1.1.1.1"
-       [ "gatewaydev",    \&gst_replace_sh,               NET, gateway ],
-       [ "gateway",       \&gst_replace_sh_re,            NET, gateway, "\/[0-9\.]*\$", "/%gateway%" ],
+#       [ "gatewaydev",    \&gst_replace_sh,               NET, gateway ],
+#       [ "gateway",       \&gst_replace_sh_re,            NET, gateway, "\/[0-9\.]*\$", "/%gateway%" ],
        [ "interface",     \&gst_network_interfaces_set,   OLD_HASH ]
       ]
     },
@@ -5812,7 +5723,7 @@ sub gst_network_get_interface_replace_table
     "slackware-10.0.0" => "slackware-9.1.0",
     "slackware-10.1.0" => "slackware-9.1.0",
     "gentoo"       => "gentoo",
-    "vlos-1.2"     => "vlos-1.2",
+    "vlos-1.2"     => "gentoo",
     "freebsd-5"    => "freebsd-5",
     "freebsd-6"    => "freebsd-5",
 	  );
@@ -6473,52 +6384,6 @@ sub gst_network_get_interface_replace_table
        PPPNET       => "/etc/conf.d/net.#iface#",
        INIT         => "net.#iface#",
        IFACE        => "#iface#",
-       WIRELESS     => "/etc/pcmcia/wireless.opts",
-     },
-     table =>
-     [
-      [ "dev",                \&gst_network_gentoo_create_files ],
-      [ "auto",               \&gst_service_gentoo_set_status,        INIT , 0 ],
-      [ "bootproto",          \&gst_network_gentoo_replace_bootproto, [ NET, IFACE ]],
-      [ "address",            \&gst_replace_sh_re,                    NET, "iface_%dev%", "^[ \t]*([0-9\.]+)" ],
-      [ "netmask",            \&gst_replace_sh_re,                    NET, "iface_%dev%", "[ \t]+netmask[ \t]+[0-9\.]*", " netmask %netmask%"],
-      [ "broadcast",          \&gst_replace_sh_re,                    NET, "iface_%dev%", "[ \t]+broadcast[ \t]+[0-9\.]*", " broadcast %broadcast%" ],
-      [ "remote_address",     \&gst_replace_sh_re,                    NET, "iface_%dev%", "[ \t]+dest_address[ \t]+[0-9\.]*", " dest_address %remote_address%" ],
-      [ "essid",              \&gst_replace_wireless_opts,            [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, ESSID ],
-      [ "key",                \&gst_replace_wireless_opts,            [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, KEY   ],
-      [ "key_type",           \&gst_network_set_wep_key_type,         [ \&gst_replace_wireless_opts, [ WIRELESS, IFACE ], \&gst_network_get_wireless_ifaces, KEY, "%key%" ]],
-      # modem stuff
-      [ "dev",                \&gst_network_check_type,              [ IFACE, "modem", \&gst_replace_sh, PPPNET, PEER ]],
-      [ "update_dns",         \&gst_network_check_type,              [ IFACE, "modem", \&gst_replace_sh_bool, PPPNET, PEERDNS ]],
-      [ "mtu",                \&gst_replace_sh,                       PPPNET, MTU ],
-      [ "mru",                \&gst_replace_sh,                       PPPNET, MRU ],
-      [ "serial_port",        \&gst_replace_sh,                       PPPNET, MODEMPORT ],
-      [ "serial_speed",       \&gst_replace_sh,                       PPPNET, LINESPEED ],
-      [ "login",              \&gst_replace_sh,                       PPPNET, USERNAME ],
-      [ "password",           \&gst_replace_sh,                       PPPNET, PASSWORD ],
-      [ "ppp_options",        \&gst_replace_sh,                       PPPNET, PPPOPTIONS ],
-      [ "set_default_gw",     \&gst_replace_sh_bool,                  PPPNET, DEFROUTE ],
-      [ "debug",              \&gst_replace_sh_bool,                  PPPNET, DEBUG ],
-      [ "persist",            \&gst_replace_sh_bool,                  PPPNET, PERSIST ],
-      [ "serial_escapechars", \&gst_replace_sh_bool,                  PPPNET, ESCAPECHARS ],
-      [ "serial_hwctl",       \&gst_replace_sh_bool,                  PPPNET, HARDFLOWCTL ],
-      [ "phone_number",       \&gst_replace_sh,                       PPPNET, NUMBER ],
-      [ "external_line",      \&gst_replace_sh,                       PPPNET, NUMBER, "%external_line%W%phone_number%" ],
-      [ "volume",             \&gst_network_set_modem_volume_string,  PPPNET, INITSTRING ],
-     ]
-    },
-
-   "vlos-1.2" =>
-   {
-     iface_set    => \&gst_network_gentoo_interface_activate,
-     iface_delete => \&gst_network_gentoo_interface_delete,
-     ifaces_get   => \&gst_network_gentoo_ifaces_get_existing,
-     fn =>
-     {
-       NET          => "/etc/conf.d/net",
-       PPPNET       => "/etc/conf.d/net.#iface#",
-       INIT         => "net.#iface#",
-       IFACE        => "#iface#",
        WIRELESS     => "/etc/conf.d/wireless",
      },
      table =>
@@ -6526,10 +6391,12 @@ sub gst_network_get_interface_replace_table
       [ "dev",                \&gst_network_gentoo_create_files ],
       [ "auto",               \&gst_service_gentoo_set_status,        INIT , 0 ],
       [ "bootproto",          \&gst_network_gentoo_replace_bootproto, [ NET, IFACE ]],
-      [ "address",            \&gst_replace_sh_re,                    NET, "iface_%dev%", "^[ \t]*([0-9\.]+)" ],
-      [ "netmask",            \&gst_replace_sh_re,                    NET, "iface_%dev%", "[ \t]+netmask[ \t]+[0-9\.]*", " netmask %netmask%"],
-      [ "broadcast",          \&gst_replace_sh_re,                    NET, "iface_%dev%", "[ \t]+broadcast[ \t]+[0-9\.]*", " broadcast %broadcast%" ],
-      [ "remote_address",     \&gst_replace_sh_re,                    NET, "iface_%dev%", "[ \t]+dest_address[ \t]+[0-9\.]*", " dest_address %remote_address%" ],
+      [ "address",            \&gst_replace_confd_net_re,             NET, "config_%dev%", "^[ \t]*([0-9\.]+)" ],
+      [ "address",            \&gst_replace_confd_net_re,             NET, "config_%dev%", "^[ \t]*([0-9\.]+)" ],
+      [ "netmask",            \&gst_replace_confd_net_re,             NET, "config_%dev%", "[ \t]+netmask[ \t]+[0-9\.]*", " netmask %netmask%"],
+      [ "broadcast",          \&gst_replace_confd_net_re,             NET, "config_%dev%", "[ \t]+broadcast[ \t]+[0-9\.]*", " broadcast %broadcast%" ],
+      [ "remote_address",     \&gst_replace_confd_net_re,             NET, "config_%dev%", "[ \t]+dest_address[ \t]+[0-9\.]*", " dest_address %remote_address%" ],
+      [ "gateway",            \&gst_replace_confd_net_re,             NET, "routes_%dev%", "[ \t]*default[ \t]+(via|gw)[ \t]+[0-9\.\:]*", "default via %gateway%" ],
       [ "essid",              \&gst_replace_sh,                       WIRELESS, "essid_%dev%" ],
       [ "key",                \&gst_replace_sh,                       WIRELESS, "key_%essid%" ],
       [ "key_type",           \&gst_network_set_wep_key_type,         [ \&gst_replace_sh, WIRELESS, "key_%essid%", "%key%" ]],

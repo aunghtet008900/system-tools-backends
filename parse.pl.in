@@ -1788,3 +1788,41 @@ sub gst_parse_pppconf_re
     return $1;
   }
 }
+
+sub gst_parse_confd_net
+{
+  my ($file, $key) = @_;
+  my ($str, $contents, $i);
+
+  $contents = &gst_file_buffer_load ($file);
+
+  for ($i = 0; $i <= scalar (@$contents); $i++)
+  {
+    # search for key
+    if ($$contents[$i] =~ /^$key[ \t]*=[ \t]*\(/)
+    {
+      # contents can be multiline,
+      # just get the first value
+      do {
+        $$contents[$i] =~ /\"([^\"]*)\"/;
+        $str = $1;
+        $i++;
+      } while (!$str);
+    }
+  }
+
+  return $str;
+}
+
+sub gst_parse_confd_net_re
+{
+  my ($file, $key, $re) = @_;
+  my ($str);
+
+  $str = &gst_parse_confd_net ($file, $key);
+
+  if ($str =~ /$re/i)
+  {
+    return $1;
+  }
+}
