@@ -27,6 +27,123 @@ package Users::Groups;
 # quite generic data
 $group_names = "/etc/group";
 
+# Where are the tools?
+$cmd_groupdel = &Utils::File::locate_tool ("groupdel");
+$cmd_groupadd = &Utils::File::locate_tool ("groupadd");
+$cmd_groupmod = &Utils::File::locate_tool ("groupmod");
+$cmd_gpasswd  = &Utils::File::locate_tool ("gpasswd");	
+$cmd_pw       = &Utils::File::locate_tool ("pw");
+
+sub del_group
+{
+  my ($group) = @_;
+
+  if ($Utils::Backend::tool{"system"} eq "FreeBSD")
+  {
+    $command = "$cmd_pw groupdel -n \'" . $$group[1] . "\'";
+  }
+  else
+  {
+    $command = "$cmd_groupdel \'" . $$group[1] . "\'";
+  }
+
+  &Utils::File::run ($command);
+}
+
+sub add_group
+{
+  my ($group) = @_;
+  my ($u, $user, $users);
+
+  $u = $$group[4];
+
+  if ($Utils::Backend::tool{"system"} eq "FreeBSD")
+  {
+    $users = join (",", sort @$u);
+      
+    $command = "$cmd_pw groupadd -n \'" . $$group[1] .
+      "\' -g \'" . $$group[3] .
+      "\' -M \'" . $users . "\'";
+
+    &Utils::File::run ($command);
+  }
+  else
+  {
+    $command = "$cmd_groupadd -g \'" . $$group[3] .
+        "\' " . $$group[1];
+
+    &Utils::File::run ($command);
+
+    foreach $user (sort @$u)
+    {
+      $command = "$cmd_gpasswd -a \'" . $user .
+          "\' " . $$group[1];
+
+      &Utils::File::run ($command);
+    }
+  }
+}
+
+sub change_group
+{
+	my ($old_group, $new_group) = @_;
+  my (%users, $user, $users_arr, $str);
+
+	my ($n, $o, $users, $i, $j, $max_n, $max_o, $r, @tmp); # for iterations
+
+  if ($Utils::Backend::tool{"system"} eq "FreeBSD")
+  {
+    $users_arr = $$new_group[4];
+    $str = join (",", sort @$users_arr);
+
+    $command = "$cmd_pw groupmod -n \'" . $$old_group[1] .
+        "\' -g \'" . $$new_group[3] .
+        "\' -l \'" . $$new_group[1] .
+        "\' -M \'" . $str . "\'";
+
+    &Utils::File::run ($command);
+  }
+  else
+  {
+    $command = "$cmd_groupmod -g \'" . $$new_group[3] .
+        "\' -n \'" . $$new_group[1] . "\' " .
+        "\'" . $$old_group[1] . "\'";
+  
+    &Utils::File::run ($command);
+
+    # Let's see if the users that compose the group have changed.
+    if (!Utils::Util::struct_eq ($$new_group[4], $$old_group[4]))
+    {
+      $users{$_} |= 1 foreach (@{$$new_group[4]});
+      $users{$_} |= 2 foreach (@{$$old_group[4]});
+
+      foreach $user (keys %users)
+      {
+        $state = $users{$u};
+
+        if ($state == 2)
+        {
+          # users with state 2 are those that only appeared
+          # in the old group configuration, so we must delete them
+          $command = "$cmd_gpasswd -d \'" . $user . "\' \'" . 
+              $$new_group[1] . "\'";
+
+          &Utils::File::run ($command);
+        }
+        else
+        {
+          # users with state 1 are those who were added
+          # to the new group configuration
+          $command = "$cmd_gpasswd -a \'" . $user . "\' \'" . 
+              $$new_group[1] . "\'";
+
+          &Utils::File::run ($command);
+        }
+      }
+    }
+  }
+}
+
 sub get
 {
   my ($ifh, @groups, %groups_hash, $group_last_modified);
@@ -52,7 +169,7 @@ sub get
     $_ = &Utils::XML::unquote ($_);
 
     @line = split ':', $_, -1;
-    unshift @line, sprintf ("%06d", $i);
+    unshift @line, $i;
     @a = split ',', pop @line;
     push @line, [@a];
     $copy = [@line];
@@ -75,3 +192,54 @@ sub get_files
   push @arr, $group_names;
   return \@arr;
 }
+
+sub set
+{
+  my ($config) = @_;
+  my ($old_config, %groups);
+  my (%config_hash, %old_config_hash);
+
+  if ($config)
+  {
+    # Make backup manually, otherwise they don't get backed up.
+    &Utils::File::do_backup ($group_names);
+
+    $old_config = &get ();
+
+    foreach $i (@$config) 
+    {
+      $groups{$$i[1]} |= 1;
+      $config_hash{$$i[1]} = $i;
+	  }	
+	
+    foreach $i (@$old_config)
+    {
+	    $groups{$$i[1]} |= 2;
+      $old_config_hash{$$i[1]} = $i;
+    }
+
+    # Delete all groups that only appeared in the old configuration
+    foreach $i (sort (keys (%groups)))
+    {
+      $state = $groups{$i};
+
+      if ($state == 1)
+      {
+        # Groups with state 1 have been added to the config
+        &add_group ($config_hash{$i});
+      }
+      elsif ($state == 2)
+      {
+        # Groups with state 2 have been deleted from the config
+        &del_group ($old_config_hash{$i});
+      }
+      elsif (($state == 3) &&
+             (!Utils::Util::struct_eq ($config_hash{$i}, $old_config_hash{$i})))
+      {
+        &change_group ($old_config_hash{$i}, $config_hash{$i});
+      }
+    }
+  }
+}
+
+1;

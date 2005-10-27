@@ -44,6 +44,7 @@ sub new
 }
 
 dbus_method ("get", [], [[ "array", [ "struct", "int32", "string", "string", "int32", [ "array", "string"]]]]);
+dbus_method ("set", [[ "array", [ "struct", "int32", "string", "string", "int32", [ "array", "string"]]]], []);
 dbus_signal ("changed", []);
 
 sub get
@@ -53,6 +54,13 @@ sub get
 
   $groups = Users::Groups::get ();
   return $groups;
+}
+
+sub set
+{
+  my ($self, $config) = @_;
+
+  Users::Groups::set ($config);
 }
 
 1;

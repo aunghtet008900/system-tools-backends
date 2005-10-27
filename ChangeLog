@@ -1,3 +1,9 @@
+2005-10-27  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* GroupsConfig.pm, Users/Groups.pm: added set() methods
+	* UsersConfig.pm, Users/Users.pm: ditto
+	* Users/Users.pm: removed lots of dead and unused code
+
 2005-10-24  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Utils/Backend.pm, Report.pm: fix args parsing and verbose reports

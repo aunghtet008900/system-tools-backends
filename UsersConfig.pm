@@ -47,7 +47,9 @@ sub new
 dbus_method ("get", [],
              [[ "array", [ "struct", "int32", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
               "int32", "int32", "int32", "string" ]);
-
+dbus_method ("set",
+             [[ "array", [ "struct", "int32", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
+              "int32", "int32", "int32", "string" ], []);
 dbus_signal ("changed", []);
 
 sub get
@@ -60,6 +62,16 @@ sub get
   $users = &Users::Users::get ();
 
   return ($users, $use_md5, $$logindefs{"umin"}, $$logindefs{"umax"}, $$logindefs{"home_prefix"});
+}
+
+sub set
+{
+  my ($self, @config) = @_;
+
+  Users::Users::set ($config[0]);
+  Users::Users::set_logindefs ({"umin"        => $config[2],
+                                "umax"        => $config[3],
+                                "home_prefix" => $config[4]});
 }
 
 1;
