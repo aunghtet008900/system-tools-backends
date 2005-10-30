@@ -111,16 +111,13 @@ sub gst_share_smb_info_set_write
 
 # --- share_smb_table; multiple instances of share_smb_info --- #
 
-sub gst_share_smb_table_find
+sub smb_table_find
 {
-  my ($table, $name) = @_;
+  my ($name, $shares) = @_;
 
-  for $i (@$table)
+  foreach $i (@$shares)
   {
-    if (&gst_share_smb_info_get_name ($i) eq $name)
-    {
-      return $i;
-    }
+    return $i if ($$i[0] eq $name)
   }
 
   return undef;
@@ -159,15 +156,34 @@ sub get_share_info
   return \@share;
 }
 
+sub set_share_info
+{
+  my ($smb_conf_file, $share) = @_;
+  my ($section);
+
+  $section = shift (@$share);
+
+  &Utils::Replace::set_ini        ($smb_conf_file, $section, "path",      shift (@$share));
+  &Utils::Replace::set_ini        ($smb_conf_file, $section, "comment",   shift (@$share));
+  &Utils::Replace::set_ini_bool   ($smb_conf_file, $section, "available", shift (@$share));
+  &Utils::Replace::set_ini_bool   ($smb_conf_file, $section, "browsable", shift (@$share));
+  &Utils::Replace::set_ini_bool   ($smb_conf_file, $section, "public",    shift (@$share));
+  &Utils::Replace::set_ini_bool   ($smb_conf_file, $section, "writable",  shift (@$share));
+
+  &Utils::Replace::remove_ini_var ($smb_conf_file, $section, "browseable");
+  &Utils::Replace::remove_ini_var ($smb_conf_file, $section, "guest");
+  &Utils::Replace::remove_ini_var ($smb_conf_file, $section, "writeable");
+}
+
 sub get
 {
-  my ($smb_conf_name);
+  my ($smb_conf_file);
   my (@sections, @table, $share);
 
-  $smb_conf_name = &get_distro_smb_file;
+  $smb_conf_file = &get_distro_smb_file;
 
   # Get the sections.
-  @sections = &Utils::Parse::get_ini_sections ($smb_conf_name);
+  @sections = &Utils::Parse::get_ini_sections ($smb_conf_file);
 
   for $section (@sections)
   {
@@ -179,6 +195,35 @@ sub get
   }
 
   return \@table;
+}
+
+sub set
+{
+  my ($config) = @_;
+  my ($smb_conf_file);
+  my (@sections, $export);
+
+  $smb_conf_file = &get_distro_smb_file;
+
+  # Get the sections.
+  @sections = &Utils::Parse::get_ini_sections ($smb_conf_file);
+
+  # remove deleted sections
+  foreach $section (@sections)
+  {
+    next if ($section =~ /^(global)|(homes)|(printers)|(print\$)$/);
+    next if (&Utils::Parse::get_from_ini_bool ($smb_conf_file, $section, "printable"));
+
+    if (!&smb_table_find ($section, $config))
+    {
+      Utils::Replace::remove_ini_section ($smb_conf_file, $section);
+    }
+  }
+
+  for $export (@$config)
+  {
+    &set_share_info ($smb_conf_file, $export);
+  }
 }
 
 1;

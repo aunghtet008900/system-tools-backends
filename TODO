@@ -1,6 +1,8 @@
 - Replace $$tool with $Utils::Backend::tool everywhere
+- Ditto with $gst_prefix, $gst_name and so
 - keep refactoring the code (move *pl.in to *pm)
 - Handle supported platform validation
 - Finish Internet::Iface
 - Finish _set() in all objects
-
+- check files authorship for typos when c&p headers
+- add again support for command line parameters (--report and --fake-apply come to mind)

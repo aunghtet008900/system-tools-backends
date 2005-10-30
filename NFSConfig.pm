@@ -43,6 +43,7 @@ sub new
 }
 
 dbus_method ("get", [], [[ "array", [ "struct", "string", [ "array", [ "struct", "string", "int32" ]]]]]);
+dbus_method ("set", [[ "array", [ "struct", "string", [ "array", [ "struct", "string", "int32" ]]]]], []);
 dbus_signal ("changed", []);
 
 sub get
@@ -53,6 +54,13 @@ sub get
   $shares = &Shares::NFS::get ();
 
   return $shares;
+}
+
+sub set
+{
+  my ($self, $config) = @_;
+
+  &Shares::NFS::set ($config);
 }
 
 1;

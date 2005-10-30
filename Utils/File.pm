@@ -378,7 +378,7 @@ sub open_filter_write_from_names
   if (!open (OUTFILE, ">$name"))
   {
     &Utils::Report::do_report ("file_open_filter_failed", $name);
-    return;
+    return (*INFILE, 0);
   }
     
   &Utils::Report::leave ();

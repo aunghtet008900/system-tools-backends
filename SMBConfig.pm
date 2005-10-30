@@ -43,6 +43,7 @@ sub new
 }
 
 dbus_method ("get", [], [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]]]);
+dbus_method ("set", [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]]], []);
 dbus_signal ("changed", []);
 
 sub get
@@ -53,6 +54,13 @@ sub get
   $shares = &Shares::SMB::get ();
 
   return $shares;
+}
+
+sub set
+{
+  my ($self, $config) = @_;
+
+  &Shares::SMB::set ($config);
 }
 
 1;
