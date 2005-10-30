@@ -1,3 +1,11 @@
+2005-10-30  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* NFSConfig.pm, Shares/NFS.pm: added set() methods.
+	* SMBConfig.pm, Shares/SMB.pm: ditto
+	* Utils/File.pm (open_filter_write_from_names): small fix when the
+	output stream can't be opened
+	* TODO: updated
+
 2005-10-27  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* GroupsConfig.pm, Users/Groups.pm: added set() methods
