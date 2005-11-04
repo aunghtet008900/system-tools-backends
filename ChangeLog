@@ -1,3 +1,10 @@
+2005-11-04  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* ServicesConfig.pm, Init/Services.pm: began to add set() support, at
+	the moment it's working for sysV, the rest is to come.
+	* Init/Services.pm: fixed get() for systems distinct to sysV, should
+	work fine now.
+
 2005-10-30  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* NFSConfig.pm, Shares/NFS.pm: added set() methods.

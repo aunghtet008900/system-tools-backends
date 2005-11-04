@@ -286,6 +286,67 @@ sub get_sysv_services
 	return \@arr;
 }
 
+# These are the functions for storing the service settings in SysV
+sub remove_sysv_link
+{
+  my ($rcd_path, $runlevel, $script) = @_;
+	
+  foreach $link (<$rcd_path/rc$runlevel.d/[SK][0-9][0-9]$script>)
+  {
+    &Utils::Report::enter ();
+    &Utils::Report::do_report ("service_sysv_remove_link", "$link");
+    unlink ($link);
+    &Utils::Report::leave ();
+  }
+}
+
+sub add_sysv_link
+{
+  my ($rcd_path, $relative_path, $runlevel, $action, $priority, $service) = @_;
+  my ($prio) = sprintf ("%0.2d",$priority);
+
+  symlink ("$relative_path/$service", "$rcd_path/rc$runlevel.d/$action$prio$service");
+
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("service_sysv_add_link", "$rcd_path/rc$runlevel.d/$action$prio$service");
+  &Utils::Report::leave ();
+}
+
+sub set_sysv_service
+{
+  my ($service) = @_;
+  my ($script, $priority, $runlevels);
+  my ($action);
+
+  ($rcd_path, $initd_path, $relative_path) = &get_sysv_paths ();
+
+  $script = $$service[0];
+  $runlevels = $$service[2];
+
+  foreach $r (@$runlevels)
+  {
+    $runlevel = $$r[0];
+    $action   = ($$r[1] eq "start") ? "S" : "K";
+    $priority = $$r[2];
+
+    if (!-f "$rcd_path/rc$runlevel.d/$action$priority$script")
+    {
+      &remove_sysv_link ($rcd_path, $runlevel, $script);
+      &add_sysv_link ($rcd_path, $relative_path, $runlevel, $action, $priority, $script);
+    }
+  }
+}
+
+sub set_sysv_services
+{
+	my ($services) = @_;
+
+	foreach $i (@$services)
+	{
+		&set_sysv_service($i);
+	}
+}
+
 # This functions get an ordered array of the available services from a file-rc system
 sub get_filerc_runlevels_status
 {
@@ -350,7 +411,7 @@ sub get_filerc_service_info
   return undef;
 }
 
-sub gst_service_filerc_get_services
+sub get_filerc_services
 {
 	my ($script);
   my (%ret);
@@ -388,6 +449,94 @@ sub gst_service_filerc_get_services
   }
 
   return \%ret;
+}
+
+# These are the functions for storing the service settings in file-rc
+#sub gst_service_filerc_concat_runlevels
+#{
+#  my (@runlevels) = @_;
+#
+#  $str = join (",", sort (@runlevels));
+#  return ($str) ? $str : "-";
+#}
+
+#sub set_filerc_service
+#{
+#  my ($buff, $service) = @_;
+#  my (%hash, $priority, $line, $str);
+#
+#  $runlevels = $$service[2];
+#
+#  foreach $i (@$runlevels)
+#  {
+#    $priority = 0 + $$i[2];
+#    $priority = 50 if ($priority == 0); #very rough guess
+#
+#    if ($$i[1] eq "start")
+#    {
+#      $hash{$priority}{"start"} = [] if (!$hash{$priority}{"start"});
+#      push @{$hash{$priority}{"start"}}, $$i[0];
+#    }
+#    else
+#    {
+#      $hash{$priority}{"stop"} = [] if (!$hash{$priority}{"stop"});
+#      push @{$hash{$priority}{"stop"}}, $$i[0];
+#    }
+#  }
+#
+#  foreach $priority (keys %hash)
+#  {
+#    $line  = sprintf ("%0.2d", $priority) . "\t";
+#    $line .= &concat_filerc_runlevels (@{$hash{$priority}{"stop"}}) . "\t";
+#    $line .= &concat_filerc_runlevels (@{$hash{$priority}{"start"}}) . "\t";
+#    $line .= "/etc/init.d/" . $$service{"script"} . "\n";
+#
+#    push @$buff, $line;
+#  }
+#}
+
+sub set_filerc_services
+{
+  my ($services) = @_;
+  my ($buff, $lineno, $line, $file);
+  my ($rcd_path, $initd_path, $relative_path) = &sysv_get_paths ();
+
+  $file = "/etc/runlevel.conf";
+
+  $buff = &Utils::File::load_buffer ($file);
+  &Utils::File::join_buffer_lines ($buff);
+
+  $lineno = 0;
+
+  # We prepare the file for storing the configuration, save the initial comments
+  # and delete the rest
+  while ($$buff[$lineno] =~ /^#.*/)
+  {
+    $lineno++;
+  }
+
+  for ($i = $lineno; $i < scalar (@$buff); $i++)
+  {
+    $$buff[$i] =~ /.*\/etc\/init\.d\/(.*)/;
+
+    # we need to keep the forbidden services and the services that only start in rcS.d
+    if (!&Init::ServicesList::is_forbidden ($1))
+    {
+      delete $$buff[$i];
+    }
+  }
+
+  # Now we append the services
+  foreach $service (@$services)
+  {
+#    &set_filerc_service ($buff, $service);
+  }
+
+  @$buff = sort @$buff;
+
+  push @$buff, "\n";
+  &Utils::File::clean_buffer ($buff);
+  &Utils::File::save_buffer ($buff, $file);
 }
 
 # this functions get a list of the services that run on a bsd init
@@ -786,13 +935,27 @@ sub get
   $type = &get_init_type ();
 
   return &get_sysv_services ()   if ($type eq "sysv");
-  return &gst_service_filerc_get_services () if ($type eq "file-rc");
-  return &gst_service_bsd_get_services ()    if ($type eq "bsd");
-  return &gst_service_gentoo_get_services () if ($type eq "gentoo");
-  return &gst_service_rcng_get_services ()   if ($type eq "rcng");
-  return &gst_service_suse_get_services ()   if ($type eq "suse");
+  return &get_filerc_services () if ($type eq "file-rc");
+  return &get_bsd_services ()    if ($type eq "bsd");
+  return &get_gentoo_services () if ($type eq "gentoo");
+  return &get_rcng_services ()   if ($type eq "rcng");
+  return &get_suse_services ()   if ($type eq "suse");
 
   return undef;
+}
+
+sub set
+{
+	my ($services) = @_;
+
+  $type = &get_init_type ();
+
+  &set_sysv_services   ($services) if ($type eq "sysv");
+  &set_filerc_services ($services) if ($type eq "file-rc");
+#  &set_bsd_services    ($services) if ($type eq "bsd");
+#  &set_gentoo_services ($services) if ($type eq "gentoo");
+#  &set_rcng_services   ($services) if ($type eq "rcng");
+#  &set_suse_services   ($services) if ($type eq "suse");
 }
 
 1;
