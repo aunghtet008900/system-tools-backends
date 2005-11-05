@@ -452,48 +452,48 @@ sub get_filerc_services
 }
 
 # These are the functions for storing the service settings in file-rc
-#sub gst_service_filerc_concat_runlevels
-#{
-#  my (@runlevels) = @_;
-#
-#  $str = join (",", sort (@runlevels));
-#  return ($str) ? $str : "-";
-#}
+sub concat_filerc_runlevels
+{
+  my (@runlevels) = @_;
 
-#sub set_filerc_service
-#{
-#  my ($buff, $service) = @_;
-#  my (%hash, $priority, $line, $str);
-#
-#  $runlevels = $$service[2];
-#
-#  foreach $i (@$runlevels)
-#  {
-#    $priority = 0 + $$i[2];
-#    $priority = 50 if ($priority == 0); #very rough guess
-#
-#    if ($$i[1] eq "start")
-#    {
-#      $hash{$priority}{"start"} = [] if (!$hash{$priority}{"start"});
-#      push @{$hash{$priority}{"start"}}, $$i[0];
-#    }
-#    else
-#    {
-#      $hash{$priority}{"stop"} = [] if (!$hash{$priority}{"stop"});
-#      push @{$hash{$priority}{"stop"}}, $$i[0];
-#    }
-#  }
-#
-#  foreach $priority (keys %hash)
-#  {
-#    $line  = sprintf ("%0.2d", $priority) . "\t";
-#    $line .= &concat_filerc_runlevels (@{$hash{$priority}{"stop"}}) . "\t";
-#    $line .= &concat_filerc_runlevels (@{$hash{$priority}{"start"}}) . "\t";
-#    $line .= "/etc/init.d/" . $$service{"script"} . "\n";
-#
-#    push @$buff, $line;
-#  }
-#}
+  $str = join (",", sort (@runlevels));
+  return ($str) ? $str : "-";
+}
+
+sub set_filerc_service
+{
+  my ($buff, $initd_path, $service) = @_;
+  my (%hash, $priority, $line, $str);
+
+  $runlevels = $$service[2];
+
+  foreach $i (@$runlevels)
+  {
+    $priority = 0 + $$i[2];
+    $priority = 50 if ($priority == 0); #very rough guess
+
+    if ($$i[1] eq "start")
+    {
+      $hash{$priority}{"start"} = [] if (!$hash{$priority}{"start"});
+      push @{$hash{$priority}{"start"}}, $$i[0];
+    }
+    else
+    {
+      $hash{$priority}{"stop"} = [] if (!$hash{$priority}{"stop"});
+      push @{$hash{$priority}{"stop"}}, $$i[0];
+    }
+  }
+
+  foreach $priority (keys %hash)
+  {
+    $line  = sprintf ("%0.2d", $priority) . "\t";
+    $line .= &concat_filerc_runlevels (@{$hash{$priority}{"stop"}}) . "\t";
+    $line .= &concat_filerc_runlevels (@{$hash{$priority}{"start"}}) . "\t";
+    $line .= $initd_path . "/" . $$service{"script"} . "\n";
+
+    push @$buff, $line;
+  }
+}
 
 sub set_filerc_services
 {
@@ -529,7 +529,7 @@ sub set_filerc_services
   # Now we append the services
   foreach $service (@$services)
   {
-#    &set_filerc_service ($buff, $service);
+    &set_filerc_service ($buff, $initd_path, $service);
   }
 
   @$buff = sort @$buff;
@@ -551,7 +551,7 @@ sub get_bsd_service_info
   $script =~ s/^.*\///;
   $script =~ s/^rc\.//;
 
-  return undef if (! gst_file_exists ($service));
+  return undef if (! Utils::File::exists ($service));
 
   return undef if (&Init::ServicesList::is_forbidden ($script));
 
@@ -586,10 +586,10 @@ sub get_bsd_services
   foreach $i (@$files)
   {
     $file = "/etc/rc.d/" . $i;
-    $fd = &gst_file_open_read_from_names ($file);
+    $fd = &Utils::File::open_read_from_names ($file);
 
     if (!$fd) {
-      &gst_report ("rc_file_read_failed", $file);
+      &Utils::Report::do_report ("rc_file_read_failed", $file);
       return undef;
     }
 
@@ -611,10 +611,35 @@ sub get_bsd_services
       }
     }
 
-    gst_file_close ($fd);
+    Utils::File::close_file ($fd);
   }
 
   return \%ret;
+}
+
+# This function stores the configuration in a bsd init
+sub set_bsd_services
+{
+  my ($services) = @_;
+  my ($script, $runlevels);
+
+	foreach $service (@$services)
+	{
+    $script = $$service[0];
+    $runlevels = $$service[2];
+    $runlevel  = $$runlevels[0];
+
+    $action = $$runlevel[1];
+
+    if ($action eq "start")
+    {
+      &Utils::File::run ("chmod ugo+x $script");
+    }
+    else
+    {
+      &Utils::File::run ("chmod ugo-x $script");
+    }
+  }
 }
 
 # these functions get a list of the services that run on a gentoo init
@@ -633,7 +658,7 @@ sub get_gentoo_service_status
 
 sub get_gentoo_runlevels
 {
-  my($raw_output) = gst_file_run_backtick("rc-status -l");
+  my($raw_output) = Utils::File::run_backtick("rc-status -l");
   my(@runlevels) = split(/\n/,$raw_output);
     
   return @runlevels;
@@ -642,7 +667,7 @@ sub get_gentoo_runlevels
 sub get_gentoo_services_by_runlevel
 {
   my($runlevel) = @_;
-  my($raw_output) = gst_file_run_backtick("rc-status $runlevel");
+  my($raw_output) = Utils::File::run_backtick("rc-status $runlevel");
   my(@raw_lines) = split(/\n/,$raw_output);
   my(@services);
   my($line);
@@ -661,7 +686,18 @@ sub get_gentoo_services_by_runlevel
 
 sub get_gentoo_services_list
 {
-  return &gst_service_sysv_list_dir ("/etc/init.d/");
+  my ($service, @services);
+
+  foreach $service (<$gst_prefix/etc/init.d/*>)
+  {
+    if (-x $service)
+    {
+      $service =~ s/.*\///;
+      push @services, $service;
+    }
+  }
+
+  return \@services;
 }
 
 sub gentoo_service_exists
@@ -771,14 +807,41 @@ sub get_gentoo_services
   return \%ret;
 }
 
-# rcNG functions, mostly for FreeBSD
+# This function stores the configuration in gentoo init
+sub set_gentoo_services
+{
+  my ($services) = @_;
+  my ($action);
 
+  foreach $service (@$services)
+  {
+    $script = $$service[0];
+    $arr = $$service[2];
+
+    foreach $i (@$arr)
+    {
+      $action = $$i[1];
+      $rl = $$i[0];
+
+      if ( $action eq "start")
+      {
+        &Utils::File::run ("rc-update add $script $rl");
+      }
+      elsif ($action eq "stop")
+      {
+        &Utils::File::run ("rc-update del $script $rl");
+      }
+    }
+  }
+}
+
+# rcNG functions, mostly for FreeBSD
 sub get_rcng_status_by_service
 {
   my ($service) = @_;
   my ($fd, $line, $active);
 
-  $fd = &gst_file_run_pipe_read ("/etc/rc.d/$service rcvar");
+  $fd = &Utils::File::run_pipe_read ("/etc/rc.d/$service rcvar");
 
   while (<$fd>)
   {
@@ -791,7 +854,7 @@ sub get_rcng_status_by_service
     }
   }
 
-  gst_file_close ($fd);
+  Utils::File::close_file ($fd);
   return $active;
 }
 
@@ -806,7 +869,7 @@ sub get_rcng_service_info
 
   $hash{"script"} = $service;
 
-  if (gst_service_rcng_status_by_service ($service))
+  if (get_rcng_status_by_service ($service))
   {
     push @arr, { "name"   => "default",
                  "action" => "start" };
@@ -833,7 +896,7 @@ sub get_rcng_services
   foreach $service (<$gst_prefix/etc/rc.d/*>)
   {
     my (%hash);
-    
+
     $service =~ s/.*\///;
     $hash = &get_rcng_service_info ($service);
 
@@ -841,6 +904,70 @@ sub get_rcng_services
   }
 
   return \%ret;
+}
+
+# These functions store the configuration of a rcng init
+sub set_rcng_service_status
+{
+  my ($service, $action) = @_;
+  my ($fd, $key, $res);
+  my ($default_rcconf) = "/etc/defaults/rc.conf";
+  my ($rcconf) = "/etc/rc.conf";
+
+  if (&Utils::File::exists ("/etc/rc.d/$service"))
+  {
+    $fd = &Utils::File::run_pipe_read ("/etc/rc.d/$service rcvar");
+
+    while (<$fd>)
+    {
+      if (/^\$(.*)=.*$/)
+      {
+        # to avoid cluttering rc.conf with duplicated data,
+        # we first look in the defaults/rc.conf for the key
+        $key = $1;
+        $res = &Utils::Parse::get_sh_bool ($default_rcconf, $key);
+
+        if ($res == $action)
+        {
+          &Utils::Replace::set_sh ($rcconf, $key);
+        }
+        else
+        {
+          &Utils::Replace::set_sh_bool ($rcconf, $key, "YES", "NO", $action);
+        }
+      }
+    }
+
+    &Utils::File::close_file ($fd);
+  }
+  elsif (&Utils::File::exists ("/usr/local/etc/rc.d/$service.sh"))
+  {
+    if ($action)
+    {
+      Utils::File::copy_file ("/usr/local/etc/rc.d/$service.sh.sample",
+                              "/usr/local/etc/rc.d/$service.sh");
+    }
+    else
+    {
+      Utils::File::remove ("/usr/local/etc/rc.d/$service.sh");
+    }
+  }
+}
+
+sub set_rcng_services
+{
+  my ($services) = @_;
+  my ($action, $runlevels, $script);
+
+  foreach $service (@$services)
+  {
+    $script    = $$service[0];
+    $runlevels = $$service[2];
+    $runlevel  = $$runlevels[0];
+    $action    = ($$runlevel[1] eq "start")? 1 : 0;
+
+    &set_rcng_service_status ($script, $action);
+  }
 }
 
 # SuSE functions, quite similar to SysV, but not equal...
@@ -884,7 +1011,7 @@ sub get_suse_services
 {
   my ($service, %ret);
 
-  ($rcd_path, $initd_path) = &gst_service_sysv_get_paths ();
+  ($rcd_path, $initd_path) = &get_sysv_paths ();
 
   foreach $service (<$gst_prefix/etc/init.d/*>)
   {
@@ -899,6 +1026,37 @@ sub get_suse_services
   }
 
   return \%ret;
+}
+
+# This function stores the configuration in suse init
+sub set_suse_services
+{
+  my ($services) = @_;
+  my ($action, $runlevels, $script, $rllist);
+
+  foreach $service (@$services)
+  {
+    $script = $$service[0];
+    $runlevels = $$service[2];
+    $rllist = "";
+
+    &Utils::File::run ("insserv -r $script");
+
+    foreach $rl (@$runlevels)
+    {
+      if ($$rl[1] eq "start")
+      {
+        $rllist .= $$rl[0] . ",";
+      }
+    }
+
+    if ($rllist ne "")
+    {
+      $rllist =~ s/,$//;
+
+      &Utils::File::run ("insserv $script,start=$rllist");
+    }
+  }
 }
 
 # generic functions to get the available services
@@ -952,10 +1110,10 @@ sub set
 
   &set_sysv_services   ($services) if ($type eq "sysv");
   &set_filerc_services ($services) if ($type eq "file-rc");
-#  &set_bsd_services    ($services) if ($type eq "bsd");
-#  &set_gentoo_services ($services) if ($type eq "gentoo");
-#  &set_rcng_services   ($services) if ($type eq "rcng");
-#  &set_suse_services   ($services) if ($type eq "suse");
+  &set_bsd_services    ($services) if ($type eq "bsd");
+  &set_gentoo_services ($services) if ($type eq "gentoo");
+  &set_rcng_services   ($services) if ($type eq "rcng");
+  &set_suse_services   ($services) if ($type eq "suse");
 }
 
 1;
