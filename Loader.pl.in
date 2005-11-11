@@ -43,6 +43,7 @@ use GroupsConfig;
 use TimeConfig;
 use NTPConfig;
 use HostsConfig;
+use IfacesConfig;
 use ServicesConfig;
 
 # Initialize tool
@@ -62,6 +63,7 @@ my $groups_config   = GroupsConfig->new   ($service);
 my $time_config     = TimeConfig->new     ($service);
 my $ntp_config      = NTPConfig->new      ($service);
 my $hosts_config    = HostsConfig->new    ($service);
+my $ifaces_config   = IfacesConfig->new   ($service);
 my $services_config = ServicesConfig->new ($service);
 
 Net::DBus::Reactor->main->add_timeout (50, Net::DBus::Callback->new(method => \&Utils::Monitor::do_monitor_files));

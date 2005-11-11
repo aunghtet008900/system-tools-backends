@@ -140,8 +140,6 @@ sub get_share_info
   my ($smb_conf_name, $section) = @_;
   my @share;
 
-  my $path;
-
   push @share, $section;
   push @share, &Utils::Parse::get_from_ini      ($smb_conf_name, $section, "path");
   push @share, &Utils::Parse::get_from_ini      ($smb_conf_name, $section, "comment");
@@ -188,9 +186,9 @@ sub get
   for $section (@sections)
   {
     next if ($section =~ /^(global)|(homes)|(printers)|(print\$)$/);
-    next if (&Utils::Parse::get_from_ini_bool ($smb_conf_name, $section, "printable"));
+    next if (&Utils::Parse::get_from_ini_bool ($smb_conf_file, $section, "printable"));
 
-    $share = &get_share_info ($smb_conf_name, $section);
+    $share = &get_share_info ($smb_conf_file, $section);
     push @table, $share;
   }
 

@@ -44,7 +44,7 @@ use Utils::File;
 
 sub expand
 {
-  my ($strarr, $substr, $value) = @_;
+  my ($strarr, @args) = @_;
 
   if (ref $strarr eq "ARRAY")
   {
@@ -58,8 +58,15 @@ sub expand
 
     return $strarr;
   }
-  
-  $strarr =~ s/\#$substr\#/$value/;
+
+  while (@args)
+  {
+    $substr = shift @args;
+    $value  = shift @args;
+
+    $strarr =~ s/\#$substr\#/$value/;
+  }
+
   return $strarr;
 }
 
@@ -1376,6 +1383,31 @@ sub get_pppconf_re
   {
     return $1;
   }
+}
+
+sub get_ppp_options_re
+{
+  my ($file, $re) = @_;
+  my ($fd, @res);
+
+  &Utils::File::enter ();
+  &Utils::File::do_report ("network_get_ppp_option", &Utils::Replace::regexp_to_separator ($re), $file);
+  $fd = &Utils::File::open_read_from_names ("$file");
+  &Utils::File::leave ();
+
+  return undef if !$fd;
+
+  while (($_ = &chomp_line_hash_comment ($fd)) != -1)
+  {
+    $_ = $$_;
+
+    if (/$re/)
+    {
+      return $1;
+    }
+  }
+
+  return undef;
 }
 
 1;

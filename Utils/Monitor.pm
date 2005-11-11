@@ -23,22 +23,22 @@
 
 package Utils::Monitor;
 
-use SGI::FAM;
+use Sys::Gamin;
 use Cwd;
 use strict;
 use base qw(Net::DBus::Object);
 use Utils::Backend;
 
-my $fam = new SGI::FAM;
+my $fm = new Sys::Gamin;
 my %objects;
 
 sub do_monitor_files
 {
   my ($event, $data, $func, $path);
 
-  while ($fam->pending)
+  while ($fm->pending)
   {
-    $event = $fam->next_event;
+    $event = $fm->next_event;
 
     if ($event->type eq "change")
     {
@@ -58,11 +58,12 @@ sub add_file
   my ($path);
   
   $path = &Cwd::abs_path ($file);
+  return unless -f $path;
 
   $objects {$path} = { "object" => $object,
                        "name"   => $name,
                        "signal" => $signal};
-  $fam->monitor ($path);
+  $fm->monitor ($path);
 }
 
 sub monitor_files
