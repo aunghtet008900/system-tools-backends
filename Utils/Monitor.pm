@@ -23,18 +23,29 @@
 
 package Utils::Monitor;
 
-use Sys::Gamin;
 use Cwd;
 use strict;
 use base qw(Net::DBus::Object);
 use Utils::Backend;
+eval "use Sys::Gamin;";
+my $eval_gamin = $@;
 
-my $fm = new Sys::Gamin;
+my $has_gamin = ($eval_gamin eq "");
+my $fm;
 my %objects;
+
+BEGIN {
+  if ($has_gamin)
+  {
+    $fm = new Sys::Gamin;
+  }
+}
 
 sub do_monitor_files
 {
   my ($event, $data, $func, $path);
+
+  return if (!$has_gamin);
 
   while ($fm->pending)
   {
@@ -70,6 +81,8 @@ sub monitor_files
 {
   my ($files, $object, $name, $signal) = @_;
   my ($f);
+
+  return if (!$has_gamin);
 
   if (ref $files eq "ARRAY")
   {

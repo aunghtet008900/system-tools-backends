@@ -1,3 +1,20 @@
+2005-11-14  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Utils/Monitor.pm: make use of gamin optional, thus not spreading the
+	"changed" signals if it isn't installed
+
+2005-11-11  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* IfacesConfig.pm: added, DBus object to handle network ifaces config
+	* Network/Ifaces.pm: added again, at the moment there's only
+	get() support
+	* Loader.pl.in: added the IfacesConfig object
+	* Shares/SMB.pm (get): fixed a typo with $smb_conf_file
+	* Utils/Monitor.pm: use the recently uploaded Sys::Gamin CPAN perl
+	module
+	* Utils/Parse.pm (expand): allow expanding of several keywords.
+	(get_ppp_options_re): added.
+
 2005-11-05  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Init/Services.pm: added missing set() support for the rest of the
