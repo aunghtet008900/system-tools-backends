@@ -1,3 +1,7 @@
+2005-11-17  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* HostsConfig.pm: really add a "set" dbus method
+
 2005-11-14  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Utils/Monitor.pm: make use of gamin optional, thus not spreading the
