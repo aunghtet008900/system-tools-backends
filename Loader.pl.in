@@ -37,7 +37,6 @@ use Utils::Monitor;
 
 use SMBConfig;
 use NFSConfig;
-use ShellsConfig;
 use UsersConfig;
 use GroupsConfig;
 use TimeConfig;
@@ -57,7 +56,6 @@ my $reactor = Net::DBus::Reactor->new();
 #Initialize all objects
 my $smb_config      = SMBConfig->new      ($service);
 my $nfs_config      = NFSConfig->new      ($service);
-my $shells_config   = ShellsConfig->new   ($service);
 my $users_config    = UsersConfig->new    ($service);
 my $groups_config   = GroupsConfig->new   ($service);
 my $time_config     = TimeConfig->new     ($service);

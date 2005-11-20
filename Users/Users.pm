@@ -68,27 +68,14 @@ $cmd_useradd  = &Utils::File::locate_tool ("useradd");
 $cmd_chfn     = &Utils::File::locate_tool ("chfn");
 $cmd_pw       = &Utils::File::locate_tool ("pw");
 
-# --- Mapping constants --- #
-
-%users_prop_map = ();
-@users_prop_array = ();
-
-@users_prop_array = (
-  "key", 0,
-  "login", 1,
-  "password", 2,
-  "uid", 3,
-  "gid", 4,
-  "comment", 5,
-  "home", 6,
-  "shell", 7,
-  "", "");
-
-for ($i = 0; $users_prop_array[$i] ne ""; $i += 2)
-{
-  $users_prop_map {$users_prop_array[$i]} = $users_prop_array[$i + 1];
-  $users_prop_map {$users_prop_array[$i + 1]} = $users_prop_array[$i];
-}
+# enum like for verbose group array positions
+my $LOGIN   = 0;
+my $PASSWD  = 1;
+my $UID     = 2;
+my $GID     = 3;
+my $COMMENT = 4;
+my $HOME    = 5;
+my $SHELL   = 6;
 
 %login_defs_prop_map = ();
 %profiles_prop_map = ();
@@ -412,10 +399,6 @@ sub get
 {
   my ($ifh, @users, %users_hash);
   my (@line);
-  my $login_pos    = $users_prop_map{"login"};
-  my $comment_pos  = $users_prop_map{"comment"};
-  my $last_arr_pos = $users_prop_map{"passwd_disable"};
-  my $i = 0;
 
   # Find the passwd file.
   $ifh = &Utils::File::open_read_from_names(@passwd_names);
@@ -431,13 +414,11 @@ sub get
 
     @line  = split ':', $_, -1;
 
-    unshift @line, $i;
-    $login = $line[$login_pos];
-    @comment = split ',', $line[$comment_pos], 5;
-    $line[$comment_pos] = [@comment];
+    $login = $line[$LOGIN];
+    @comment = split ',', $line[$COMMENT], 5;
+    $line[$COMMENT] = [@comment];
     
     $$users_hash{$login} = [@line];
-    $i++;
   }
 
   &Utils::File::close_file ($ifh);
@@ -445,8 +426,6 @@ sub get
 
   if ($ifh)
   {
-    my $passwd_pos = $users_prop_map{"password"};
-
     while (<$ifh>)
     {
       chomp;
@@ -458,7 +437,7 @@ sub get
       $login = shift @line;
       $passwd = shift @line;
 
-      $$users_hash{$login}[$passwd_pos] = $passwd;
+      $$users_hash{$login}[$PASSWD] = $passwd;
       push @{$$users_hash{$login}}, @line;
     }
 
@@ -492,11 +471,11 @@ sub del_user
 	
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    $command = "$cmd_pw userdel -n \'" . $$user[1] . "\' ";
+    $command = "$cmd_pw userdel -n \'" . $$user[$LOGIN] . "\' ";
   }
   else
   {
-    $command = "$cmd_userdel \'" . $$user[1] . "\'";
+    $command = "$cmd_userdel \'" . $$user[$LOGIN] . "\'";
   }
 
   &Utils::File::run ($command);
@@ -557,38 +536,39 @@ sub add_user
     my $home;
 
     # FreeBSD doesn't create the home directory
-    $home = $$user[6];
+    $home = $$user[$HOME];
     &Utils::File::run ("$tool_mkdir -p $home");
 
     $command = "$cmd_pw useradd " .
-        " -n \'" . $$user[1] . "\'" .
-        " -u \'" . $$user[3] . "\'" .
-        " -d \'" . $$user[6] . "\'" .
-        " -g \'" . $$user[4] . "\'" .
-        " -s \'" . $$user[7] . "\'" .
+        " -n \'" . $$user[$LOGIN] . "\'" .
+        " -u \'" . $$user[$UID]   . "\'" .
+        " -d \'" . $$user[$HOME]  . "\'" .
+        " -g \'" . $$user[$GID]   . "\'" .
+        " -s \'" . $$user[$SHELL] . "\'" .
         " -H 0"; # pw(8) reads password from STDIN
 
     $pwdpipe = &Utils::File::run_pipe_write ($command);
-    print $pwdpipe $$user[2];
+    print $pwdpipe $$user[$PASSWD];
     &Utils::File::close_file ($pwdpipe);
   }
   else
   {
-    $home_parents = $$user[6];
+    $home_parents = $$user[$HOME];
     $home_parents =~ s/\/+[^\/]+\/*$//;
     &Utils::File::run ("$tool_mkdir -p $home_parents");
 
-    $command = "$cmd_useradd" . " -d \'" . $$user[6] .
-        "\' -g \'"    . $$user[4] .
-        "\' -m -p \'" . $$user[2] .
-        "\' -s \'"    . $$user[7] .
-        "\' -u \'"    . $$user[3] .
-        "\' \'"       . $$user[1] . "\'";
+    $command = "$cmd_useradd -m" .
+        " -d \'" . $$user[$HOME]   . "\'" .
+        " -g \'" . $$user[$GID]    . "\'" .
+        " -p \'" . $$user[$PASSWD] . "\'" .
+        " -s \'" . $$user[$SHELL]  . "\'" .
+        " -u \'" . $$user[$UID]    . "\'" .
+        " \'"    . $$user[$LOGIN]  . "\'";
 
     &Utils::File::run ($command);
   }
 
-  &change_user_chfn ($$user[1], undef, $$user[5]);
+  &change_user_chfn ($$user[$LOGIN], undef, $$user[$COMMENT]);
 }
 
 sub change_user
@@ -599,33 +579,33 @@ sub change_user
   {
     my $pwdpipe;
 
-    $command = "$cmd_pw usermod \'" . $$old_user[1] . "\'" .
-        " -l \'" . $$new_user[1] . "\'" .
-        " -u \'" . $$new_user[3] . "\'" .
-        " -d \'" . $$new_user[6] . "\'" .
-        " -g \'" . $$new_user[4] . "\'" .
-        " -s \'" . $$new_user[7] . "\'" .
+    $command = "$cmd_pw usermod \'" . $$old_user[$LOGIN] . "\'" .
+        " -l \'" . $$new_user[$LOGIN] . "\'" .
+        " -u \'" . $$new_user[$UID]   . "\'" .
+        " -d \'" . $$new_user[$HOME]  . "\'" .
+        " -g \'" . $$new_user[$GID]   . "\'" .
+        " -s \'" . $$new_user[$SHELL] . "\'" .
         " -H 0"; # pw(8) reads password from STDIN
 
     $pwdpipe = &Utils::File::run_pipe_write ($command);
-    print $pwdpipe $$new_user[2];
+    print $pwdpipe $$new_user[$PASSWD];
     &Utils::File::close_file ($pwdpipe);
   }
   else
   {
     $command = "$cmd_usermod" .
-        " -d \'" . $$new_user[6] . "\'" .
-        " -g \'" . $$new_user[4] . "\'" .
-        " -l \'" . $$new_user[1] . "\'" .
-        " -p \'" . $$new_user[2] . "\'" .
-        " -s \'" . $$new_user[7] . "\'" .
-        " -u \'" . $$new_user[3] . "\'" .
-        " \'" . $$old_user[1] . "\'";
+        " -d \'" . $$new_user[$HOME]   . "\'" .
+        " -g \'" . $$new_user[$GID]    . "\'" .
+        " -l \'" . $$new_user[$LOGIN]  . "\'" .
+        " -p \'" . $$new_user[$PASSWD] . "\'" .
+        " -s \'" . $$new_user[$SHELL]  . "\'" .
+        " -u \'" . $$new_user[$UID]    . "\'" .
+        " \'" . $$old_user[$LOGIN] . "\'";
 
     &Utils::File::run ($command);
   }
 
-  &change_user_chfn ($$new_user[1], $$old_user[5], $$new_user[5]);
+  &change_user_chfn ($$new_user[$LOGIN], $$old_user[$COMMENT], $$new_user[$COMMENT]);
 }
 
 sub set_logindefs
@@ -678,14 +658,14 @@ sub set
 
     foreach $i (@$config) 
     {
-      $users{$$i[1]} |= 1;
-      $config_hash{$$i[1]} = $i;
+      $users{$$i[0]} |= 1;
+      $config_hash{$$i[0]} = $i;
 	  }	
 	
     foreach $i (@$old_config)
     {
-	    $users{$$i[1]} |= 2;
-      $old_config_hash{$$i[1]} = $i;
+      $users{$$i[0]} |= 2;
+      $old_config_hash{$$i[0]} = $i;
     }
 
     # Delete all groups that only appeared in the old configuration

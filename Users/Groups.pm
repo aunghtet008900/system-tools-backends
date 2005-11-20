@@ -24,6 +24,12 @@
 
 package Users::Groups;
 
+# enum like for verbose group array positions
+my $LOGIN  = 0;
+my $PASSWD = 1;
+my $GID    = 2;
+my $USERS  = 3;
+
 # quite generic data
 $group_names = "/etc/group";
 
@@ -40,11 +46,11 @@ sub del_group
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    $command = "$cmd_pw groupdel -n \'" . $$group[1] . "\'";
+    $command = "$cmd_pw groupdel -n \'" . $$group[$LOGIN] . "\'";
   }
   else
   {
-    $command = "$cmd_groupdel \'" . $$group[1] . "\'";
+    $command = "$cmd_groupdel \'" . $$group[$LOGIN] . "\'";
   }
 
   &Utils::File::run ($command);
@@ -55,29 +61,29 @@ sub add_group
   my ($group) = @_;
   my ($u, $user, $users);
 
-  $u = $$group[4];
+  $u = $$group[$USERS];
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
     $users = join (",", sort @$u);
       
-    $command = "$cmd_pw groupadd -n \'" . $$group[1] .
-      "\' -g \'" . $$group[3] .
+    $command = "$cmd_pw groupadd -n \'" . $$group[$LOGIN] .
+      "\' -g \'" . $$group[$GID] .
       "\' -M \'" . $users . "\'";
 
     &Utils::File::run ($command);
   }
   else
   {
-    $command = "$cmd_groupadd -g \'" . $$group[3] .
-        "\' " . $$group[1];
+    $command = "$cmd_groupadd -g \'" . $$group[$GID] .
+        "\' " . $$group[$LOGIN];
 
     &Utils::File::run ($command);
 
     foreach $user (sort @$u)
     {
       $command = "$cmd_gpasswd -a \'" . $user .
-          "\' " . $$group[1];
+          "\' " . $$group[$LOGIN];
 
       &Utils::File::run ($command);
     }
@@ -93,29 +99,29 @@ sub change_group
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    $users_arr = $$new_group[4];
+    $users_arr = $$new_group[$USERS];
     $str = join (",", sort @$users_arr);
 
-    $command = "$cmd_pw groupmod -n \'" . $$old_group[1] .
-        "\' -g \'" . $$new_group[3] .
-        "\' -l \'" . $$new_group[1] .
+    $command = "$cmd_pw groupmod -n \'" . $$old_group[$LOGIN] .
+        "\' -g \'" . $$new_group[$GID] .
+        "\' -l \'" . $$new_group[$LOGIN] .
         "\' -M \'" . $str . "\'";
 
     &Utils::File::run ($command);
   }
   else
   {
-    $command = "$cmd_groupmod -g \'" . $$new_group[3] .
-        "\' -n \'" . $$new_group[1] . "\' " .
-        "\'" . $$old_group[1] . "\'";
+    $command = "$cmd_groupmod -g \'" . $$new_group[$GID] .
+        "\' -n \'" . $$new_group[$LOGIN] . "\' " .
+        "\'" . $$old_group[$LOGIN] . "\'";
   
     &Utils::File::run ($command);
 
     # Let's see if the users that compose the group have changed.
-    if (!Utils::Util::struct_eq ($$new_group[4], $$old_group[4]))
+    if (!Utils::Util::struct_eq ($$new_group[$USERS], $$old_group[$USERS]))
     {
-      $users{$_} |= 1 foreach (@{$$new_group[4]});
-      $users{$_} |= 2 foreach (@{$$old_group[4]});
+      $users{$_} |= 1 foreach (@{$$new_group[$USERS]});
+      $users{$_} |= 2 foreach (@{$$old_group[$USERS]});
 
       foreach $user (keys %users)
       {
@@ -126,7 +132,7 @@ sub change_group
           # users with state 2 are those that only appeared
           # in the old group configuration, so we must delete them
           $command = "$cmd_gpasswd -d \'" . $user . "\' \'" . 
-              $$new_group[1] . "\'";
+              $$new_group[$LOGIN] . "\'";
 
           &Utils::File::run ($command);
         }
@@ -135,7 +141,7 @@ sub change_group
           # users with state 1 are those who were added
           # to the new group configuration
           $command = "$cmd_gpasswd -a \'" . $user . "\' \'" . 
-              $$new_group[1] . "\'";
+              $$new_group[$LOGIN] . "\'";
 
           &Utils::File::run ($command);
         }
@@ -146,10 +152,8 @@ sub change_group
 
 sub get
 {
-  my ($ifh, @groups, %groups_hash, $group_last_modified);
+  my ($ifh, @groups, $group_last_modified);
   my (@line, $copy, @a);
-  my (%hash);
-  my $i = 0;
 
   # Find the file.
 
@@ -158,7 +162,6 @@ sub get
 
   # Parse the file.
   @groups = ();
-  %groups_hash = ();
 
   while (<$ifh>)
   {
@@ -169,18 +172,13 @@ sub get
     $_ = &Utils::XML::unquote ($_);
 
     @line = split ':', $_, -1;
-    unshift @line, $i;
     @a = split ',', pop @line;
     push @line, [@a];
     $copy = [@line];
     push (@groups, $copy);
-    $i++;
   }
 
   &Utils::File::close_file ($ifh);
-
-  $$hash{"groups"}      = \@groups;
-  $$hash{"groups_hash"} = \%groups_hash;
 
   return \@groups;
 }
@@ -208,14 +206,14 @@ sub set
 
     foreach $i (@$config) 
     {
-      $groups{$$i[1]} |= 1;
-      $config_hash{$$i[1]} = $i;
+      $groups{$$i[$LOGIN]} |= 1;
+      $config_hash{$$i[$LOGIN]} = $i;
 	  }	
 	
     foreach $i (@$old_config)
     {
-	    $groups{$$i[1]} |= 2;
-      $old_config_hash{$$i[1]} = $i;
+	    $groups{$$i[$LOGIN]} |= 2;
+      $old_config_hash{$$i[$LOGIN]} = $i;
     }
 
     # Delete all groups that only appeared in the old configuration

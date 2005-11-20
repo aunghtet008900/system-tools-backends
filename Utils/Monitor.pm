@@ -30,15 +30,13 @@ use Utils::Backend;
 eval "use Sys::Gamin;";
 my $eval_gamin = $@;
 
-my $has_gamin = ($eval_gamin eq "");
+my $has_gamin = ($eval_gamin eq "") ? 1 : 0;
 my $fm;
 my %objects;
 
-BEGIN {
-  if ($has_gamin)
-  {
-    $fm = new Sys::Gamin;
-  }
+if ($has_gamin)
+{
+  $fm = new Sys::Gamin;
 }
 
 sub do_monitor_files

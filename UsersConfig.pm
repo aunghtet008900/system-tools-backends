@@ -27,6 +27,7 @@ use base qw(Net::DBus::Object);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Utils::Backend;
 use Users::Users;
+use Users::Shells;
 
 my $OBJECT_NAME = "UsersConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
@@ -45,23 +46,24 @@ sub new
 }
 
 dbus_method ("get", [],
-             [[ "array", [ "struct", "int32", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
-              "int32", "int32", "int32", "string" ]);
+             [[ "array", [ "struct", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
+              ["array", "string" ], "int32", "int32", "int32", "string" ]);
 dbus_method ("set",
-             [[ "array", [ "struct", "int32", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
-              "int32", "int32", "int32", "string" ], []);
+             [[ "array", [ "struct", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
+              ["array", "string" ], "int32", "int32", "int32", "string" ], []);
 dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
-  my $logindefs, $users, $use_md5;
+  my $logindefs, $users, $use_md5, $shells;
 
   $use_md5 = &Users::Users::get_use_md5 ();
   $logindefs = &Users::Users::get_logindefs ();
   $users = &Users::Users::get ();
+  $shells = &Users::Shells::get ();
 
-  return ($users, $use_md5, $$logindefs{"umin"}, $$logindefs{"umax"}, $$logindefs{"home_prefix"});
+  return ($users, $shells, $use_md5, $$logindefs{"umin"}, $$logindefs{"umax"}, $$logindefs{"home_prefix"});
 }
 
 sub set
@@ -69,9 +71,10 @@ sub set
   my ($self, @config) = @_;
 
   Users::Users::set ($config[0]);
-  Users::Users::set_logindefs ({"umin"        => $config[2],
-                                "umax"        => $config[3],
-                                "home_prefix" => $config[4]});
+  Users::Shells::set ($config[1]);
+  Users::Users::set_logindefs ({"umin"        => $config[3],
+                                "umax"        => $config[4],
+                                "home_prefix" => $config[5]});
 }
 
 1;

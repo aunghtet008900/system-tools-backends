@@ -1,3 +1,16 @@
+2005-11-20  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* GroupsConfig.pm, Users/Groups.pm: removed id from the group struct
+	* ShellsConfig.pm: removed, has been moved to UsersConfig, didn't have
+	much sense as a separate object.
+	* Loader.pl.in: removed ShellsConfig.pm
+	* UsersConfig.pm, Users/Users.pm: removed id from the user struct, 
+	added shells array here
+	* Users/Groups.pm, Users/Users.pm: made the code for
+	adding/deleting/modifying users/groups a bit more readable
+	* Utils/Monitor.pm: initilize correctly the file monitor if Gamin is
+	present
+
 2005-11-17  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* HostsConfig.pm: really add a "set" dbus method
