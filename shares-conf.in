@@ -72,7 +72,7 @@ $version = "@VERSION@";
               "turbolinux-7.0", "fedora-1", "fedora-2", "fedora-3",
               "pld-1.0", "pld-1.1", "pld-1.99",
               "conectiva-9", "conectiva-10",
-              "slackware-9.1.0", "slackware-10.0.0", "slackware-10.1.0",
+              "slackware-9.1.0", "slackware-10.0.0", "slackware-10.1.0", "slackware-10.2.0",
               "gentoo", "vlos-1.2", "freebsd-5");
 
 $description =<<"end_of_description;";
@@ -553,6 +553,7 @@ sub gst_installed_daemons_parse_table
      "slackware-9.1.0" => "slackware-9.1.0",
      "slackware-10.0.0" => "slackware-9.1.0",
      "slackware-10.1.0" => "slackware-9.1.0",
+     "slackware-10.2.0" => "slackware-9.1.0",
      "gentoo"       => "gentoo",
      "vlos-1.2"     => "gentoo",
      "freebsd-5"    => "freebsd-5",

@@ -221,6 +221,7 @@ sub gst_service_get_runlevel_roles
      "slackware-9.1.0" => "slackware-9.1.0",
      "slackware-10.0.0" => "slackware-9.1.0",
      "slackware-10.1.0" => "slackware-9.1.0",
+     "slackware-10.2.0" => "slackware-9.1.0",
 
      "gentoo"         => "gentoo",
      "vlos-1.2"       => "gentoo",
