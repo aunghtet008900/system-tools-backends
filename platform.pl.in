@@ -89,7 +89,7 @@ $PLATFORM_INFO = {
   "fedora-1"        => "Fedora Core 1 (Yarrow)",
   "fedora-2"        => "Fedora Core 2 (Tettnang)",
   "fedora-3"        => "Fedora Core 3 (Heidelberg)",
-  "specifix"        => "Specifix Linux",
+  "rpath"           => "rPath Linux",
 };
   
 sub check_lsb
@@ -262,23 +262,28 @@ sub check_fedora
     return -1;
 }
 
-sub check_specifix
+sub check_rpath
 {
-  open SPECIFIX, "$gst_prefix/etc/distro-release" or return -1;
+  open RPATH, "$gst_prefix/etc/distro-release" or return -1;
 
-  while (<SPECIFIX>)
+  while (<RPATH>)
   {
     $ver = $_;
     chomp ($ver);
 
-    if ($ver =~ /^Specifix Linux release (\S+)/)
+    if ($ver =~ /^rPath Linux/)
     {
-      close SPECIFIX;
-      return "specifix";
+      close RPATH;
+      return "rpath";
+    }
+    if ($ver =~ /Foresight/)
+    {
+      close RPATH;
+      return "rpath";
     }
   }
 
-  close SPECIFIX;
+  close RPATH;
   return -1;
 }
 
@@ -479,7 +484,7 @@ sub gst_platform_guess
     # Red Hat check must run after Vine, Mandrake and Fedora, and Mandrake after BlackPanther
     "Linux" => [ \&check_lsb,      \&check_debian,   \&check_caldera, \&check_suse, \&check_blackpanther, \&check_vine,
                  \&check_fedora, \&check_mandrake, \&check_conectiva, \&check_linuxppc, \&check_redhat,  \&check_openna,
-                 \&check_turbolinux, \&check_slackware, \&check_vlos, \&check_gentoo, \&check_pld, \&check_specifix, \&check_archlinux ],
+                 \&check_turbolinux, \&check_slackware, \&check_vlos, \&check_gentoo, \&check_pld, \&check_rpath, \&check_archlinux ],
     "FreeBSD" => [ \&check_freebsd ],
     "SunOS"    => [ \&check_solaris ]
                );

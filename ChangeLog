@@ -1,3 +1,9 @@
+2005-11-21  Ken VanDine  <ken@vandine.org>
+
+	* disks-conf.in, network-conf.in, network.pl.in, platform.pl.in,
+	service.pl.in, services-conf.in, shares-conf.in, time-conf.in,
+	users-conf.in: Specifix Linux is now rPath linux
+
 2005-11-21  Scott J. Harmon  <harmon@ksu.edu>
 
 	* network-conf.in, network.pl.in, platform.pl.in, service.pl.in,
