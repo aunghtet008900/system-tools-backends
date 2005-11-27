@@ -1,3 +1,9 @@
+2005-11-27  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* replace.pl.in (gst_replace_confd_net_re): do not put extra spaces in
+	configuration, it may break the fragile gentoo's configuration parser.
+	Hopefully closes #317841
+
 2005-11-21  Ken VanDine  <ken@vandine.org>
 
 	* disks-conf.in, network-conf.in, network.pl.in, platform.pl.in,

@@ -1756,7 +1756,7 @@ sub gst_replace_confd_net_re
 
   if (!$found)
   {
-    push @$contents, "$key = (\"$value\")\n";
+    push @$contents, "$key=(\"$value\")\n";
   }
 
   return &gst_file_buffer_save ($contents, $file);
