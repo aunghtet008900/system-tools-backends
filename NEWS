@@ -1,3 +1,31 @@
+System Tools Backends Version 1.4.1, 2005-11-27
+-----------------------------------------------
+
+The System Tools Backends version 1.4.1 "Burning sky" have been released.
+
+The System Tools Backends are a set of cross-platform scripts for Linux and other Unix systems. The backends provide an standard XML interface for modifying the configuration regarless of the distribution that's being used.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), Gentoo, Slackware, FreeBSD, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  Network
+  =======
+  - Fixed network configuration in Gentoo (Christian Meyer, Florian Schricker, garnacho)
+  - Fixed WEP key detection in Slackware (garnacho)
+
+  Common
+  ======
+  - Added support for Slackware 10.2.0 (Scott J. Harmon)
+  - Changed Specifix Linux to rPath Linux (Ken VanDine)
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/1.4/
+
+
 System Tools Backends Version 1.4.0, 2005-08-23
 -----------------------------------------------
 
