@@ -416,6 +416,9 @@ sub get
 
     $login = $line[$LOGIN];
     @comment = split ',', $line[$COMMENT], 5;
+
+    # we need to make sure that there are 5 elements
+    push @comment, "" while (scalar (@comment) < 5);
     $line[$COMMENT] = [@comment];
     
     $$users_hash{$login} = [@line];
@@ -438,7 +441,9 @@ sub get
       $passwd = shift @line;
 
       $$users_hash{$login}[$PASSWD] = $passwd;
-      push @{$$users_hash{$login}}, @line;
+
+      # FIXME: add the rest of the fields?
+      #push @{$$users_hash{$login}}, @line;
     }
 
     &Utils::File::close_file ($ifh);

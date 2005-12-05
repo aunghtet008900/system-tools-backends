@@ -49,7 +49,7 @@ use ServicesConfig;
 &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
 
 # Initialize bus
-my $bus     = Net::DBus->session();
+my $bus     = &Utils::Backend::get_bus ();
 my $service = $bus->export_service ($Utils::Backend::DBUS_PREFIX);
 my $reactor = Net::DBus::Reactor->new();
 

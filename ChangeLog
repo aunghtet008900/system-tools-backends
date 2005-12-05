@@ -1,3 +1,11 @@
+2005-12-05  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Loader.pl.in, Utils/Backend.pm: add --system parameter, to run the
+	backends in the system bus
+	* Users/Users.pm: fix the code for the root case (number of parameters
+	mismatch)
+	* test-backends: cosmetic fix
+
 2005-11-20  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* GroupsConfig.pm, Users/Groups.pm: removed id from the group struct

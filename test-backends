@@ -62,7 +62,7 @@ sub print_object
 }
 
 # Main program
-my $bus = Net::DBus->session();
+my $bus = Net::DBus->session;
 my $service = $bus->get_service("org.freedesktop.SystemToolsBackends");
 
 if (!$ARGV[0]) 

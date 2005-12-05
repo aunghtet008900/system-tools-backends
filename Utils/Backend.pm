@@ -72,6 +72,7 @@ else
 our $prefix = "";
 our $do_verbose = 0;
 our $do_report = 0;
+our $system_bus = 0;
 
 sub print_usage_synopsis
 {
@@ -252,6 +253,14 @@ sub set_dist
   $gst_dist = $dist;
 }
 
+sub set_system_bus
+{
+  my ($tool) = @_;
+
+  &set_with_param ($tool, "system-bus", 1);
+  $system_bus = 1;
+}
+
 sub merge_std_directives
 {
   my ($tool) = @_;
@@ -328,6 +337,7 @@ sub init
     elsif ($arg eq "--version")                   { &print_version (\%tool, 0); }
     elsif ($arg eq "--prefix"    || $arg eq "-p") { &set_prefix    (\%tool, shift @args); }
     elsif ($arg eq "--platform")                  { &set_dist      (\%tool, shift @args); }
+    elsif ($arg eq "--system")                    { &set_system_bus (\%tool); }
     elsif ($arg eq "--verbose"   || $arg eq "-v")
     {
       $tool{"do_verbose"} = $do_verbose = 1;
@@ -599,6 +609,12 @@ sub run
   {
     &directive_run ($tool, $line);
   }
+}
+
+sub get_bus
+{
+  return Net::DBus->system if ($system_bus);
+  return Net::DBus->session;
 }
 
 1;
