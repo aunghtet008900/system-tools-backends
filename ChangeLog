@@ -1,3 +1,9 @@
+2005-12-09  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Time/TimeDate.pm (get_local_time) (set_local_time): modified to deal
+	with UTC time, renamed accordingly. Modified months to be between 0
+	and 11, in the localtime() fashion.
+
 2005-12-05  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Loader.pl.in, Utils/Backend.pm: add --system parameter, to run the

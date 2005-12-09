@@ -27,14 +27,13 @@ package Time::TimeDate;
 
 use File::Copy;
 
-sub get_local_time
+sub get_utc_time
 {
   my (%h, $trash);
 
   ($h{"second"}, $h{"minute"}, $h{"hour"}, $h{"monthday"}, $h{"month"}, $h{"year"},
-   $trash, $trash, $trash) = localtime (time);
+   $trash, $trash, $trash) = gmtime (time);
 
-  $h{"month"}++;
   $h{"year"} += 1900;
 
   return \%h;
@@ -47,21 +46,20 @@ sub change_timedate
   my ($command);
 
   my $system_table = {
-    "Linux"   => "date %02d%02d%02d%02d%04d.%02d",
-    "FreeBSD" => "date -f %%m%%d%%H%%M%%Y.%%S  %02d%02d%02d%02d%04d.%02d"
+    "Linux"   => "date -u %02d%02d%02d%02d%04d.%02d",
+    "FreeBSD" => "date -u -f %%m%%d%%H%%M%%Y.%%S  %02d%02d%02d%02d%04d.%02d"
   };
 
   $command = sprintf ($$system_table {$Utils::Backend::tool{"system"}},
-                      $$time{"month"}, $$time{"monthday"},
+                      $$time{"month"} + 1, $$time{"monthday"},
                       $$time{"hour"},  $$time{"minute"}, 
                       $$time{"year"},  $$time{"second"});
 
   &Utils::Report::do_report ("time_localtime_set", $command);
-
   return &Utils::File::run ($command);
 }
 
-sub set_local_time
+sub set_utc_time
 {
   my ($time) = @_;
   my ($res, $xscreensaver_owners);
@@ -227,7 +225,7 @@ sub conf_get_parse_table
      },
      table =>
      [
-      [ "local_time",   \&get_local_time ],
+      [ "local_time",   \&get_utc_time ],
       [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
      ]
    },
@@ -241,7 +239,7 @@ sub conf_get_parse_table
      },
      table =>
      [
-      [ "local_time",   \&get_local_time ],
+      [ "local_time",   \&get_utc_time ],
       [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
      ]
    },
@@ -323,7 +321,7 @@ sub conf_get_replace_table
      table =>
      [
       [ "timezone",    \&set_timezone, [LOCAL_TIME, ZONEINFO] ],
-      [ "local_time",  \&set_local_time ],
+      [ "local_time",  \&set_utc_time ],
      ]
    },
        
@@ -339,7 +337,7 @@ sub conf_get_replace_table
      [
       [ "timezone",    \&set_timezone, [LOCAL_TIME, ZONEINFO] ],
       [ "timezone",    \&Utils::Replace::set_first_line, TIMEZONE ],
-      [ "local_time",  \&set_local_time ],
+      [ "local_time",  \&set_utc_time ],
      ]
    },
   );
