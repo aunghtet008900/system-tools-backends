@@ -1,3 +1,9 @@
+2005-12-12  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* org.freedesktop.SystemToolsBackends.service.in, Init/Makefile.am,
+	Network/Makefile.am: added files
+	* configure.in, Makefile.am: fixed build, added .service file
+
 2005-12-09  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Time/TimeDate.pm (get_local_time) (set_local_time): modified to deal

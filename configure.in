@@ -37,18 +37,23 @@ AC_SUBST(GETTEXT_PACKAGE)
 ALL_LINGUAS="ar az bg bn bs ca cs da de el en_CA en_GB es eu fi fr gu hi hr hu id it ja ko lt ms nb ne nl no pa pl pt pt_BR ro rw sk sq sr sr@Latn sv ta th tr uk vi xh zh_CN zh_TW"
 AM_GNU_GETTEXT([external])
 
+DBUS_SERVICES_DIR="${prefix}/share/dbus-1/services"
+AC_SUBST(DBUS_SERVICES_DIR)
+
 AC_OUTPUT([
 Makefile
 m4macros/Makefile
 po/Makefile.in
 system-tools-backends-2.0.pc
 files/Makefile
+Init/Makefile
+Network/Makefile
 Shares/Makefile
 Time/Makefile
 Users/Makefile
 Utils/Makefile
 Loader.pl
-network.pl
+org.freedesktop.SystemToolsBackends.service
 ])
 
 echo "

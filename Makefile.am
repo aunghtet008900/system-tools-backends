@@ -1,17 +1,16 @@
-SUBDIRS = m4macros files po Shares Time Users Utils
+SUBDIRS = m4macros files po Init Network Shares Time Users Utils
 
 scripts = \
-	Loader.pl			\
-	GroupsConfig.pm	\
+	Loader.pl		\
+	GroupsConfig.pm		\
+	HostsConfig.pm		\
+	IfacesConfig.pm		\
 	NFSConfig.pm		\
 	NTPConfig.pm		\
-	ServicesList.pm	\
-	SharesList.pm		\
-	ShellsConfig.pm	\
+	ServicesConfig.pm	\
 	SMBConfig.pm		\
 	TimeConfig.pm		\
-	UsersConfig.pm		\
-	network.pl
+	UsersConfig.pm	
 
 scripts_SCRIPTS = $(scripts)
 
@@ -26,10 +25,15 @@ EXTRA_DIST = \
 
 CLEANFILES = $(scripts)
 
-DISTCLEANFILES =	\
+DISTCLEANFILES = \
 	intltool-extract 	\
 	intltool-merge		\
 	intltool-update
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = system-tools-backends-2.0.pc
+
+# Dbus service file
+servicedir = $(DBUS_SERVICES_DIR)
+service_DATA = org.freedesktop.SystemToolsBackends.service
+
