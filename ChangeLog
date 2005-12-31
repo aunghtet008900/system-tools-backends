@@ -1,3 +1,9 @@
+2005-12-31  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Patch sent by Juan Luis Baptiste <juan.baptiste@kdemail.net>, adds
+	support for ubuntu 5.10 and 6.04, Yoper 2.2, Ark, Fedora Core 4 
+	and latest Mandrake/Mandriva for the network tool.
+
 2005-11-28  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Release 1.4.1
