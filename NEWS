@@ -1,3 +1,34 @@
+System Tools Backends Version 1.4.2, 2006-01-02
+-----------------------------------------------
+
+The System Tools Backends version 1.4.1 "Radical cut" have been released.
+
+The System Tools Backends are a set of cross-platform scripts for Linux and other Unix systems. The backends provide an standard XML interface for modifying the configuration regarless of the distribution that's being used.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), Gentoo, Slackware, FreeBSD, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  Network
+  =======
+  - Added support for Ubuntu 5.10 and 6.04, Yoper 2.2, ArkLinux, FC4 and latest Mandrake/Mandriva (Juan Luis Baptiste)
+
+  Services
+  ========
+  - Added support for ArchLinux (Arjan Timmerman)
+
+  Time
+  ====
+  - Added support for ArchLinux (Arjan Timmerman)
+
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/1.4/
+
+
 System Tools Backends Version 1.4.1, 2005-11-27
 -----------------------------------------------
 

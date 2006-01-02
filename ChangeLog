@@ -1,5 +1,9 @@
 2006-01-02  Carlos Garnacho Parro  <carlosg@gnome.org>
 
+	* Release 1.4.2
+
+2006-01-02  Carlos Garnacho Parro  <carlosg@gnome.org>
+
 	* platform.pl.in, service-list.pl.in, service.pl.in, services-conf.in,
 	time-conf.in, users-conf.in: patch by Arjan Timmerman  
 	<arjan@soulfly.nl> to add archlinux support in the services and time, 
