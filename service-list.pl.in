@@ -216,6 +216,7 @@ sub gst_service_get_role
     "cron" => "COMMAND_SCHEDULER",
     "crond" => "COMMAND_SCHEDULER",
     "cupsd" => "PRINTER_SERVICE",
+    "cups" => "PRINTER_SERVICE",
     "cupsys" => "PRINTER_SERVICE",
     "daytime" => "NETWORK",
     "daytime-udp" => "NETWORK",

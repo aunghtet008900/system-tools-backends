@@ -86,7 +86,7 @@ $PLATFORM_INFO = {
   "freebsd-6"       => "FreeBSD 6",
   "gentoo"          => "Gentoo Linux",
   "vlos-1.2"        => "Vida Linux OS 1.2",
-  "archlinux-0.7"   => "Arch Linux 0.7",
+  "archlinux"       => "Arch Linux",
   "pld-1.0"         => "PLD 1.0 Ra",
   "pld-1.1"         => "PLD 1.1 Ra",
   "pld-1.99"        => "PLD 1.99 Ac-pre",
@@ -419,18 +419,8 @@ sub check_vlos
 
 sub check_archlinux
 {
-  # We do this because Arch puts g-s-t into /opt/gnome.
-  open RELEASE, "/etc/arch-release" or return -1;
-  while (<RELEASE>)
-  {
-    chomp;
-    if (/^Arch Linux (.*) \(.*\)/)
-    {
-      close RELEASE;
-      return "archlinux-$1";
-    }
-  }
-  close RELEASE;
+  # Since Arch stores gnome in /opt/gnome, use full dir
+  return "archlinux" if stat ("/etc/arch-release");
   return -1;
 }
 

@@ -71,6 +71,7 @@ $version = "@VERSION@";
               "slackware-8.0.0", "slackware-8.1", "slackware-9.0.0", "slackware-9.1.0", "slackware-10.0.0", "slackware-10.1.0", "slackware-10.2.0",
               "gentoo", "vlos-1.2", "pld-1.0", "pld-1.1", "pld-1.99", "fedora-1", "fedora-2", "fedora-3", "rpath",
               "vine-3.0", "vine-3.1",
+	      "archlinux",
               "freebsd-5", "freebsd-6");
 
 $description =<<"end_of_description;";
@@ -377,6 +378,44 @@ sub time_set_local_time
   return 0;
 }
 
+sub time_set_archlinux_zone
+{
+	my ($localtime, $zonebase, $timezone) =@_;
+	&gst_report_enter ();
+	&gst_report ("time_timezone_set", $timezone);
+	
+	$tz = "$zonebase/$timezone";
+	if (stat($tz) ne "")
+	{
+    my $rcconf = '/etc/rc.conf';
+    open DATA, "$rcconf";
+    my @rcconflines = <DATA>;
+    close (DATA);
+    open DATAOUT, ">", "$rcconf";
+
+    foreach my $line (@rcconflines)
+    {
+      if ( $line =~ /\TIMEZONE=/i) 
+      {
+        $line = "TIMEZONE=$timezone\n";
+      }
+
+      print DATAOUT "$line";
+    }
+		
+		close (DATAOUT);	
+		unlink $localtime;
+		&gst_report_enter ();
+		$res = copy ($tz, $localtime);
+		&gst_report_leave ();
+		return -1 unless $res;
+		return 0;
+	}
+	
+	&gst_report_leave ();
+	return -1;
+}
+
 sub time_set_rh62_zone
 {
   my ($localtime, $zonebase, $timezone) = @_;
@@ -537,7 +576,7 @@ sub conf_get_parse_table
 
    "gentoo"          => "gentoo",
    "vlos-1.2"        => "gentoo",
-
+   "archlinux"       => "archlinux",
    "pld-1.0"         => "pld-1.0",
    "pld-1.1"         => "pld-1.0",
    "pld-1.99"        => "pld-1.0",
@@ -683,6 +722,7 @@ sub conf_get_parse_table
               ]
           },
 
+
        "gentoo" =>
        {
          fn =>
@@ -700,7 +740,25 @@ sub conf_get_parse_table
           [ "ntpinstalled", \&gst_service_list_any_installed, [ "ntpd", "openntpd" ]],
           ]
         },
-
+	
+       "archlinux" =>
+       {
+         fn =>
+         {
+           NTP_CONF     => "/etc/ntp.conf",
+           ZONEINFO     => "/usr/share/zoneinfo",
+           LOCAL_TIME    => "/etc/localtime"
+         },
+         table =>
+         [
+          [ "local_time",   \&time_get_local_time ],
+          [ "timezone",     \&time_get_rh62_zone, [LOCAL_TIME, ZONEINFO] ],
+          [ "sync",         \&gst_parse_split_all_array_with_pos, NTP_CONF, "server", 0, "[ \t]+", "[ \t]+" ],
+	  [ "sync_active",  \&gst_service_archlinux_get_status, "ntpd" ],
+          [ "ntpinstalled", \&gst_service_rcng_installed, [ "ntpd", "openntpd" ]],
+          ]
+        },
+	
        "freebsd-5" =>
        {
          fn =>
@@ -770,7 +828,7 @@ sub conf_get_replace_table
 
    "gentoo"          => "gentoo",
    "vlos-1.2"        => "gentoo",
-
+   "archlinux"       => "archlinux",
    "pld-1.0"         => "pld-1.0",
    "pld-1.1"         => "pld-1.0",
    "pld-1.99"        => "pld-1.0",
@@ -925,7 +983,24 @@ sub conf_get_replace_table
           [ "sync_active",  \&gst_service_gentoo_set_status, "ntpd", 1, "%sync_active%" ],
           ]
         },
-
+       
+       "archlinux" =>
+       {
+       	 fn =>
+         {
+           NTP_CONF => "/etc/ntp.conf",
+           ZONEINFO => "/usr/share/zoneinfo",
+           LOCAL_TIME => "/etc/localtime"
+         },
+         table =>
+         [
+          [ "timezone",     \&time_set_archlinux_zone, [LOCAL_TIME, ZONEINFO] ],
+          [ "local_time",   \&time_set_local_time ],
+          [ "sync",         \&time_replace_ntp_servers, NTP_CONF, "server", "[ \t]+" ],
+          [ "sync_active",  \&gst_service_archlinux_set_status, "ntpd", "%sync_active%" ],
+         ]
+       },
+       
        "freebsd-5" =>
        {
          fn =>

@@ -1,3 +1,10 @@
+2006-01-02  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* platform.pl.in, service-list.pl.in, service.pl.in, services-conf.in,
+	time-conf.in, users-conf.in: patch by Arjan Timmerman  
+	<arjan@soulfly.nl> to add archlinux support in the services and time, 
+	updated users-admin archlinux support too. Closes Gnome bug #319527
+
 2005-12-31  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Patch sent by Juan Luis Baptiste <juan.baptiste@kdemail.net>, adds

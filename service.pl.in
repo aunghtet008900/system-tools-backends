@@ -250,6 +250,7 @@ sub gst_service_get_runlevel_roles
      "gentoo"         => "gentoo",
      "vlos-1.2"       => "gentoo",
 
+     "archlinux"      => "freebsd-5",
      "freebsd-5"      => "freebsd-5",
      "freebsd-6"      => "freebsd-5",
     );
@@ -952,6 +953,14 @@ sub gst_service_gentoo_get_services
 
 # rcNG functions, mostly for FreeBSD
 
+
+sub gst_service_archlinux_status_by_service
+{
+   my ($service) = @_;
+   return 1 if( -f "/var/run/daemons/$service");
+   return 0;
+}
+
 sub gst_service_rcng_status_by_service
 {
   my ($service) = @_;
@@ -1004,6 +1013,54 @@ sub gst_service_rcng_get_service_info
   return \%hash;
 }
 
+sub gst_service_archlinux_get_service_info
+{
+  my ($service) = @_;
+  my ($script, @actions, @runlevels);
+  my (%hash, @arr, @rl);
+
+  # We have to check if the service is in the "forbidden" list
+  return undef if (&gst_service_list_service_is_forbidden ($service));
+
+  $hash{"script"} = $service;
+
+  if (&gst_service_archlinux_status_by_service ($service))
+  {
+    push @arr, { "name"   => "rc",
+                 "action" => "start" };
+  }
+  else
+  {
+    push @arr, { "name"   => "rc",
+                 "action" => "stop" };
+  }
+
+  push @rl,  { "runlevel", \@arr };
+
+  $hash {"runlevels"} = \@rl;
+  $hash{"role"} = &gst_service_get_role ($service);
+
+  return \%hash;
+}
+
+sub gst_service_archlinux_get_services
+{
+  my ($service);
+  my (%ret);
+
+  foreach $service (<$gst_prefix/etc/rc.d/*>)
+  {
+    my (%hash);
+    
+    $service =~ s/.*\///;
+    $hash = &gst_service_archlinux_get_service_info ($service);
+
+    $ret{$service} = $hash if ($hash ne undef);
+  }
+
+  return \%ret;
+}
+
 sub gst_service_rcng_get_services
 {
   my ($service);
@@ -1021,7 +1078,6 @@ sub gst_service_rcng_get_services
 
   return \%ret;
 }
-
 # SuSE functions, quite similar to SysV, but not equal...
 sub gst_service_suse_get_service_info ($service)
 {
@@ -1095,6 +1151,10 @@ sub gst_get_init_type
   {
     return "rcng";
   }
+  elsif ($gst_dist =~ /archlinux/)
+  {
+    return "archlinux";
+  }
   elsif (($gst_dist =~ /gentoo/) || ($gst_dist =~ /^vlos/))
   {
     return "gentoo";
@@ -1119,7 +1179,7 @@ sub gst_service_get_services
   return &gst_service_gentoo_get_services () if ($type eq "gentoo");
   return &gst_service_rcng_get_services ()   if ($type eq "rcng");
   return &gst_service_suse_get_services ()   if ($type eq "suse");
-
+  return &gst_service_archlinux_get_services() if ($type eq "archlinux");
   return undef;
 }
 
@@ -1141,6 +1201,7 @@ sub gst_service_get_default_runlevel
 
     return "default" if ($type eq "gentoo");
     return "rc"      if ($type eq "rcng");
+    return "rc"      if ($type eq "archlinux");
     return &gst_service_sysv_get_default_runlevel ();
 }
 
@@ -1455,18 +1516,75 @@ sub gst_service_suse_set_services
   }
 }
 
+
+sub gst_service_archlinux_set_status
+{
+    my ($script, $active) = @_;
+    my $rcconf = '/etc/rc.conf';
+    open DATA, "$rcconf";
+    my @rcconflines = <DATA>;
+    close (DATA);
+    open DATAOUT, ">", "$rcconf";
+    if(($active) && (! -f "/var/run/daemons/$script"))
+    {
+    	&gst_service_archlinux_run_script($script,"start");
+    }
+    if((!$active) && ( -f "/var/run/daemons/$script"))
+    {
+    	&gst_service_archlinux_run_script($script,"start");
+    }
+    
+   
+    foreach my $line (@rcconflines)
+    {
+      if($line =~ /\DAEMONS=/)
+      {
+        if($line =~ m/$script/)
+        {
+          if(!$active)
+          {
+            $line =~ s/$script //;
+          }
+        }
+        else
+        {
+          if($active)
+          {
+            $line =~ s/network/network $script/g;
+          }
+        }
+     }
+     print DATAOUT "$line";
+    }
+
+    close (DATAOUT);    
+}
+
+sub gst_service_archlinux_set_services
+{
+  my ($services, $runlevel) = @_;
+  my ($action, $runlevels, $script);
+  foreach $service (@$services)
+  {
+    $script = $$service {"script"};
+    $runlevels = $$service{"runlevels"}[0]{"runlevel"}[0];
+    $action = ($$runlevels {"action"} eq "start")? 1 : 0;
+    &gst_service_archlinux_set_status ($script, $action);
+  }
+}
+
 sub gst_service_set_services
 {
-	my ($services, $runlevel) = @_;
-
+  my ($services, $runlevel) = @_;
+  
   $type = &gst_get_init_type ();
-
   &gst_service_sysv_set_services   ($services, $runlevel) if ($type eq "sysv");
   &gst_service_filerc_set_services ($services, $runlevel) if ($type eq "file-rc");
   &gst_service_bsd_set_services    ($services, $runlevel) if ($type eq "bsd");
   &gst_service_gentoo_set_services ($services, $runlevel) if ($type eq "gentoo");
   &gst_service_rcng_set_services   ($services, $runlevel) if ($type eq "rcng");
   &gst_service_suse_set_services   ($services, $runlevel) if ($type eq "suse");
+  &gst_service_archlinux_set_services ($services, $runlevel) if ($type eq "archlinux");
 }
 
 sub gst_service_set_conf
@@ -1551,6 +1669,12 @@ sub gst_service_rcng_get_status
   # we give up, the service isn't running
   return 0;
 }
+sub gst_service_archlinux_get_status
+{
+	my ($service) = @_;
+	return 1 if( -f "/var/run/daemons/$service");
+	return 0;
+}
 
 sub gst_service_suse_get_status
 {
@@ -1594,7 +1718,7 @@ sub gst_service_get_status
 
        "suse-9.0"     => \&gst_service_suse_get_status,
        "suse-9.1"     => \&gst_service_suse_get_status,
-
+       "archlinux"    => \&gst_service_archlinux_get_status,
        "gentoo"       => \&gst_service_gentoo_get_status,
        "vlos-1.2"     => \&gst_service_gentoo_get_status,
 
@@ -1706,6 +1830,7 @@ sub gst_service_gentoo_run_script
   return -1;
 }
 
+
 sub gst_service_rcng_run_script
 {
   my ($service, $arg) = @_;
@@ -1739,6 +1864,38 @@ sub gst_service_rcng_run_script
   return -1;
 }
 
+sub gst_service_archlinux_run_script
+{
+  my ($service, $arg) = @_;
+  my ($farg);
+
+  my %map =
+    ("stop"  => "stop",
+     "start" => "start"
+    );
+
+  &gst_report_enter ();
+
+  if (!exists $map{$arg})
+  {
+    &gst_report ("service_sysv_op_unk", $arg);
+    &gst_report_leave ();
+    return -1;
+  }
+
+  $farg = $map {$arg};
+
+  if (!&gst_file_run ("/etc/rc.d/$service $farg"))
+  {
+    &gst_report ("service_sysv_op_success", $service, $str);
+    &gst_report_leave ();
+    return 0;
+  }
+
+  &gst_report ("service_sysv_op_failed", $service, $str);
+  &gst_report_leave ();
+  return -1;
+}
 sub gst_service_run_script
 {
   my ($service, $arg) = @_;
@@ -1751,6 +1908,7 @@ sub gst_service_run_script
        "gentoo"  => \&gst_service_gentoo_run_script,
        "rcng"    => \&gst_service_rcng_run_script,
        "suse"    => \&gst_service_sysv_run_initd_script,
+       "archlinux" => \&gst_service_archlinux_run_script,
       );
 
   $type = &gst_get_init_type ();
@@ -1816,7 +1974,7 @@ sub gst_service_installed
   return &gst_service_bsd_installed ($service) if ($type eq "bsd");
   return &gst_service_gentoo_installed ($service) if ($type eq "gentoo");
   return &gst_service_rcng_installed ($service) if ($type eq "rcng");
-
+  return &gst_service_rcng_installed ($service) if ($type eq "archlinux");
   return 0;
 }
 
