@@ -248,7 +248,7 @@ sub conf_get_parse_table
   my $dist = $dist_map {$Utils::Backend::tool{"platform"}};
   return %{$dist_tables{$dist}} if $dist;
 
-  &Utils::Report::do_report ("platform_no_table", $$tool{"platform"});
+  &Utils::Report::do_report ("platform_no_table", $Utils::backend::tool{"platform"});
   return undef;
 }
 
@@ -345,7 +345,7 @@ sub conf_get_replace_table
   my $dist = $dist_map {$Utils::Backend::tool{"platform"}};
   return %{$dist_tables{$dist}} if $dist;
 
-  &Utils::Report::do_report ("platform_no_table", $$tool{"platform"});
+  &Utils::Report::do_report ("platform_no_table", $Utils::Backend::tool{"platform"});
   return undef;
 }
 

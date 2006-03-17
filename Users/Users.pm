@@ -334,8 +334,10 @@ sub logindefs_add_defaults
 {
   # Common for all distros
   my $logindefs = {
-    'home_prefix' => '/home/$user',
+    'home_prefix' => '/home/',
   };
+
+  &get_profiles_prop_array ();
 
   # Distro specific
   my $dist_specific = $logindefs_dist_map->{$Utils::Backend::tool{"platform"}};
