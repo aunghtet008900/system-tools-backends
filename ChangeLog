@@ -1,3 +1,8 @@
+2006-04-18  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* po/no.po, configure.in: nuke no.po under request from Kjartan Maraas
+	<kmaraas@gnome.org>
+
 2006-01-02  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* Release 1.4.2
