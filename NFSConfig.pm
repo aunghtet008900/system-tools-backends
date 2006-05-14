@@ -58,9 +58,9 @@ sub get
 
 sub set
 {
-  my ($self, $config) = @_;
+  my ($self, @config) = @_;
 
-  &Shares::NFS::set ($config);
+  &Shares::NFS::set (@config);
 }
 
 1;

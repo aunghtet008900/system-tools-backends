@@ -77,7 +77,7 @@ sub get_export_line
   foreach $i (@{$$share[1]})
   {
     $str .= $$i[0];
-    $str .= "(rw)" if $$i[1];
+    $str .= "(rw)" if (!$$i[1]);
     $str .= " ";
   }
 
@@ -169,6 +169,7 @@ sub set
   my ($nfs_exports_file);
   my ($old_config, %shares);
   my (%config_hash, %old_config_hash);
+  my ($state, $i);
 
   $nfs_exports_name = &get_distro_nfs_file ();
   $old_config = &get ();

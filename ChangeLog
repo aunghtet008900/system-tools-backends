@@ -2,6 +2,15 @@
 
 	* HostsConfig.pm, Network/Hosts.pm: added hability to get/set hostname
 	and domainname
+	* NFSConfig.pm: fix a typo
+	* Shares/NFS.pm: fix another typo, make a variable local to a function
+	* SMBConfig.pm, Shares/SMB.pm: add hability to get/set general SMB 
+	properties
+	* Utils/Backend.pm: use system bus by default, remove some ancient
+	code
+	* Utils/File.pm (remove): use $gst_prefix
+	* Utils/Monitor.pm: remove some silly c&p in the license banner
+	* Utils/Parse.pm: fix typo
 
 2006-03-17  Carlos Garnacho Parro  <carlosg@gnome.org>
 
