@@ -807,11 +807,25 @@ sub get_gentoo_services
   return \%ret;
 }
 
+sub set_gentoo_service_status
+{
+  my ($script, $rl, $action) = @_;
+
+  if ($action eq "start")
+  {
+    &Utils::File::run ("rc-update add $script $rl");
+  }
+  elsif ($action eq "stop")
+  {
+    &Utils::File::run ("rc-update del $script $rl");
+  }
+}
+
 # This function stores the configuration in gentoo init
 sub set_gentoo_services
 {
   my ($services) = @_;
-  my ($action);
+  my ($action, $rl, $script, $arr);
 
   foreach $service (@$services)
   {
@@ -822,15 +836,7 @@ sub set_gentoo_services
     {
       $action = $$i[1];
       $rl = $$i[0];
-
-      if ( $action eq "start")
-      {
-        &Utils::File::run ("rc-update add $script $rl");
-      }
-      elsif ($action eq "stop")
-      {
-        &Utils::File::run ("rc-update del $script $rl");
-      }
+      &set_gentoo_service_status ($script, $rl, $action);
     }
   }
 }

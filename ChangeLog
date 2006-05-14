@@ -11,6 +11,10 @@
 	* Utils/File.pm (remove): use $gst_prefix
 	* Utils/Monitor.pm: remove some silly c&p in the license banner
 	* Utils/Parse.pm: fix typo
+	* Init/Services.pm (set_gentoo_services): refactor it a bit to allow
+	individual services to be started/stopped from other parts of the code
+	(say interfaces auto)
+	* Init/ServicesList.pm: make a difference between SMB and NFS
 
 2006-03-17  Carlos Garnacho Parro  <carlosg@gnome.org>
 
