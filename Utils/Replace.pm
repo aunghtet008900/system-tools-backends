@@ -426,7 +426,7 @@ sub set_first_line
 
 # For every key in %$value, replace/append the corresponding key/value pair.
 # The separator for $re1 
-sub set_join_hash
+sub join_hash
 {
   my ($file, $re1, $re2, $value) = @_;
   my ($i, $res, $tmp, $val);
@@ -1303,6 +1303,54 @@ sub set_pppconf_bool
   my ($pppconf, $section, $key, $value) = @_;
   &set_pppconf_common ($pppconf, $section, $key,
                        ($value == 1)? "enable $key" : "disable $key");
+}
+
+sub set_ppp_options_re
+{
+  my ($file, $re, $value) = @_;
+  my ($buff, $line, $replaced, $ret);
+  my ($pre_space, $post_comment);
+
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_set_ppp_option", &Utils::Replace::regexp_to_separator ($re), $file);
+
+  $buff = &Utils::File::load_buffer ($file);
+
+  foreach $line (@$buff)
+  {
+    $pre_space = $post_comment = "";
+    chomp $line;
+    $pre_space = $1 if $line =~ s/^([ \t]+)//;
+    $post_comment = $1 if $line =~ s/([ \t]*\#.*)//;
+    
+    if ($line =~ /$re/)
+    {
+      $line = "$value\n";
+      $replaced = 1;
+      last;
+    }
+
+    $line = $pre_space . $line . $post_comment . "\n";
+  }
+
+  push @$buff, "$value\n" if !$replaced;
+  
+  &Utils::File::clean_buffer ($buff);
+  $ret = &Utils::File::save_buffer ($buff, $file);
+  &Utils::Report::leave ();
+  return $ret;
+}
+
+sub set_ppp_options_connect
+{
+  my ($file, $value) = @_;
+  my $ret;
+
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_set_ppp_connect", $file);
+  $ret = &set_ppp_options_re ($file, "^connect", "connect \"/usr/sbin/chat -v -f $value\"");
+  &Utils::Report::leave ();
+  return $ret;
 }
 
 1;
