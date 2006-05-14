@@ -463,7 +463,7 @@ sub split_first_array_unique
   my ($file, $key, $re, $sep, $line_read_proc) = @_;
   my (@arr, @res);
   my (%hash, $i);
-  
+
   @arr = split ($sep, &split ($file, $key, $re, 0, $line_read_proc));
 
   foreach $i (@arr)
@@ -1390,10 +1390,10 @@ sub get_ppp_options_re
   my ($file, $re) = @_;
   my ($fd, @res);
 
-  &Utils::File::enter ();
-  &Utils::File::do_report ("network_get_ppp_option", &Utils::Replace::regexp_to_separator ($re), $file);
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_get_ppp_option", &Utils::Replace::regexp_to_separator ($re), $file);
   $fd = &Utils::File::open_read_from_names ("$file");
-  &Utils::File::leave ();
+  &Utils::Report::leave ();
 
   return undef if !$fd;
 

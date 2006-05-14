@@ -25,7 +25,6 @@ package Utils::Backend;
 
 use Utils::Report;
 use Utils::XML;
-use Utils::Platform;
 
 our $DBUS_PREFIX = "org.freedesktop.SystemToolsBackends";
 our $DBUS_PATH   = "/org/freedesktop/SystemToolsBackends";
@@ -72,7 +71,7 @@ else
 our $prefix = "";
 our $do_verbose = 0;
 our $do_report = 0;
-our $system_bus = 0;
+our $session_bus = 0;
 
 sub print_usage_synopsis
 {
@@ -143,6 +142,9 @@ end_of_usage_generic;
 
        -v --verbose   Prints human-readable diagnostic messages to standard
                       error.
+
+      --session-bus   Makes the backends to use the session bus.
+
 end_of_usage_generic;
 
   $usage{"get"} =<< "end_of_usage_generic;";
@@ -249,16 +251,15 @@ sub set_dist
 {
   my ($tool, $dist) = @_;
 
-  &set_with_param ($tool, "platform", $dist);
-  $gst_dist = $dist;
+  &Utils::Platform::set_platform ($dist);
 }
 
-sub set_system_bus
+sub set_session_bus
 {
   my ($tool) = @_;
 
-  &set_with_param ($tool, "system-bus", 1);
-  $system_bus = 1;
+  &set_with_param ($tool, "session-bus", 1);
+  $session_bus = 1;
 }
 
 sub merge_std_directives
@@ -268,11 +269,6 @@ sub merge_std_directives
   my %std_directives =
       (
 # platforms directive to do later.       
-       "platforms"    => [ \&Utils::Platform::list, [],
-                           "Print XML showing platforms supported by backend." ],
-       "platform_set" => [ \&Utils::Platform::set_platform,    ["platform"],
-                           "Force the selected platform. platform arg must be one of the listed in the" .
-                           "reports." ],
        "interface"    => [ \&print_interface_directive, [],
                            "Print XML showing backend capabilities." ],
        "end"          => [ \&end_directive,   [],
@@ -306,9 +302,6 @@ sub init
   my ($name, $version, $description, $directives, @args) = @_;
   my ($arg);
 
-  # print a CR for synchronysm with the frontend
-  print "\n";
-
   # Set the output autoflush.
   $old_fh = select (STDOUT); $| = 1; select ($old_fh);
   $old_fh = select (STDERR); $| = 1; select ($old_fh);
@@ -337,7 +330,7 @@ sub init
     elsif ($arg eq "--version")                   { &print_version (\%tool, 0); }
     elsif ($arg eq "--prefix"    || $arg eq "-p") { &set_prefix    (\%tool, shift @args); }
     elsif ($arg eq "--platform")                  { &set_dist      (\%tool, shift @args); }
-    elsif ($arg eq "--system")                    { &set_system_bus (\%tool); }
+    elsif ($arg eq "--session-bus")               { &set_session_bus (\%tool); }
     elsif ($arg eq "--verbose"   || $arg eq "-v")
     {
       $tool{"do_verbose"} = $do_verbose = 1;
@@ -356,9 +349,6 @@ sub init
   }
   
   # Set up subsystems.
-
-  &Utils::Platform::get_system (\%tool);
-  &Utils::Platform::guess (\%tool) if !$tool{"platform"};
   &Utils::Report::begin ();
 
   return \%tool;
@@ -613,8 +603,8 @@ sub run
 
 sub get_bus
 {
-  return Net::DBus->system if ($system_bus);
-  return Net::DBus->session;
+  return Net::DBus->session if ($session_bus);
+  return Net::DBus->system;
 }
 
 1;

@@ -1,10 +1,5 @@
-#!/usr/bin/env perl
 #-*- Mode: perl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 
-# Common functions for exporting network shares (NFS or SMB).
-#
-# Copyright (C) 2000-2001 Ximian, Inc.
-#
 # Authors: Carlos Garnacho Parro  <carlosg@gnome.org>
 #
 # This program is free software; you can redistribute it and/or modify

@@ -528,16 +528,19 @@ sub close_file
 sub remove
 {
   my ($name) = @_;
+  my ($file);
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("file_remove", $name);
 
-  if (stat ($name))
+  $file = "$gst_prefix/$name";
+
+  if (stat ($file))
   {
-    &do_backup ($name);
+    &do_backup ($file);
   }
 
-  unlink $name;
+  unlink $file;
   &Utils::Report::leave ();
 }
 
