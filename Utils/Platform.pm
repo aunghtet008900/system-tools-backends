@@ -26,60 +26,70 @@ package Utils::Platform;
 
 use Utils::XML;
 use Utils::Parse;
+use Utils::Backend;
 
+use base qw(Net::DBus::Object);
+use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX . ".Platform");
+
+my $OBJECT_NAME = "Platform";
+my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
+
+dbus_method ("getPlatformList", [], [[ "array", [ "struct", "string", "string", "string", "string" ]]]);
+dbus_method ("getPlatform", [], [ "string" ]);
+dbus_method ("setPlatform", [ "string" ], []);
+dbus_signal ("noPlatformDetected", []);
 
 # --- System guessing --- #
 
-$PLATFORM_INFO = {
-  "debian-2.2"      => "Debian GNU/Linux 2.2 Potato",
-  "debian-3.0"      => "Debian GNU/Linux 3.0 Woody",
-  "debian-sarge"    => "Debian GNU/Linux Sarge",
-  "redhat-5.2"      => "Red Hat Linux 5.2 Apollo",
-  "redhat-6.0"      => "Red Hat Linux 6.0 Hedwig",
-  "redhat-6.1"      => "Red Hat Linux 6.1 Cartman",
-  "redhat-6.2"      => "Red Hat Linux 6.2 Zoot",
-  "redhat-7.0"      => "Red Hat Linux 7.0 Guinness",
-  "redhat-7.1"      => "Red Hat Linux 7.1 Seawolf",
-  "redhat-7.2"      => "Red Hat Linux 7.2 Enigma",
-  "redhat-7.3"      => "Red Hat Linux 7.3 Valhalla",
-  "redhat-8.0"      => "Red Hat Linux 8.0 Psyche",
-  "redhat-9"        => "Red Hat Linux 9.0 Shrike",
-  "openna-1.0"      => "OpenNA Linux 1.0 VSLC",
-  "mandrake-7.1"    => "Linux Mandrake 7.1",
-  "mandrake-7.2"    => "Linux Mandrake 7.2 Odyssey",
-  "mandrake-8.0"    => "Linux Mandrake 8.0 Traktopel",
-  "mandrake-9.0"    => "Linux Mandrake 9.0 Dolphin",
-  "mandrake-9.1"    => "Linux Mandrake 9.1 Bamboo",
-  "mandrake-9.2"    => "Linux Mandrake 9.2 FiveStar",
-  "mandrake-10.0"   => "Linux Mandrake 10.0",
-  "mandrake-10.1"   => "Linux Mandrake 10.1",
-  "blackpanther-4.0" => "Black Panther OS 4.0",
-  "conectiva-9"     => "Conectiva Linux 9",
-  "conectiva-10"    => "Conectiva Linux 10",
-  "suse-7.0"        => "SuSE Linux 7.0",
-  "suse-9.0"        => "SuSE Linux 9.0",
-  "suse-9.1"        => "SuSE Linux 9.1",
-  "turbolinux-7.0"  => "Turbolinux 7.0",
-  "slackware-8.0.0" => "Slackware 8.0.0",
-  "slackware-8.1"   => "Slackware 8.1",
-  "slackware-9.0.0" => "Slackware 9.0.0",
-  "slackware-9.1.0" => "Slackware 9.1.0",
-  "slackware-10.0.0" => "Slackware 10.0.0",
-  "slackware-10.1.0" => "Slackware 10.1.0",
-  "freebsd-4"       => "FreeBSD 4",
-  "freebsd-5"       => "FreeBSD 5",
-  "freebsd-6"       => "FreeBSD 6",
-  "gentoo"          => "Gentoo Linux",
-  "archlinux-0.7"   => "Arch Linux 0.7",
-  "pld-1.0"         => "PLD 1.0 Ra",
-  "pld-1.1"         => "PLD 1.1 Ra",
-  "pld-1.99"        => "PLD 1.99 Ac-pre",
-  "vine-3.0"        => "Vine Linux 3.0",
-  "vine-3.1"        => "Vine Linux 3.1",
-  "fedora-1"        => "Fedora Core 1 (Yarrow)",
-  "fedora-2"        => "Fedora Core 2 (Tettnang)",
-  "fedora-3"        => "Fedora Core 3 (Heidelberg)",
-  "specifix"        => "Specifix Linux",
+my $PLATFORM_INFO = {
+  "debian-2.2"      => [ "Debian GNU/Linux", "2.2", "Potato" ],
+  "debian-3.0"      => [ "Debian GNU/Linux", "3.0", "Woody" ],
+  "debian-sarge"    => [ "Debian GNU/Linux", "3.1", "Sarge" ],
+  "redhat-5.2"      => [ "Red Hat Linux", "5.2", "Apollo" ],
+  "redhat-6.0"      => [ "Red Hat Linux", "6.0", "Hedwig" ],
+  "redhat-6.1"      => [ "Red Hat Linux", "6.1", "Cartman" ],
+  "redhat-6.2"      => [ "Red Hat Linux", "6.2", "Zoot" ],
+  "redhat-7.0"      => [ "Red Hat Linux", "7.0", "Guinness" ],
+  "redhat-7.1"      => [ "Red Hat Linux", "7.1", "Seawolf" ],
+  "redhat-7.2"      => [ "Red Hat Linux", "7.2", "Enigma" ],
+  "redhat-7.3"      => [ "Red Hat Linux", "7.3", "Valhalla" ],
+  "redhat-8.0"      => [ "Red Hat Linux", "8.0", "Psyche" ],
+  "redhat-9"        => [ "Red Hat Linux", "9.0", "Shrike" ],
+  "openna-1.0"      => [ "OpenNA Linux", "1.0", "VSLC" ],
+  "mandrake-7.1"    => [ "Linux Mandrake", "7.1" ],
+  "mandrake-7.2"    => [ "Linux Mandrake", "7.2", "Odyssey" ],
+  "mandrake-8.0"    => [ "Linux Mandrake", "8.0", "Traktopel" ],
+  "mandrake-9.0"    => [ "Linux Mandrake", "9.0", "Dolphin" ],
+  "mandrake-9.1"    => [ "Linux Mandrake", "9.1", "Bamboo" ],
+  "mandrake-9.2"    => [ "Linux Mandrake", "9.2", "FiveStar" ],
+  "mandrake-10.0"   => [ "Linux Mandrake", "10.0" ],
+  "mandrake-10.1"   => [ "Linux Mandrake", "10.1" ],
+  "blackpanther-4.0" => [ "Black Panther OS", "4.0", "" ],
+  "conectiva-9"     => [ "Conectiva Linux", "9", "" ],
+  "conectiva-10"    => [ "Conectiva Linux", "10", "" ],
+  "suse-9.0"        => [ "SuSE Linux", "9.0", "" ],
+  "suse-9.1"        => [ "SuSE Linux", "9.1", "" ],
+  "turbolinux-7.0"  => [ "Turbolinux", "7.0", "" ],
+  "slackware-8.0.0" => [ "Slackware", "8.0.0", "" ],
+  "slackware-8.1"   => [ "Slackware", "8.1", "" ],
+  "slackware-9.0.0" => [ "Slackware", "9.0.0", "" ],
+  "slackware-9.1.0" => [ "Slackware", "9.1.0", "" ],
+  "slackware-10.0.0" => [ "Slackware", "10.0.0", "" ],
+  "slackware-10.1.0" => [ "Slackware", "10.1.0", "" ],
+  "freebsd-4"       => [ "FreeBSD", "4", "" ],
+  "freebsd-5"       => [ "FreeBSD", "5", "" ],
+  "freebsd-6"       => [ "FreeBSD", "6", "" ],
+  "gentoo"          => [ "Gentoo Linux", "", "" ],
+  "archlinux-0.7"   => [ "Arch Linux", "0.7", "" ],
+  "pld-1.0"         => [ "PLD", "1.0", "Ra" ],
+  "pld-1.1"         => [ "PLD", "1.1", "Ra" ],
+  "pld-1.99"        => [ "PLD", "1.99", "Ac-pre" ],
+  "vine-3.0"        => [ "Vine Linux", "3.0", "" ],
+  "vine-3.1"        => [ "Vine Linux", "3.1", "" ],
+  "fedora-1"        => [ "Fedora Core", "1", "Yarrow" ],
+  "fedora-2"        => [ "Fedora Core", "2", "Tettnang" ],
+  "fedora-3"        => [ "Fedora Core", "3", "Heidelberg" ],
+  "specifix"        => [ "Specifix Linux", "", "" ]
 };
   
 sub check_lsb
@@ -94,7 +104,6 @@ sub check_lsb
       ("Conectiva" => "conectiva"),
       ("Blackpanther" => "blackpanther");
 
-  # gst_prefix not required here: parse already does that for us.
   $dist = lc (&Utils::Parse::get_sh ("/etc/lsb-release", "DISTRIB_ID"));
   $ver = lc (&Utils::Parse::get_sh ("/etc/lsb-release", "DISTRIB_RELEASE"));
   
@@ -438,20 +447,60 @@ sub check_solaris
 
 sub get_system
 {
-  my ($tool) = @_;
-
   # get the output of 'uname -s', it returns the system we are running
-  $$tool{"system"} = &Utils::File::run_backtick ("uname -s");
-  chomp ($$tool{"system"});
+  $Utils::Backend::tool{"system"} = &Utils::File::run_backtick ("uname -s");
+  chomp ($Utils::Backend::tool{"system"});
+}
+
+sub set_platform
+{
+  my ($platform) = @_;
+  my ($p);
+
+  foreach $p (keys %$PLATFORM_INFO)
+  {
+    if ($p eq $platform)
+    {
+      $Utils::Backend::tool{"platform"} = $gst_dist = $platform;
+      &Utils::Report::do_report ("platform_success", $platform);
+      &Utils::Report::end ();
+      return;
+    }
+  }
+
+  &set_platform_unsupported ($object);
+  &Utils::Report::do_report ("platform_unsup", $platform);
+  &Utils::Report::end ();
+}
+
+sub set_platform_unsupported
+{
+  my ($object) = @_;
+
+  $Utils::Backend::tool{"platform"} = $gst_dist = undef;
+  #&Net::DBus::Object::emit_signal ($object, "noPlatformDetected");
+}
+
+sub ensure_platform
+{
+  my ($platform) = @_;
+  my ($p);
+
+  foreach $p (keys %$PLATFORM_INFO)
+  {
+    return $platform if ($p eq $platform);
+  }
+
+  return undef;
 }
 
 sub guess
 {
-  my ($tool) = @_;
+  my ($object) = @_;
 
   my %check = (
     # Red Hat check must run after Vine, Mandrake and Fedora, and Mandrake after BlackPanther
-    "Linux" => [ \&check_lsb,      \&check_debian,   \&check_caldera, \&check_suse, \&check_blackpanther, \&check_vine,
+    "Linux" => [ \&check_lsb, \&check_debian,   \&check_caldera, \&check_suse, \&check_blackpanther, \&check_vine,
                  \&check_fedora, \&check_mandrake, \&check_conectiva, \&check_linuxppc, \&check_redhat,  \&check_openna,
                  \&check_turbolinux, \&check_slackware, \&check_gentoo,  \&check_pld, \&check_specifix, \&check_archlinux ],
     "FreeBSD" => [ \&check_freebsd ],
@@ -459,112 +508,67 @@ sub guess
                );
   my $plat;
 
-  # Fool-the-backend hack.
-  if (exists $ENV{"GST_DIST"})
-  {
-    $$tool{"platform"} = $gst_dist = $ENV{"GST_DIST"};
-    return;
-  }
-
   foreach $plat (keys %check)
   {
-    if ($$tool{"system"} =~ /$plat/)
+    if ($Utils::Backend::tool{"system"} =~ /$plat/)
     {
       my ($check, $dist);
       
       foreach $check (@{$check{$plat}})
       {
         $dist = &$check ();
-        if ($dist != -1)
+        if ($dist != -1 && &ensure_platform ($dist))
         {
-          $$tool{"platform"} = $gst_dist = $dist;
+          $Utils::Backend::tool{"platform"} = $gst_dist = $dist;
           return;
         }
       }
     }
   }
 
-  $$tool{"platform"} = $gst_dist = "unknown";
-}
-
-
-# gst_platform_ensure_supported
-#
-# Takes a list of supported platforms and sees if the one detected is found in
-# this list. If not, will report a list of supported platforms and fail.
-
-sub ensure_supported
-{
-  my ($tool, @supported) = @_;
-
-  $$tool{"platforms"} = [ @supported ];
-
-  foreach $platform (@supported)
-  {
-    if ($platform eq $$tool{"platform"})
-    {
-      &Utils::Report::do_report ("platform_success", $platform, $$PLATFORM_INFO{$platform});
-      return;
-    }
-  }
-
-  # Not supported.
-  if (exists $$tool{"platform"})
-  {
-    &Utils::Report::do_report ("platform_unsup", $$tool{"platform"});
-  }
-  else
-  {
-    &Utils::Report::do_report ("platform_undet");
-  }
-}
-
-
-# A directive handler that sets the currently selected platform.
-sub set_platform
-{
-  my ($tool, $platform) = @_;
-  my ($p);
-
-  foreach $p (@{ $$tool{"platforms"}})
-  {
-    if ($p eq $platform)
-    {
-      $$tool{"platform"} = $gst_dist = $platform;
-      &Utils::Report::do_report ("platform_success", $platform, $$PLATFORM_INFO{$platform});
-      &Utils::Report::end ();
-      return;
-    }
-  }
-
+  &set_platform_unsupported ($tool, $object);
   &Utils::Report::do_report ("platform_unsup", $platform);
   &Utils::Report::end ();
 }
 
-sub print_list
+sub new
 {
-  my ($platforms) = @_;
-  my ($platform, $name);
+  my $class   = shift;
+  my $service = shift;
+  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
 
-  &Utils::XML::print_begin ("platforms");
-  foreach $platform (sort @$platforms)
+  bless $self, $class;
+  &get_system ();
+  &guess ($self) if !$Utils::Backend::tool{"platform"};
+
+  return $self;
+}
+
+sub getPlatformList
+{
+  my ($self) = @_;
+  my ($arr, $key);
+
+  foreach $key (keys %$PLATFORM_INFO)
   {
-    $name = $$PLATFORM_INFO{$platform};
-
-    &Utils::XML::container_enter ("platform");
-    &Utils::XML::print_line ("<key>$platform</key>");
-    &Utils::XML::print_line ("<name>$name</name>");
-    &Utils::XML::container_leave ();
+      push @$arr, [ $$PLATFORM_INFO{$key}[0],
+                    $$PLATFORM_INFO{$key}[1],
+                    $$PLATFORM_INFO{$key}[2],
+                    $key ];
   }
-  &Utils::XML::print_end ("platforms");
+
+  return $arr;
 }
 
-sub list
+sub getPlatform
 {
-  my ($tool) = @_;
-
-  &Utils::Report::end ();
-  &print_list ($$tool{"platforms"});
+  return $Utils::Backend::tool{"platform"};
 }
 
-1;
+# A directive handler that sets the currently selected platform.
+sub setPlatform
+{
+  my ($self, $platform) = @_;
+
+  &set_platform ($platform);
+}

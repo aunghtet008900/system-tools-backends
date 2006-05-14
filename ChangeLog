@@ -19,6 +19,11 @@
 	(set_ppp_options_re) (set_ppp_options_connect): added
 	* IfacesConfig.pm, Network/Ifaces.pm: add set() functionality, minor
 	changes to get()
+	* Utils/Platform.pm: added methods for getting the detected platform,
+	setting a custom platform and getting the list of supported platforms.
+	Other misc fixes to detect properly the platform
+	* Loader.pl.in: remove unused variable, add Platform object
+	* test-backend: use system bus
 
 2006-03-17  Carlos Garnacho Parro  <carlosg@gnome.org>
 
