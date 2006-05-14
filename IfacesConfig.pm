@@ -44,14 +44,36 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [], []);
+dbus_method ("get", [],
+             [[ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string", "string", "int32", "string" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "string", "string", "string", "int32", "int32", "string", "string", "int32", "int32", "int32", "int32" ]],
+              [ "array", [ "struct", "string", "int32", "string", "string", "string", "string", "int32", "int32", "int32", "int32" ]]]);
+dbus_method ("set",
+             [[ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string", "string", "int32", "string" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "string", "string", "string", "int32", "int32", "string", "string", "int32", "int32", "int32", "int32" ]],
+              [ "array", [ "struct", "string", "int32", "string", "string", "string", "string", "int32", "int32", "int32", "int32" ]]], []);
+
 dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
 
-  #&Network::Ifaces::get ();
+  return &Network::Ifaces::get ();
+}
+
+sub set
+{
+  my ($self, @config) = @_;
+
+  &Network::Ifaces::set ($config[0], $config[1], $config[2],
+                         $config[3], $config[4], $config[5]);
 }
 
 1;

@@ -17,6 +17,8 @@
 	* Init/ServicesList.pm: make a difference between SMB and NFS
 	* Utils/Replace.pm (set_join_hash): renamed to join_hash.
 	(set_ppp_options_re) (set_ppp_options_connect): added
+	* IfacesConfig.pm, Network/Ifaces.pm: add set() functionality, minor
+	changes to get()
 
 2006-03-17  Carlos Garnacho Parro  <carlosg@gnome.org>
 
