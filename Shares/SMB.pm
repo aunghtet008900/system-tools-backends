@@ -173,7 +173,7 @@ sub set_share_info
   &Utils::Replace::remove_ini_var ($smb_conf_file, $section, "writeable");
 }
 
-sub get
+sub get_shares
 {
   my ($smb_conf_file);
   my (@sections, @table, $share);
@@ -195,13 +195,24 @@ sub get
   return \@table;
 }
 
-sub set
+sub get
 {
-  my ($config) = @_;
-  my ($smb_conf_file);
-  my (@sections, $export);
+  my ($shares, $workgroup, $desc, $wins, $winsserver);
 
-  $smb_conf_file = &get_distro_smb_file;
+  $shares = &get_shares ();
+  
+  $workgroup = &Utils::Parse::get_from_ini ($smb_conf, "global", "workgroup");
+  $smbdesc = &Utils::Parse::get_from_ini ($smb_conf, "global", "server string");
+  $wins = &Utils::Parse::get_from_ini_bool ($smb_conf, "global", "wins support");
+  $winsserver = &Utils::Parse::get_from_ini ($smb_conf, "global", "wins server");
+
+  return ($shares, $workgroup, $smbdesc, $wins, $winsserver);
+}
+
+sub set_shares
+{
+  my ($smb_conf_file, $shares) = @_;
+  my (@sections, $section, $share);
 
   # Get the sections.
   @sections = &Utils::Parse::get_ini_sections ($smb_conf_file);
@@ -212,16 +223,32 @@ sub set
     next if ($section =~ /^(global)|(homes)|(printers)|(print\$)$/);
     next if (&Utils::Parse::get_from_ini_bool ($smb_conf_file, $section, "printable"));
 
-    if (!&smb_table_find ($section, $config))
+    if (!&smb_table_find ($section, $shares))
     {
       Utils::Replace::remove_ini_section ($smb_conf_file, $section);
     }
   }
 
-  for $export (@$config)
+  for $share (@$shares)
   {
-    &set_share_info ($smb_conf_file, $export);
+    &set_share_info ($smb_conf_file, $share);
   }
+}
+
+sub set
+{
+  my ($shares, $workgroup, $desc, $wins, $winsserver) = @_;
+  my ($smb_conf_file);
+  my (@sections, $export);
+
+  $smb_conf_file = &get_distro_smb_file;
+
+  &set_shares ($smb_conf_file, $shares);
+
+  &Utils::Replace::set_ini ($smb_conf_file, "global", "workgroup", $workgroup);
+  &Utils::Replace::set_ini ($smb_conf_file, "global", "server string", $desc);
+  &Utils::Replace::set_ini_bool ($smb_conf_file, "global", "wins support", $wins);
+  &Utils::Replace::set_ini ($smb_conf_file, "global", "wins server", ($wins) ? "" : $winsserver);
 }
 
 1;

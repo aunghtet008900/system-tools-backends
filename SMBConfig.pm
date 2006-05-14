@@ -42,25 +42,24 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [], [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]]]);
-dbus_method ("set", [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]]], []);
+dbus_method ("get", [], [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]],
+                         "string", "string", "int32", "string" ]);
+dbus_method ("set", [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]],
+                     "string", "string", "int32", "string" ], []);
 dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
-  my ($shares);
 
-  $shares = &Shares::SMB::get ();
-
-  return $shares;
+  return &Shares::SMB::get ();
 }
 
 sub set
 {
-  my ($self, $config) = @_;
+  my ($self, @config) = @_;
 
-  &Shares::SMB::set ($config);
+  &Shares::SMB::set (@config);
 }
 
 1;
