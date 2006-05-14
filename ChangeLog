@@ -1,3 +1,8 @@
+2006-05-14  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* HostsConfig.pm, Network/Hosts.pm: added hability to get/set hostname
+	and domainname
+
 2006-03-17  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* GroupsConfig.pm: add maximum and minimum GID

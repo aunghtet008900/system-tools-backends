@@ -44,9 +44,10 @@ sub new
 }
 
 dbus_method ("get", [],
-             [[ "array", [ "struct", "string", [ "array", "string" ]]],
-              ["array", "string" ],
-              ["array", "string" ]]);
+             [ "string", "string", 
+               [ "array", [ "struct", "string", [ "array", "string" ]]],
+               ["array", "string" ],
+               ["array", "string" ]]);
 dbus_method ("set",
              [[ "array", [ "struct", "string", [ "array", "string" ]]],
               ["array", "string" ],
@@ -57,8 +58,12 @@ dbus_signal ("changed", []);
 sub get
 {
   my ($self) = @_;
+  my ($hostname, $domainname);
 
-  return (Network::Hosts::get (),
+  ($hostname, $domainname) = Network::Hosts::get_fqdn ();
+
+  return ($hostname, $domainname,
+          Network::Hosts::get (),
           Network::Hosts::get_dns (),
           Network::Hosts::get_search_domains ());
 }
