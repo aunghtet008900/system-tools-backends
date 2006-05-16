@@ -1353,4 +1353,58 @@ sub set_ppp_options_connect
   return $ret;
 }
 
+sub set_confd_net_re
+{
+  my ($file, $key, $re, $value) = @_;
+  my ($str, $contents, $i, $found, $done);
+
+  $found = $done = 0;
+  $contents = &Utils::File::load_buffer ($file);
+
+  for ($i = 0; $i <= scalar (@$contents); $i++)
+  {
+    # search for key
+    if ($$contents[$i] =~ /^$key[ \t]*=[ \t]*\(/)
+    {
+      $found = 1;
+
+      do {
+        if ($$contents[$i] =~ /\"([^\"]*)\"/)
+        {
+          $str = $1;
+
+          if ($str =~ /$re/)
+          {
+            $str =~ s/$re/$value/;
+          }
+          else
+          {
+            $str .= $value;
+          }
+
+          $$contents[$i] =~ s/\"([^\"]*)\"/\"$str\"/;
+          $done = 1;
+        }
+
+        $i++;
+      } while (!$done);
+    }
+  }
+
+  if (!$found)
+  {
+    push @$contents, "$key=(\"$value\")\n";
+  }
+
+  return &Utils::File::save_buffer ($contents, $file);
+}
+
+sub set_confd_net
+{
+  my ($file, $key, $value) = @_;
+
+  return &set_confd_net_re ($file, $key, ".*", $value);
+}
+
+
 1;

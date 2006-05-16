@@ -1410,4 +1410,42 @@ sub get_ppp_options_re
   return undef;
 }
 
+sub get_confd_net
+{
+  my ($file, $key) = @_;
+  my ($str, $contents, $i);
+
+  $contents = &Utils::File::load_buffer ($file);
+
+  for ($i = 0; $i <= scalar (@$contents); $i++)
+  {
+    # search for key
+    if ($$contents[$i] =~ /^$key[ \t]*=[ \t]*\(/)
+    {
+      # contents can be multiline,
+      # just get the first value
+      do {
+        $$contents[$i] =~ /\"([^\"]*)\"/;
+        $str = $1;
+        $i++;
+      } while (!$str);
+    }
+  }
+
+  return $str;
+}
+
+sub get_confd_net_re
+{
+  my ($file, $key, $re) = @_;
+  my ($str);
+
+  $str = &get_confd_net ($file, $key);
+
+  if ($str =~ /$re/i)
+  {
+    return $1;
+  }
+}
+
 1;

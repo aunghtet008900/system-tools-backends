@@ -1,3 +1,11 @@
+2006-05-15  Carlos Garnacho Parro  <carlosg@gnome.org>
+
+	* Utils/Replace.pm: added functions for replacing in gentoo's
+	/etc/conf.d/net like files
+	* Utils/Parse.pm: ditto for parsing
+	* Utils/File.pm (copy): do not fail miserably if the original copy
+	doesn't exist
+
 2006-05-14  Carlos Garnacho Parro  <carlosg@gnome.org>
 
 	* HostsConfig.pm, Network/Hosts.pm: added hability to get/set hostname

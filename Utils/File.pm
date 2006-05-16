@@ -889,6 +889,7 @@ sub copy_file
 {
   my ($orig, $dest) = @_;
 
+  return if (!&exists ("$gst_prefix/$orig"));
   copy ("$gst_prefix/$orig", "$gst_prefix/$dest");
 }
 
