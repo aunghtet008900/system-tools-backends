@@ -1,5 +1,10 @@
 2006-05-15  Carlos Garnacho <carlosg@gnome.org>
 
+	* Makefile.am, autogen.sh: do not intltoolize things, do not delete
+	.pm files in clean
+
+2006-05-15  Carlos Garnacho <carlosg@gnome.org>
+
 	* po/*.po, po/POTFILES.*, po/ChangeLog: nuked, no more translations in
 	HEAD, huge thanks to all contributors until now
 	* ABOUT-NLS: removed too

@@ -15,20 +15,17 @@ scripts = \
 scripts_SCRIPTS = $(scripts)
 
 EXTRA_DIST = \
-	intltool-extract.in \
-	intltool-merge.in \
-	intltool-update.in \
 	system-tools-backends-2.0.pc.in \
 	README \
 	AUTHORS \
 	NEWS
 
-CLEANFILES = $(scripts)
+CLEANFILES = \
+	SystemToolsBackends.pl		\
+	system-tools-backends-2.0.pc	\
+	org.freedesktop.SystemToolsBackends.service
 
-DISTCLEANFILES = \
-	intltool-extract 	\
-	intltool-merge		\
-	intltool-update
+#DISTCLEANFILES =
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = system-tools-backends-2.0.pc

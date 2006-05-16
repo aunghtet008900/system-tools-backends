@@ -44,12 +44,6 @@ ACLOCAL=aclocal-1.7
 	DIE=1
 }
 
-(intltoolize --version) < /dev/null > /dev/null 2>&1 || {
-	echo
-	echo "**Error**: You must have \`intltoolize' installed to compile $PROJECT."
-	DIE=1
-}
-
 if test "$DIE" -eq 1; then
 	exit 1
 fi
@@ -65,8 +59,6 @@ if test -z "$*"; then
 fi
 
 libtoolize --copy --force
-
-intltoolize --copy --force --automake
 
 echo $ACLOCAL $ACLOCAL_FLAGS -I m4macros
 $ACLOCAL $ACLOCAL_FLAGS -I m4macros
