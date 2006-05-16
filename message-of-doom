@@ -1,0 +1,3 @@
+This copy of system-tools-backends pertains to what will be the 2.x series. A relevant number of changes has made it's access interface totally incompatible with the 1.x series, so if you want the old-fashioned system-tools-backends, you should run the following command:
+
+$ cvs -z3 co -r stb-1-4 system-tools-backends
