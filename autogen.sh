@@ -9,7 +9,7 @@ cd $srcdir
 
 PROJECT=system-tools-backends
 TEST_TYPE=-f
-FILE=system-tools-backends.pc.in
+FILE=system-tools-backends-2.0.pc.in
 
 DIE=0
 

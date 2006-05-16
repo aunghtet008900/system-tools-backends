@@ -1,0 +1,69 @@
+#!/usr/bin/env perl
+#-*- Mode: perl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+
+# Loader for the system tools backends.
+#
+# Copyright (C) 2005 Carlos Garnacho
+#
+# Authors: Carlos Garnacho Parro  <carlosg@gnome.org>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Library General Public License as published
+# by the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+
+BEGIN {
+  $SCRIPTSDIR = "@scriptsdir@";
+  if ($SCRIPTSDIR !~ /^@scriptsdir[@]/)
+  {
+    push @INC, $SCRIPTSDIR;
+  }
+}
+
+use Net::DBus;
+use Net::DBus::Service;
+use Net::DBus::Reactor;
+use Utils::Backend;
+use Utils::Monitor;
+use Utils::Platform;
+
+use SMBConfig;
+use NFSConfig;
+use UsersConfig;
+use GroupsConfig;
+use TimeConfig;
+use NTPConfig;
+use HostsConfig;
+use IfacesConfig;
+use ServicesConfig;
+
+# Initialize tool
+&Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+
+# Initialize bus
+my $bus = &Utils::Backend::get_bus ();
+my $service = $bus->export_service ($Utils::Backend::DBUS_PREFIX);
+
+#Initialize all objects
+my $platforms_list  = Utils::Platform->new ($service);
+my $smb_config      = SMBConfig->new       ($service);
+my $nfs_config      = NFSConfig->new       ($service);
+my $users_config    = UsersConfig->new     ($service);
+my $groups_config   = GroupsConfig->new    ($service);
+my $time_config     = TimeConfig->new      ($service);
+my $ntp_config      = NTPConfig->new       ($service);
+my $hosts_config    = HostsConfig->new     ($service);
+my $ifaces_config   = IfacesConfig->new    ($service);
+my $services_config = ServicesConfig->new  ($service);
+
+Net::DBus::Reactor->main->add_timeout (50, Net::DBus::Callback->new(method => \&Utils::Monitor::do_monitor_files));
+Net::DBus::Reactor->main->run ();

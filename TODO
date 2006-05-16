@@ -1,0 +1,3 @@
+- Finish _set() in all objects
+- check files authorship for typos when c&p headers
+- add again support for command line parameters (--report and --fake-apply come to mind)

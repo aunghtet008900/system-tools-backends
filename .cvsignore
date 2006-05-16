@@ -7,8 +7,7 @@ boot-grub.pl
 boot-lilo.pl
 boot-yaboot.pl
 boot.pl
-config.log
-config.status
+config.*
 configure
 debug.pl
 dhcpd-conf
@@ -54,3 +53,8 @@ users-conf
 util.pl
 x.pl
 xml.pl
+Loader.pl
+ltmain.sh
+*.service
+*.pc
+stamp-h1
