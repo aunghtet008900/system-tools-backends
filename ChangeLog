@@ -5,6 +5,12 @@
 	* Utils/Parse.pm: ditto for parsing
 	* Utils/File.pm (copy): do not fail miserably if the original copy
 	doesn't exist
+	* Utils/Platform.pm: add support for Ubuntus, Mandrivas, Yoper, VLOS,
+	Archlinux and Ark in this branch, rename Specifix to rPath
+	* Users/Users.pm, Time/TimeDate.pm, Time/NTP.pm, Network/Ifaces.pm,
+	Network/Hosts.pm, Init/Services.pm: add changes related to these
+	distros in this branch
+	* Shares/SMB.pm: add mapping function to know the distro config file
 
 2006-05-14  Carlos Garnacho Parro  <carlosg@gnome.org>
 

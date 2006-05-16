@@ -435,16 +435,25 @@ sub set_suse_bootproto
   return &Utils::Replace::set_sh ($file, $key, $proto_name_to_suse90{$value});
 }
 
+sub get_gentoo_bootproto
+{
+  my ($file, $dev) = @_;
+
+  return "dhcp" if (&Utils::Parse::get_confd_net ($file, "config_$dev") =~ /dhcp/i);
+  return "none";
+}
+
 sub set_gentoo_bootproto
 {
   my ($file, $dev, $value) = @_;
 
   return if ($dev =~ /^ppp/);
 
-  return &Utils::Replace::split ($file, "config_$dev", "[ \t]*=[ \t]*", "\"dhcp\"") if ($value ne "none");
+  return &Utils::Replace::set_confd_net ($file, "config_$dev", "dhcp") if ($value ne "none");
 
-  # replace with a fake IP address, I know it's a hack
-  return &Utils::Replace::split ($file, "config_$dev", "[ \t]*=[ \t]*", "\"0.0.0.0\"");
+  # replace with a fake IP address, it will be replaced
+  # later with the correct one, I know it's a hack
+  return &Utils::Replace::set_confd_net ($file, "config_$dev", "0.0.0.0");
 }
 
 sub set_freebsd_bootproto
@@ -1390,8 +1399,7 @@ sub delete_gentoo_interface
   $gateway = $$old_hash {"gateway"};
 
   # bring down the interface and remove from init
-  # FIXME: port this function
-  &gst_service_gentoo_set_status ("/etc/init.d/net.$dev", 1, 0);
+  &Init::Services::set_gentoo_service_status ("/etc/init.d/net.$dev", "default", "stop");
 
   if ($dev =~ /^ppp/)
   {
@@ -1399,7 +1407,7 @@ sub delete_gentoo_interface
   }
   else
   {
-    &Utils::Replace::set_sh ("/etc/conf.d/net", "iface_$dev", "");
+    &Utils::Replace::set_sh ("/etc/conf.d/net", "config_$dev", "");
   }
 }
 
@@ -1653,11 +1661,18 @@ sub get_interface_parse_table
     "mandrake-9.2" => "mandrake-9.0",
     "mandrake-10.0" => "mandrake-9.0",
     "mandrake-10.1" => "mandrake-9.0",
+    "mandrake-10.2" => "mandrake-9.0",
+    "mandriva-2006.0" => "mandrake-9.0",
+    "mandriva-2006.1" => "mandrake-9.0",
+    "yoper-2.2"    => "redhat-6.2",
     "blackpanther-4.0" => "mandrake-9.0",
     "conectiva-9"  => "conectiva-9",
     "conectiva-10" => "conectiva-9",
     "debian-3.0"   => "debian-3.0",
     "debian-sarge" => "debian-3.0",
+    "ubuntu-5.04"  => "debian-3.0",
+    "ubuntu-5.10"  => "debian-3.0",
+    "ubuntu-6.04"  => "debian-3.0",
     "suse-9.0"     => "suse-9.0",
     "suse-9.1"     => "suse-9.0",
 	  "turbolinux-7.0"   => "redhat-6.2",
@@ -1667,13 +1682,17 @@ sub get_interface_parse_table
     "fedora-1"     => "redhat-7.2",
     "fedora-2"     => "redhat-7.2",
     "fedora-3"     => "redhat-7.2",
-    "specifix"     => "redhat-7.2",
+    "fedora-4"     => "redhat-7.2",
+    "rpath"        => "redhat-7.2",
     "vine-3.0"     => "vine-3.0",
     "vine-3.1"     => "vine-3.0",
+    "ark"          => "vine-3.0",
     "slackware-9.1.0" => "slackware-9.1.0",
     "slackware-10.0.0" => "slackware-9.1.0",
     "slackware-10.1.0" => "slackware-9.1.0",
+    "slackware-10.2.0" => "slackware-9.1.0",
     "gentoo"       => "gentoo",
+    "vlos-1.2"     => "gentoo",
     "freebsd-5"    => "freebsd-5",
     "freebsd-6"    => "freebsd-5",
    );
@@ -2254,20 +2273,20 @@ sub get_interface_parse_table
          INIT         => "net.#iface#",
          TYPE         => "#type#",
          IFACE        => "#iface#",
-         WIRELESS     => "/etc/pcmcia/wireless.opts",
+         WIRELESS     => "/etc/conf.d/wireless",
        },
        table =>
        [
         [ "auto",               \&Init::Services::get_gentoo_service_status, INIT, "default" ],
         [ "dev",                \&Utils::Parse::get_trivial, IFACE ],
-        [ "address",            \&Utils::Parse::get_sh_re,   NET, "iface_%dev%", "^[ \t]*([0-9\.]+)" ],
-        [ "netmask",            \&Utils::Parse::get_sh_re,   NET, "iface_%dev%", "netmask[ \t]+([0-9\.]*)" ],
-        [ "remote_address",     \&Utils::Parse::get_sh_re,   NET, "iface_%dev%", "dest_address[ \t]+([0-9\.]*)" ],
-        [ "gateway",            \&Utils::Parse::get_sh_re,   NET, "gateway", "%dev%/([0-9\.\:]*)" ],
-        [ "bootproto",          \&get_bootproto,             NET, "iface_%dev%" ],
-        [ "essid",              \&Utils::Parse::get_wireless_opts, [ WIRELESS, IFACE], \&get_wireless_ifaces, ESSID ],
-        [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_wireless_opts, [ WIRELESS, IFACE], \&get_wireless_ifaces, KEY ]],
-        [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_wireless_opts, [ WIRELESS, IFACE], \&get_wireless_ifaces, KEY ]],
+        [ "address",            \&Utils::Parse::get_confd_net_re, NET, "config_%dev%", "^[ \t]*([0-9\.]+)" ],
+        [ "netmask",            \&Utils::Parse::get_confd_net_re, NET, "config_%dev%", "netmask[ \t]+([0-9\.]*)" ],
+        [ "remote_address",     \&Utils::Parse::get_confd_net_re, NET, "config_%dev%", "dest_address[ \t]+([0-9\.]*)" ],
+        # [ "gateway",            \&gst_network_gentoo_parse_gateway,   [ NET, IFACE ]],
+        [ "bootproto",          \&get_gentoo_bootproto,  [ NET, IFACE ]],
+        [ "essid",              \&Utils::Parse::get_sh,  WIRELESS, "essid_%dev%" ],
+        [ "key_type",           \&get_wep_key_type,      [ \&Utils::Parse::get_sh, WIRELESS, "key_%essid%" ]],
+        [ "key",                \&get_wep_key,           [ \&Utils::Parse::get_sh, WIRELESS, "key_%essid%" ]],
         # modem stuff
         [ "update_dns",         \&Utils::Parse::get_sh_bool, PPPNET, PEERDNS ],
         [ "mtu",                \&Utils::Parse::get_sh,      PPPNET, MTU ],
@@ -2354,6 +2373,7 @@ sub get_interface_replace_table
 	  "redhat-7.2"   => "redhat-7.2",
     "redhat-8.0"   => "redhat-8.0",
     "redhat-9"     => "redhat-8.0",
+	  "openna-1.0"   => "redhat-6.2",
 	  "mandrake-7.1" => "redhat-6.2",
     "mandrake-7.2" => "redhat-6.2",
     "mandrake-9.0" => "mandrake-9.0",
@@ -2361,11 +2381,18 @@ sub get_interface_replace_table
     "mandrake-9.2" => "mandrake-9.0",
     "mandrake-10.0" => "mandrake-9.0",
     "mandrake-10.1" => "mandrake-9.0",
+    "mandrake-10.2" => "mandrake-9.0",
+    "mandriva-2006.0" => "mandrake-9.0",
+    "mandriva-2006.1" => "mandrake-9.0",
+    "yoper-2.2"    => "redhat-6.2",
     "blackpanther-4.0" => "mandrake-9.0",
     "conectiva-9"  => "conectiva-9",
     "conectiva-10" => "conectiva-9",
     "debian-3.0"   => "debian-3.0",
     "debian-sarge" => "debian-3.0",
+    "ubuntu-5.04"  => "debian-3.0",
+    "ubuntu-5.10"  => "debian-3.0",
+    "ubuntu-6.04"  => "debian-3.0",
     "suse-9.0"     => "suse-9.0",
     "suse-9.1"     => "suse-9.0",
 	  "turbolinux-7.0"   => "redhat-6.2",
@@ -2375,13 +2402,17 @@ sub get_interface_replace_table
     "fedora-1"     => "redhat-7.2",
     "fedora-2"     => "redhat-7.2",
     "fedora-3"     => "redhat-7.2",
-    "specifix"     => "redhat-7.2",
+    "fedora-4"     => "redhat-7.2",
+    "rpath"        => "redhat-7.2",
     "vine-3.0"     => "vine-3.0",
     "vine-3.1"     => "vine-3.0",
+    "ark"          => "vine-3.0",
     "slackware-9.1.0" => "slackware-9.1.0",
     "slackware-10.0.0" => "slackware-9.1.0",
     "slackware-10.1.0" => "slackware-9.1.0",
+    "slackware-10.2.0" => "slackware-9.1.0",
     "gentoo"       => "gentoo",
+    "vlos-1.2"     => "gentoo",
     "freebsd-5"    => "freebsd-5",
     "freebsd-6"    => "freebsd-5",
 	  );
@@ -2944,20 +2975,21 @@ sub get_interface_replace_table
        PPPNET       => "/etc/conf.d/net.#iface#",
        INIT         => "net.#iface#",
        IFACE        => "#iface#",
-       WIRELESS     => "/etc/pcmcia/wireless.opts",
+       WIRELESS     => "/etc/conf.d/wireless",
      },
      table =>
      [
       [ "dev",                \&create_gentoo_files ],
       [ "auto",               \&set_gentoo_service_status, INIT, "default" ],
       [ "bootproto",          \&set_gentoo_bootproto, [ NET, IFACE ]],
-      [ "address",            \&Utils::Replace::set_sh_re,                    NET, "iface_%dev%", "^[ \t]*([0-9\.]+)" ],
-      [ "netmask",            \&Utils::Replace::set_sh_re,                    NET, "iface_%dev%", "[ \t]+netmask[ \t]+[0-9\.]*", " netmask %netmask%"],
-      [ "broadcast",          \&Utils::Replace::set_sh_re,                    NET, "iface_%dev%", "[ \t]+broadcast[ \t]+[0-9\.]*", " broadcast %broadcast%" ],
-      [ "remote_address",     \&Utils::Replace::set_sh_re,                    NET, "iface_%dev%", "[ \t]+dest_address[ \t]+[0-9\.]*", " dest_address %remote_address%" ],
-      [ "essid",              \&Utils::Replace::set_wireless_opts,            [ WIRELESS, IFACE ], \&get_wireless_ifaces, ESSID ],
-      [ "key",                \&Utils::Replace::set_wireless_opts,            [ WIRELESS, IFACE ], \&get_wireless_ifaces, KEY   ],
-      [ "key_type",           \&set_wep_key_full, [ \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, KEY, "%key%" ]],
+      [ "address",            \&Utils::Replace::set_confd_net_re, NET, "config_%dev%", "^[ \t]*([0-9\.]+)" ],
+      [ "netmask",            \&Utils::Replace::set_confd_net_re, NET, "config_%dev%", "[ \t]+netmask[ \t]+[0-9\.]*", " netmask %netmask%"],
+      [ "broadcast",          \&Utils::Replace::set_confd_net_re, NET, "config_%dev%", "[ \t]+broadcast[ \t]+[0-9\.]*", " broadcast %broadcast%" ],
+      [ "remote_address",     \&Utils::Replace::set_confd_net_re, NET, "config_%dev%", "[ \t]+dest_address[ \t]+[0-9\.]*", " dest_address %remote_address%" ],
+      # [ "gateway",            \&Utils::Replace::set_confd_net_re, NET, "routes_%dev%", "[ \t]*default[ \t]+(via|gw)[ \t]+[0-9\.\:]*", "default via %gateway%" ],
+      [ "essid",              \&Utils::Replace::set_sh,           WIRELESS, "essid_%dev%" ],
+      [ "key",                \&Utils::Replace::set_sh,           WIRELESS, "key_%essid%" ],
+      [ "key_type",           \&set_wep_key_type,                 [ \&Utils::Replace::set_sh, WIRELESS, "key_%essid%", "%key%" ]],
       # modem stuff
       [ "dev",                \&check_type, [ IFACE, "modem", \&Utils::Replace::set_sh, PPPNET, PEER ]],
       [ "update_dns",         \&check_type, [ IFACE, "modem", \&Utils::Replace::set_sh_bool, PPPNET, PEERDNS ]],

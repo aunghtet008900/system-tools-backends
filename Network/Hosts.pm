@@ -44,12 +44,19 @@ sub get_fqdn_parse_table
     "mandrake-9.2" => "redhat-6.2",
     "mandrake-10.0" => "redhat-6.2",
     "mandrake-10.1" => "redhat-6.2",
+    "mandrake-10.2" => "redhat-6.2",
+    "mandriva-2006.0" => "redhat-6.2",
+    "mandriva-2006.1" => "redhat-6.2",
+    "yoper-2.2"    => "redhat-6.2",
     "blackpanther-4.0" => "redhat-6.2",
     "conectiva-9"  => "redhat-6.2", 
     "conectiva-10" => "redhat-6.2", 
     "debian-2.2"   => "debian-2.2",
     "debian-3.0"   => "debian-2.2",
     "debian-sarge" => "debian-2.2",
+    "ubuntu-5.04"  => "debian-2.2",
+    "ubuntu-5.10"  => "debian-2.2",
+    "ubuntu-6.04"  => "debian-2.2",
     "suse-9.0"     => "suse-9.0",
     "suse-9.1"     => "suse-9.0",
 	  "turbolinux-7.0"  => "redhat-7.0",
@@ -59,13 +66,17 @@ sub get_fqdn_parse_table
     "fedora-1"     => "redhat-7.2",
     "fedora-2"     => "redhat-7.2",
     "fedora-3"     => "redhat-7.2",
-    "specifix"     => "redhat-7.2",
+    "fedora-4"     => "redhat-7.2",
+    "rpath"        => "redhat-7.2",
     "vine-3.0"     => "redhat-6.2",
     "vine-3.1"     => "redhat-6.2",
+    "ark"          => "redhat-6.2",
     "slackware-9.1.0" => "suse-9.0",
     "slackware-10.0.0" => "suse-9.0",
     "slackware-10.1.0" => "suse-9.0",
+    "slackware-10.2.0" => "suse-9.0",
     "gentoo"       => "gentoo",
+    "vlos-1.2"     => "gentoo",
     "freebsd-5"    => "freebsd-5",
     "freebsd-6"    => "freebsd-5",
 	  );
@@ -136,14 +147,14 @@ sub get_fqdn_parse_table
      {
        fn =>
        {
-         HOSTNAME    => "/etc/hostname",
-         DOMAINNAME  => "/etc/dnsdomainname",
+         HOSTNAME    => "/etc/conf.d/hostname",
+         DOMAINNAME  => "/etc/conf.d/domainname",
          RESOLV_CONF => "/etc/resolv.conf",
        },
        table =>
        [
-        [ "hostname", \&Utils::Parse::get_first_line, HOSTNAME ],
-        [ "domain", \&Utils::Parse::get_first_line, DOMAINNAME ],
+        [ "hostname", \&Utils::Parse::get_sh, HOSTNAME, HOSTNAME ],
+        [ "domain",   \&Utils::Parse::get_sh, DOMAINNAME, DNSDOMAIN ],
         [ "domain", \&Utils::Parse::split_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
        ]
      },
@@ -168,6 +179,50 @@ sub get_fqdn_parse_table
 
   &Utils::Report::do_report ("platform_no_table", $Utils::Backend::tool{"platform"});
   return undef;
+}
+
+sub add_statichost_alias
+{
+  my ($localhost, $alias) = @_;
+  my $i;
+
+  foreach $i (@$localhost)
+  {
+    return if ($i eq $alias);
+  }
+  
+  push @$localhost, $alias;
+}
+
+sub remove_statichost_alias
+{
+  my ($localhost, $alias) = @_;
+  my $i;
+
+  for ($i = 0; $i < @$localhost; $i++) {
+    if ($$localhost[$i] eq $alias)
+    {
+      delete $$localhost[$i];
+      return;
+    }
+  }
+}
+  
+sub ensure_loopback_statichost
+{
+  my ($statichost, $hostname, $old_hostname, $lo_ip) = @_;
+  my $i;
+
+  if (exists $$statichost{$lo_ip})
+  {
+    my $localhost = $$statichost{$lo_ip};
+    &remove_statichost_alias ($localhost, $old_hostname) if ($old_hostname);
+    &add_statichost_alias ($localhost, $hostname);
+  }
+  else
+  {
+    $$statichost{$lo_ip} = [ ("localhost", "localhost.localdomain", $hostname) ];
+  }
 }
 
 sub get_fqdn
@@ -213,6 +268,11 @@ sub get_search_domains
   @search_domains = &Utils::Parse::split_first_array_unique ("/etc/resolv.conf", "search", "[ \t]+", "[ \t]+");
 
   return @search_domains;
+}
+
+sub set_fqdn
+{
+    # FIXME: implement, add a call to &ensure_loopback_statichost()
 }
 
 sub set

@@ -45,6 +45,9 @@ my $PLATFORM_INFO = {
   "debian-2.2"      => [ "Debian GNU/Linux", "2.2", "Potato" ],
   "debian-3.0"      => [ "Debian GNU/Linux", "3.0", "Woody" ],
   "debian-sarge"    => [ "Debian GNU/Linux", "3.1", "Sarge" ],
+  "ubuntu-5.04"     => [ "Ubuntu Linux", "5.04", "Hoary" ],
+  "ubuntu-5.10"     => [ "Ubuntu Linux", "5.10", "Breezy" ],
+  "ubuntu-6.04"     => [ "Ubuntu Linux", "6.04", "Dapper" ],
   "redhat-5.2"      => [ "Red Hat Linux", "5.2", "Apollo" ],
   "redhat-6.0"      => [ "Red Hat Linux", "6.0", "Hedwig" ],
   "redhat-6.1"      => [ "Red Hat Linux", "6.1", "Cartman" ],
@@ -64,6 +67,10 @@ my $PLATFORM_INFO = {
   "mandrake-9.2"    => [ "Linux Mandrake", "9.2", "FiveStar" ],
   "mandrake-10.0"   => [ "Linux Mandrake", "10.0" ],
   "mandrake-10.1"   => [ "Linux Mandrake", "10.1" ],
+  "mandrake-10.2"   => [ "Linux Mandrake", "2005" ],
+  "mandriva-2006.0" => [ "Mandriva Linux", "2006.0" ],
+  "mandriva-2006.1" => [ "Mandriva Linux", "2006.1" ],
+  "yoper-2.2"       => [ "Yoper Linux", "2.2" ],
   "blackpanther-4.0" => [ "Black Panther OS", "4.0", "" ],
   "conectiva-9"     => [ "Conectiva Linux", "9", "" ],
   "conectiva-10"    => [ "Conectiva Linux", "10", "" ],
@@ -76,11 +83,13 @@ my $PLATFORM_INFO = {
   "slackware-9.1.0" => [ "Slackware", "9.1.0", "" ],
   "slackware-10.0.0" => [ "Slackware", "10.0.0", "" ],
   "slackware-10.1.0" => [ "Slackware", "10.1.0", "" ],
+  "slackware-10.2.0" => [ "Slackware", "10.2.0", "" ],
   "freebsd-4"       => [ "FreeBSD", "4", "" ],
   "freebsd-5"       => [ "FreeBSD", "5", "" ],
   "freebsd-6"       => [ "FreeBSD", "6", "" ],
   "gentoo"          => [ "Gentoo Linux", "", "" ],
-  "archlinux-0.7"   => [ "Arch Linux", "0.7", "" ],
+  "vlos-1.2"        => [ "Vida Linux OS", "1.2" ],
+  "archlinux"       => [ "Arch Linux", "", "" ],
   "pld-1.0"         => [ "PLD", "1.0", "Ra" ],
   "pld-1.1"         => [ "PLD", "1.1", "Ra" ],
   "pld-1.99"        => [ "PLD", "1.99", "Ac-pre" ],
@@ -89,7 +98,9 @@ my $PLATFORM_INFO = {
   "fedora-1"        => [ "Fedora Core", "1", "Yarrow" ],
   "fedora-2"        => [ "Fedora Core", "2", "Tettnang" ],
   "fedora-3"        => [ "Fedora Core", "3", "Heidelberg" ],
-  "specifix"        => [ "Specifix Linux", "", "" ]
+  "fedora-4"        => [ "Fedora Core", "4", "Stentz" ],
+  "rpath"           => [ "rPath Linux", "", "" ],
+  "ark"             => [ "Ark Linux" ]
 };
   
 sub check_lsb
@@ -218,6 +229,55 @@ sub check_mandrake
   return -1;
 }
 
+sub check_mandriva
+{
+  open MANDRIVA, "$gst_prefix/etc/mandriva-release" or return -1;
+  while (<MANDRIVA>)
+  {
+    $ver = $_;
+    chomp ($ver);
+    if ($ver =~ /^Linux Mandriva release (\S+)/)
+    {
+      close MANDRIVA;
+      return "mandriva-$1";
+    }
+    elsif ($ver =~ /^Mandriva( L|l)inux release ([\d\.]+)/i)
+    {
+      close MANDRIVA;
+      return "mandriva-$2";
+    }
+  }
+  close MANDRIVA;
+  return -1;
+}
+
+sub check_yoper
+{
+   open YOPER, "$gst_prefix/etc/yoper-release" or return -1;
+   while (<YOPER>)
+   {
+     $ver = $_;
+     chomp ($ver);
+     if ($ver =~ m/Yoper (\S+)/)
+     {
+       close YOPER;
+       # find the first digit of our release
+       $mystring= ~m/(\d)/;
+       #store it in $fdigit
+       $fdigit= $1;
+       # the end of the release is marked with -2 so find the -
+       $end = index($ver,"-");
+       $start = index($ver,$fdigit);
+       # extract the substring into $newver
+       $newver= substr($ver,$start,$end-$start);
+       print $newver;
+       return "yoper-$newver";
+     }
+   }
+   close YOPER;
+   return -1;
+}
+
 sub check_blackpanther
 {
   open BLACKPANTHER, "$gst_prefix/etc/blackPanther-release" or return -1;
@@ -261,23 +321,28 @@ sub check_fedora
     return -1;
 }
 
-sub check_specifix
+sub check_rpath
 {
-  open SPECIFIX, "$gst_prefix/etc/distro-release" or return -1;
+  open RPATH, "$gst_prefix/etc/distro-release" or return -1;
 
-  while (<SPECIFIX>)
+  while (<RPATH>)
   {
     $ver = $_;
     chomp ($ver);
 
-    if ($ver =~ /^Specifix Linux release (\S+)/)
+    if ($ver =~ /^rPath Linux/)
     {
-      close SPECIFIX;
-      return "specifix";
+      close RPATH;
+      return "rpath";
+    }
+    elsif ($ver =~ /Foresight/)
+    {
+      close RPATH;
+      return "rpath";
     }
   }
 
-  close SPECIFIX;
+  close RPATH;
   return -1;
 }
 
@@ -338,20 +403,25 @@ sub check_gentoo
   return -1;
 }
 
-sub check_archlinux
+sub check_vlos
 {
-  # We do this because Arch puts g-s-t into /opt/gnome.
-  open RELEASE, "/etc/arch-release" or return -1;
+  open RELEASE, "$gst_prefix/etc/vlos-release" or return -1;
   while (<RELEASE>)
   {
     chomp;
-    if (/^Arch Linux (.*) \(.*\)/)
+    if (/^VLOS.*\s+([0-9.]+)/)
     {
       close RELEASE;
-      return "archlinux-$1";
+      return "vlos-$1";
     }
   }
   close RELEASE;
+  return -1;
+}
+
+sub check_archlinux
+{
+  return "archlinux" if stat ("$gst_prefix/etc/arch-release");
   return -1;
 }
 
@@ -400,6 +470,25 @@ sub check_vine
     }
   }
   close RELEASE;
+  return -1;
+}
+
+sub check_ark
+{
+  open ARK, "$gst_prefix/etc/ark-release" or return -1;
+  while (<ARK>)
+  {
+    $ver = $_;
+    chomp ($ver);
+
+    if ($ver =~ /^Ark Linux/)
+    {
+      close ARK;
+      return "ark";
+    }
+  }
+
+  close ARK;
   return -1;
 }
 
@@ -501,8 +590,8 @@ sub guess
   my %check = (
     # Red Hat check must run after Vine, Mandrake and Fedora, and Mandrake after BlackPanther
     "Linux" => [ \&check_lsb, \&check_debian,   \&check_caldera, \&check_suse, \&check_blackpanther, \&check_vine,
-                 \&check_fedora, \&check_mandrake, \&check_conectiva, \&check_linuxppc, \&check_redhat,  \&check_openna,
-                 \&check_turbolinux, \&check_slackware, \&check_gentoo,  \&check_pld, \&check_specifix, \&check_archlinux ],
+                 \&check_fedora, \&check_mandrake, \&check_mandriva, \&check_conectiva, \&check_linuxppc, \&check_redhat,  \&check_openna,
+                 \&check_turbolinux, \&check_slackware, \&check_vlos, \&check_gentoo,  \&check_pld, \&check_rpath, \&check_archlinux, \&check_ark, \&check_yoper ],
     "FreeBSD" => [ \&check_freebsd ],
     "SunOS"    => [ \&check_solaris ]
                );

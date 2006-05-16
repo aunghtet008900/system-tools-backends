@@ -195,8 +195,12 @@ sub conf_get_parse_table
    "slackware-9.1.0" => "redhat-6.2",
    "slackware-10.0.0" => "redhat-6.2",
    "slackware-10.1.0" => "redhat-6.2",
+   "slackware-10.2.0" => "redhat-6.2",
 
    "gentoo"          => "redhat-6.2",
+   "vlos-1.2"        => "redhat-6.2",
+
+   "archlinux"       => "archlinux",
 
    "pld-1.0"         => "redhat-6.2",
    "pld-1.1"         => "redhat-6.2",
@@ -204,8 +208,7 @@ sub conf_get_parse_table
    "fedora-1"        => "redhat-6.2",
    "fedora-2"        => "redhat-6.2",
    "fedora-3"        => "redhat-6.2",
-   
-   "specifix"        => "redhat-6.2",
+   "rpath"           => "redhat-6.2",
 
    "vine-3.0"        => "redhat-6.2",
    "vine-3.1"        => "redhat-6.2",
@@ -241,6 +244,21 @@ sub conf_get_parse_table
      [
       [ "local_time",   \&get_utc_time ],
       [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
+     ]
+   },
+
+   "archlinux" =>
+   {
+     fn =>
+     {
+       RC_LOCAL     => "/etc/rc.local",
+       ZONEINFO     => "/usr/share/zoneinfo",
+       LOCAL_TIME   => "/etc/localtime"
+     },
+     table =>
+     [
+      [ "local_time",   \&get_utc_time ],
+      [ "timezone",     \&Utils::Parse::get_sh, RC_LOCAL, TIMEZONE ],
      ]
    },
   );
@@ -287,12 +305,17 @@ sub conf_get_replace_table
    "turbolinux-7.0"  => "redhat-6.2",
    
    "slackware-8.0.0" => "redhat-6.2",
+   "slackware-8.1"   => "redhat-6.2",
    "slackware-9.0.0" => "redhat-6.2",
    "slackware-9.1.0" => "redhat-6.2",
    "slackware-10.0.0" => "redhat-6.2",
    "slackware-10.1.0" => "redhat-6.2",
+   "slackware-10.2.0" => "redhat-6.2",
 
    "gentoo"          => "redhat-6.2",
+   "vlos-1.2"        => "redhat-6.2",
+
+   "archlinux"       => "archlinux",
 
    "pld-1.0"         => "redhat-6.2",
    "pld-1.1"         => "redhat-6.2",
@@ -300,7 +323,7 @@ sub conf_get_replace_table
    "fedora-1"        => "redhat-6.2",
    "fedora-2"        => "redhat-6.2",
    "fedora-3"        => "redhat-6.2",
-   "specifix"        => "redhat-6.2",
+   "rpath"           => "redhat-6.2",
 
    "vine-3.0"        => "redhat-6.2",
    "vine-3.1"        => "redhat-6.2",
@@ -337,6 +360,22 @@ sub conf_get_replace_table
      [
       [ "timezone",    \&set_timezone, [LOCAL_TIME, ZONEINFO] ],
       [ "timezone",    \&Utils::Replace::set_first_line, TIMEZONE ],
+      [ "local_time",  \&set_utc_time ],
+     ]
+   },
+
+   "archlinux" =>
+   {
+     fn =>
+     {
+       RC_LOCAL     => "/etc/rc.local",
+       ZONEINFO     => "/usr/share/zoneinfo",
+       LOCAL_TIME   => "/etc/localtime",
+     },
+     table =>
+     [
+      [ "timezone",    \&Utils::Replace::set_sh, RC_LOCAL, TIMEZONE ],
+      [ "timezone",    \&set_timezone, [LOCAL_TIME, ZONEINFO] ],
       [ "local_time",  \&set_utc_time ],
      ]
    },

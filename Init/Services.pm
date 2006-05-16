@@ -75,7 +75,7 @@ sub get_runlevel_roles
      "fedora-2"       => "redhat-5.2",
      "fedora-3"       => "redhat-5.2",
 
-     "specifix"       => "redhat-5.2",
+     "rpath"          => "redhat-5.2",
 
      "vine-3.0"       => "redhat-5.2",
      "vine-3.1"       => "redhat-5.2",
@@ -166,7 +166,11 @@ sub get_sysv_paths
      "mandrake-9.2"  => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
      "mandrake-10.0" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
      "mandrake-10.1" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "mandrake-10.2" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "mandriva-2006.0" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "mandriva-2006.1" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
 
+     "yoper-2.2" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
      "blackpanther-4.0" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
 
      "conectiva-9"   => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
@@ -175,9 +179,10 @@ sub get_sysv_paths
      "debian-2.2"    => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],
      "debian-3.0"    => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],
      "debian-sarge"  => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],
-
      "ubuntu-5.04"   => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],       
-       
+     "ubuntu-5.10"   => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],
+     "ubuntu-6.04"   => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],
+
      "suse-7.0"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d", "../"],
      "suse-9.0"      => ["$gst_prefix/etc/init.d", "$gst_prefix/etc/init.d", "../"],
      "suse-9.1"      => ["$gst_prefix/etc/init.d", "$gst_prefix/etc/init.d", "../"],
@@ -191,11 +196,13 @@ sub get_sysv_paths
      "fedora-1"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
      "fedora-2"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
      "fedora-3"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "fedora-4"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
 
-     "specifix"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "rpath"         => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
 
      "vine-3.0"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
      "vine-3.1"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "ark"           => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
      );
   my $res;
 
@@ -847,21 +854,29 @@ sub get_rcng_status_by_service
   my ($service) = @_;
   my ($fd, $line, $active);
 
-  $fd = &Utils::File::run_pipe_read ("/etc/rc.d/$service rcvar");
-
-  while (<$fd>)
+  # This is the only difference between rcNG and archlinux
+  if ($gst_dist eq "archlinux")
   {
-    $line = $_;
-
-    if ($line =~ /^\$.*=YES$/)
-    {
-      $active = 1;
-      last;
-    }
+      return &Utils::File::exists ("/var/run/daemons/$service");
   }
+  else
+  {
+    $fd = &Utils::File::run_pipe_read ("/etc/rc.d/$service rcvar");
 
-  Utils::File::close_file ($fd);
-  return $active;
+    while (<$fd>)
+    {
+      $line = $_;
+
+      if ($line =~ /^\$.*=YES$/)
+      {
+        $active = 1;
+        last;
+      }
+    }
+
+    Utils::File::close_file ($fd);
+    return $active;
+  }
 }
 
 sub get_rcng_service_info
@@ -960,10 +975,40 @@ sub set_rcng_service_status
   }
 }
 
+sub set_archlinux_service_status
+{
+  my ($script, $active) = @_;
+  my $rcconf = '/etc/rc.conf';
+  my ($daemons);
+
+  $daemons = &Utils::Parse::get_sh ($rcconf, "DAEMONS");
+
+  if (($daemons =~ m/$script/) && !$active)
+  {
+    $daemons =~ s/$script[ \t]*//;
+  }
+  elsif (($daemons !~ m/$script/) && $active)
+  {
+    $daemons =~ s/network/network $script/g;
+  }
+
+  &Utils::Replace::set_sh ($rcconf, "DAEMONS", $daemons);
+}
+
 sub set_rcng_services
 {
   my ($services) = @_;
-  my ($action, $runlevels, $script);
+  my ($action, $runlevels, $script, $func);
+
+  # archlinux stores services differently
+  if ($gst_dist eq "archlinux")
+  {
+    $func = \&set_archlinux_service_status;
+  }
+  else
+  {
+    $func = \&set_rcng_service_status;
+  }
 
   foreach $service (@$services)
   {
@@ -972,7 +1017,7 @@ sub set_rcng_services
     $runlevel  = $$runlevels[0];
     $action    = ($$runlevel[1] eq "start")? 1 : 0;
 
-    &set_rcng_service_status ($script, $action);
+    &$func ($script, $action);
   }
 }
 
@@ -1076,7 +1121,7 @@ sub get_init_type
   {
     return "bsd";
   }
-  elsif ($gst_dist =~ /freebsd/)
+  elsif (($gst_dist =~ /freebsd/) || ($gst_dist =~ /archlinux/))
   {
     return "rcng";
   }

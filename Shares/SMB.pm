@@ -127,12 +127,77 @@ sub get_distro_smb_file
 {
   my ($smb_comb);
 
-# FIXME: should have a hash table with distro information
-#  %dist_attrib = &gst_network_get_parse_table ();
-#  $smb_conf    = $dist_attrib{"fn"}{"SMB_CONF"};
-  $smb_conf = "/etc/samba/smb.conf";
+  my %dist_map =
+  (
+   "redhat-6.0"      => "redhat-6.2",
+   "redhat-6.1"      => "redhat-6.2",
+   "redhat-6.2"      => "redhat-6.2",
+   
+   "redhat-7.0"      => "debian-3.0",
+   "redhat-7.1"      => "debian-3.0",
+   "redhat-7.2"      => "debian-3.0",
+   "redhat-7.3"      => "debian-3.0",
+   "redhat-8.0"      => "debian-3.0",
+   "redhat-9"        => "debian-3.0",
+   "openna-1.0"      => "redhat-6.2",
 
-  return $smb_conf;
+   "mandrake-7.1"    => "redhat-6.2",
+   "mandrake-7.2"    => "redhat-6.2",
+   "mandrake-9.0"    => "debian-3.0",
+   "mandrake-9.1"    => "debian-3.0",
+   "mandrake-9.2"    => "debian-3.0",
+   "mandrake-10.0"   => "debian-3.0",
+   "mandrake-10.1"   => "debian-3.0",
+   "mandrake-10.2"   => "debian-3.0",
+
+   "debian-2.2"      => "debian-3.0",
+   "debian-3.0"      => "debian-3.0",
+   "debian-sarge"    => "debian-3.0",
+
+   "suse-9.0"        => "debian-3.0",
+   "suse-9.1"        => "debian-3.0",
+
+   "turbolinux-7.0"  => "debian-3.0",
+   
+   "slackware-8.0.0" => "debian-3.0",
+   "slackware-8.1"   => "debian-3.0",
+   "slackware-9.0.0" => "debian-3.0",
+   "slackware-9.1.0" => "debian-3.0",
+   "slackware-10.0.0" => "debian-3.0",
+   "slackware-10.1.0" => "debian-3.0",
+   "slackware-10.2.0" => "debian-3.0",
+
+   "gentoo"          => "debian-3.0",
+   "vlos-1.2"        => "debian-3.0",
+
+   "archlinux"       => "debian-3.0",
+
+   "pld-1.0"         => "pld-1.0",
+   "pld-1.1"         => "pld-1.0",
+   "pld-1.99"        => "pld-1.0",
+   "fedora-1"        => "debian-3.0",
+   "fedora-2"        => "debian-3.0",
+   "fedora-3"        => "debian-3.0",
+   "rpath"           => "debian-3.0",
+
+   "vine-3.0"        => "debian-3.0",
+   "vine-3.1"        => "debian-3.0",
+
+   "freebsd-5"       => "freebsd-5",
+   "freebsd-6"       => "freebsd-5",
+  );
+
+  my %dist_tables =
+  (
+   "redhat-6.2" => "/etc/smb.conf",
+   "debian-3.0" => "/etc/samba/smb.conf",
+   "pld-1.0"    => "/etc/smb/smb.conf",
+   "freebsd-5"  => "/usr/local/etc/smb.conf",
+  );
+
+  my $dist = $dist_map {$Utils::Backend::tool{"platform"}};
+  return $dist_tables{$dist} if $dist;
+  return undef;
 }
 
 sub get_share_info

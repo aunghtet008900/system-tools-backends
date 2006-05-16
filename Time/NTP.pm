@@ -73,7 +73,7 @@ sub get_config_file ()
     "fedora-2"        => "redhat-6.2",
     "fedora-3"        => "redhat-6.2",
     
-    "specifix"        => "redhat-6.2",
+    "rpath"           => "redhat-6.2",
 
     "vine-3.0"        => "redhat-6.2",
     "vine-3.1"        => "redhat-6.2",
