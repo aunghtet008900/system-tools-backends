@@ -16,6 +16,8 @@ scripts_SCRIPTS = $(scripts)
 
 EXTRA_DIST = \
 	system-tools-backends-2.0.pc.in \
+	system-tools-backends.conf.in \
+	org.freedesktop.SystemToolsBackends.service.in \
 	README \
 	AUTHORS \
 	NEWS
@@ -23,6 +25,7 @@ EXTRA_DIST = \
 CLEANFILES = \
 	SystemToolsBackends.pl		\
 	system-tools-backends-2.0.pc	\
+	system-tools-backends.conf	\
 	org.freedesktop.SystemToolsBackends.service
 
 #DISTCLEANFILES =
@@ -34,3 +37,6 @@ pkgconfig_DATA = system-tools-backends-2.0.pc
 servicedir = $(DBUS_SERVICES_DIR)
 service_DATA = org.freedesktop.SystemToolsBackends.service
 
+# DBus system.d file
+systemddir = $(DBUS_SYSTEMD_DIR)
+systemd_DATA = system-tools-backends.conf

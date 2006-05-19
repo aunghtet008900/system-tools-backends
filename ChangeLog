@@ -1,4 +1,14 @@
-2006-05-15  Carlos Garnacho <carlosg@gnome.org>
+2006-05-19  Carlos Garnacho  <carlosg@gnome.org>
+
+	* system-tools-backends.conf.in: added, prototype file for DBus
+	system.d dir.
+	* .cvignore: updated.
+	* Makefile.am: install, clean and package
+	system-tools-backends.conf.in.
+	* configure.in: small improvements, add --with-dbus-sys=<dir> and
+	--with-stb-group=<group>
+
+2006-05-15  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Makefile.am, autogen.sh: do not intltoolize things, do not delete
 	.pm files in clean

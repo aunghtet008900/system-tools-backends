@@ -8,26 +8,40 @@ AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AC_PROG_LIBTOOL
 
-dnl ==============================================================
-dnl Set SCRIPTS_DIR, FILES_DIR 
-dnl ==============================================================
-if test "x${prefix}" = "xNONE"; then
-  scriptsdir="${ac_default_prefix}/share/system-tools-backends-2.0/scripts"
-  filesdir="${ac_default_prefix}/share/system-tools-backends-2.0/files"
-else
-  scriptsdir="${prefix}/share/system-tools-backends-2.0/scripts"
-  filesdir="${prefix}/share/system-tools-backends-2.0/files"
-fi
 
+dnl scriptsdir & filesdir
+scriptsdir="${datadir}/system-tools-backends-2.0/scripts"
+filesdir="${datadir}/system-tools-backends-2.0/files"
 AC_SUBST(scriptsdir)
 AC_SUBST(filesdir)
 
-dnl ==============================================================
-dnl END: Set SCRIPTS_DIR, FILES_DIR
-dnl ==============================================================
-
+dnl DBus services dir
 DBUS_SERVICES_DIR="${prefix}/share/dbus-1/services"
 AC_SUBST(DBUS_SERVICES_DIR)
+
+
+dnl where is DBus system.d directory?
+AC_ARG_WITH(dbus_sys, [  --with-dbus-sys=<dir>   where D-BUS system.d directory is])
+
+if ! test -z "$with_dbus_sys" ; then
+    DBUS_SYSTEMD_DIR="$with_dbus_sys"
+else
+    DBUS_SYSTEMD_DIR="${sysconfdir}/dbus-1/system.d"
+fi
+AC_SUBST(DBUS_SYSTEMD_DIR)
+AC_DEFINE_UNQUOTED(DBUS_SYSTEMD_DIR, "$DBUS_SYSTEMD_DIR", [Where system.d dir for DBUS is])
+
+
+dnl system-tools-backends admin group
+AC_ARG_WITH(stb_group,[  --with-stb-group=<grp>  Group for system-tools-backends (stb-admin)])
+if test -z "$with_stb_group" ; then
+    STB_GROUP=stb-admin
+else
+    STB_GROUP=$with_stb_group
+fi
+AC_SUBST(STB_GROUP)
+AC_DEFINE_UNQUOTED(STB_GROUP,"STB_GROUP", [Group for system-tools-backends])
+
 
 AC_OUTPUT([
 Makefile
@@ -42,12 +56,17 @@ Users/Makefile
 Utils/Makefile
 SystemToolsBackends.pl
 org.freedesktop.SystemToolsBackends.service
+system-tools-backends.conf
 ])
 
 echo "
 
 Configuration (BACKENDS):
 
-	The backends will be installed in : ${scriptsdir}
-	The files will be installed in    : ${filesdir}
+  Prefix                            : ${prefix}
+  The backends will be installed in : ${scriptsdir}
+  The files will be installed in    : ${filesdir}
+
+  DBus system.d directory           : ${DBUS_SYSTEMD_DIR}
+  System tools backends admin group : ${STB_GROUP}
 "
