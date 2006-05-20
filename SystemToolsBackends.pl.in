@@ -21,11 +21,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
+use lib "@scriptsdir@";
+use lib "@netdbusdir@";
+
 BEGIN {
-  $SCRIPTSDIR = "@scriptsdir@";
-  if ($SCRIPTSDIR !~ /^@scriptsdir[@]/)
-  {
-    push @INC, $SCRIPTSDIR;
+  my $i = 0;
+
+  # Clean undesired entries in @INC
+  while ($INC[$i]) {
+    delete $INC[$i] if ($INC[$i] =~ /^@/);
+    $i++;
   }
 }
 

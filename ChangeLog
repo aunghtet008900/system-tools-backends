@@ -1,3 +1,10 @@
+2006-05-20  Carlos Garnacho  <carlosg@gnome.org>
+
+	* configure.in: fix problem expanding paths, detect Net::DBus, and
+	also allow to specify a non-standard perl library dir for it with
+	--with-net-dbus
+	* SystemToolsBackends.pl.in: include scriptsdir and netdbusdir in @INC
+
 2006-05-19  Carlos Garnacho  <carlosg@gnome.org>
 
 	* system-tools-backends.conf.in: added, prototype file for DBus

@@ -8,12 +8,27 @@ AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AC_PROG_LIBTOOL
 
+dnl get prefix in $prefix, yes, this sucks
+if test "x$prefix" = "xNONE"; then
+   prefix=$ac_default_prefix;
+fi
+
+dnl get expanded paths
+DATADIR_TMP="${datadir}"
+EXPANDED_DATADIR=`eval echo $DATADIR_TMP`
+AC_SUBST(EXPANDED_DATADIR)
+
+SYSCONFDIR_TMP="${sysconfdir}"
+EXPANDED_SYSCONFDIR=`eval echo $SYSCONFDIR_TMP`
+AC_SUBST(EXPANDED_SYSCONFDIR)
+
 
 dnl scriptsdir & filesdir
-scriptsdir="${datadir}/system-tools-backends-2.0/scripts"
-filesdir="${datadir}/system-tools-backends-2.0/files"
+scriptsdir="${EXPANDED_DATADIR}/system-tools-backends-2.0/scripts"
+filesdir="${EXPANDED_DATADIR}/system-tools-backends-2.0/files"
 AC_SUBST(scriptsdir)
 AC_SUBST(filesdir)
+
 
 dnl DBus services dir
 DBUS_SERVICES_DIR="${prefix}/share/dbus-1/services"
@@ -26,10 +41,18 @@ AC_ARG_WITH(dbus_sys, [  --with-dbus-sys=<dir>   where D-BUS system.d directory 
 if ! test -z "$with_dbus_sys" ; then
     DBUS_SYSTEMD_DIR="$with_dbus_sys"
 else
-    DBUS_SYSTEMD_DIR="${sysconfdir}/dbus-1/system.d"
+    DBUS_SYSTEMD_DIR="${EXPANDED_SYSCONFDIR}/dbus-1/system.d"
 fi
 AC_SUBST(DBUS_SYSTEMD_DIR)
-AC_DEFINE_UNQUOTED(DBUS_SYSTEMD_DIR, "$DBUS_SYSTEMD_DIR", [Where system.d dir for DBUS is])
+
+
+dnl where is Net::DBus?
+AC_ARG_WITH(net_dbus, [  --with-net-dbus=<dir>   where Net::DBus perl library is (/usr/lib/perl)])
+
+if ! test -z "$with_net_dbus" ; then
+    netdbusdir="$with_net_dbus"
+    AC_SUBST(netdbusdir)
+fi
 
 
 dnl system-tools-backends admin group
@@ -40,7 +63,21 @@ else
     STB_GROUP=$with_stb_group
 fi
 AC_SUBST(STB_GROUP)
-AC_DEFINE_UNQUOTED(STB_GROUP,"STB_GROUP", [Group for system-tools-backends])
+
+
+dnl check for perl
+AC_PATH_PROG(PERL_PATH, perl)
+if test -z "$PERL_PATH"; then
+   AC_MSG_ERROR([perl not found, required for SystemToolsBackends])
+fi
+
+dnl check for Net::DBus
+AC_MSG_CHECKING([for Net::DBus])
+if `$PERL_PATH -e "use lib '$netdbusdir'; require Net::DBus" 2>/dev/null`; then
+   AC_MSG_RESULT([ok])
+else
+   AC_MSG_ERROR([Net::DBus is required for SystemToolsBackends])
+fi
 
 
 AC_OUTPUT([
