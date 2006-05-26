@@ -1,5 +1,11 @@
 2006-05-26  Carlos Garnacho  <carlosg@gnome.org>
 
+	* system-tools-backends.conf.in: make dbus access file open for
+	testing purposes, and do not use stuff that potentially crashes the
+	DBus daemon
+
+2006-05-26  Carlos Garnacho  <carlosg@gnome.org>
+
 	* UsersConfig.pm: added default group. -1 will mean "create new group
 	for the user"
 	* Users/Groups.pm: use addgroup/delgroup if available
