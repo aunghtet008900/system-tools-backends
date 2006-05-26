@@ -37,6 +37,10 @@ $group_names = "/etc/group";
 $cmd_groupdel = &Utils::File::locate_tool ("groupdel");
 $cmd_groupadd = &Utils::File::locate_tool ("groupadd");
 $cmd_groupmod = &Utils::File::locate_tool ("groupmod");
+
+$cmd_delgroup = &Utils::File::locate_tool ("delgroup");
+$cmd_addgroup = &Utils::File::locate_tool ("addgroup");
+
 $cmd_gpasswd  = &Utils::File::locate_tool ("gpasswd");	
 $cmd_pw       = &Utils::File::locate_tool ("pw");
 
@@ -50,7 +54,8 @@ sub del_group
   }
   else
   {
-    $command = "$cmd_groupdel \'" . $$group[$LOGIN] . "\'";
+    $command  = ($cmd_delgroup) ? $cmd_delgroup : $cmd_groupdel;
+    $command .= " \'" . $$group[$LOGIN] . "\'";
   }
 
   &Utils::File::run ($command);
@@ -75,8 +80,16 @@ sub add_group
   }
   else
   {
-    $command = "$cmd_groupadd -g \'" . $$group[$GID] .
-        "\' " . $$group[$LOGIN];
+    if ($cmd_addgroup)
+    {
+      $command = "$cmd_addgroup " .
+          "--gid \'" . $$group[$GID] . "\' " . $$group[$LOGIN];
+    }
+    else
+    {
+      $command = "$cmd_groupadd -g \'" . $$group[$GID] .
+          "\' " . $$group[$LOGIN];
+    }
 
     &Utils::File::run ($command);
 

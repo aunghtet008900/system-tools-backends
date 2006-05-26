@@ -64,7 +64,11 @@ use Utils::Replace;
 # Where are the tools?
 $cmd_usermod  = &Utils::File::locate_tool ("usermod");
 $cmd_userdel  = &Utils::File::locate_tool ("userdel");
-$cmd_useradd  = &Utils::File::locate_tool ("useradd");	
+$cmd_useradd  = &Utils::File::locate_tool ("useradd");
+
+$cmd_adduser  = &Utils::File::locate_tool ("adduser");
+$cmd_deluser  = &Utils::File::locate_tool ("deluser");
+
 $cmd_chfn     = &Utils::File::locate_tool ("chfn");
 $cmd_pw       = &Utils::File::locate_tool ("pw");
 
@@ -203,21 +207,21 @@ sub get_profiles_prop_array
 }
 
 my $rh_logindefs_defaults = {
-  'shell'       => '/bin/bash',
-  'group'       => '$user',
-  'skel_dir'    => '/etc/skel/',
+  'shell'    => '/bin/bash',
+  'group'    => -1,
+  'skel_dir' => '/etc/skel/',
 };
 
 my $gentoo_logindefs_defaults = {
-  'shell'       => '/bin/bash',
-  'group'       => 'users',
-  'skel_dir'    => '/etc/skel/',
+  'shell'    => '/bin/bash',
+  'group'    => 100,
+  'skel_dir' => '/etc/skel/',
 };
 
 my $freebsd_logindefs_defaults = {
-  'shell'       => '/bin/sh',
-  'group'       => '$user',
-  'skel_dir'    => '/etc/skel/',
+  'shell'    => '/bin/sh',
+  'group'    => -1,
+  'skel_dir' => '/etc/skel/',
 };
 
 my $logindefs_dist_map = {
@@ -405,13 +409,11 @@ sub get_logindefs
 sub get
 {
   my ($ifh, @users, %users_hash);
-  my (@line);
+  my (@line, @users);
 
   # Find the passwd file.
   $ifh = &Utils::File::open_read_from_names(@passwd_names);
   return unless ($ifh);
-
-  %users_hash = ();
 
   while (<$ifh>)
   {
@@ -428,7 +430,7 @@ sub get
     push @comment, "" while (scalar (@comment) < 5);
     $line[$COMMENT] = [@comment];
     
-    $$users_hash{$login} = [@line];
+    $users_hash{$login} = [@line];
   }
 
   &Utils::File::close_file ($ifh);
@@ -447,7 +449,7 @@ sub get
       $login = shift @line;
       $passwd = shift @line;
 
-      $$users_hash{$login}[$PASSWD] = $passwd;
+      $users_hash{$login}[$PASSWD] = $passwd;
 
       # FIXME: add the rest of the fields?
       #push @{$$users_hash{$login}}, @line;
@@ -457,9 +459,9 @@ sub get
   }
 
   # transform the hash into an array
-  foreach $login (keys %$users_hash)
+  foreach $login (keys %users_hash)
   {
-    push @users, $$users_hash{$login};
+    push @users, $users_hash{$login};
   }
 
   return \@users;
@@ -487,7 +489,14 @@ sub del_user
   }
   else
   {
-    $command = "$cmd_userdel \'" . $$user[$LOGIN] . "\'";
+    if ($cmd_deluser)
+    {
+      $command = "$cmd_deluser '". $$user[$LOGIN] . "'";
+    }
+    else
+    {
+      $command = "$cmd_userdel \'" . $$user[$LOGIN] . "\'";
+    }
   }
 
   &Utils::File::run ($command);
@@ -569,15 +578,39 @@ sub add_user
     $home_parents =~ s/\/+[^\/]+\/*$//;
     &Utils::File::run ("$tool_mkdir -p $home_parents");
 
-    $command = "$cmd_useradd -m" .
-        " -d \'" . $$user[$HOME]   . "\'" .
-        " -g \'" . $$user[$GID]    . "\'" .
-        " -p \'" . $$user[$PASSWD] . "\'" .
-        " -s \'" . $$user[$SHELL]  . "\'" .
-        " -u \'" . $$user[$UID]    . "\'" .
-        " \'"    . $$user[$LOGIN]  . "\'";
+    if ($cmd_adduser)
+    {
+      # use adduser if available, set empty gecos fields
+      # and password, they will be filled out later
+      $command = "$cmd_adduser --gecos '' --disabled-password" .
+          " --home \'"  . $$user[$HOME]   . "\'" .
+          " --gid \'"   . $$user[$GID]    . "\'" .
+          " --shell \'" . $$user[$SHELL]  . "\'" .
+          " --uid \'"   . $$user[$UID]    . "\'" .
+          " \'"         . $$user[$LOGIN]  . "\'";
 
-    &Utils::File::run ($command);
+      &Utils::File::run ($command);
+
+      # password can't be set in non-interactive
+      # mode with adduser, call usermod instead
+      $command = "$cmd_usermod " .
+          "' -p '" . $$user[$PASSWD] . "' " . $$user[$LOGIN];
+
+      &Utils::File::run ($command);
+    }
+    else
+    {
+      # fallback to useradd
+      $command = "$cmd_useradd -m" .
+          " --home \'"     . $$user[$HOME]   . "\'" .
+          " --gid \'"      . $$user[$GID]    . "\'" .
+          " --password \'" . $$user[$PASSWD] . "\'" .
+          " --shell \'"    . $$user[$SHELL]  . "\'" .
+          " --uid \'"      . $$user[$UID]    . "\'" .
+          " \'"            . $$user[$LOGIN]  . "\'";
+
+      &Utils::File::run ($command);
+    }
   }
 
   &change_user_chfn ($$user[$LOGIN], undef, $$user[$COMMENT]);

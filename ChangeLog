@@ -1,3 +1,12 @@
+2006-05-26  Carlos Garnacho  <carlosg@gnome.org>
+
+	* UsersConfig.pm: added default group. -1 will mean "create new group
+	for the user"
+	* Users/Groups.pm: use addgroup/delgroup if available
+	* Users/Users.pm: use adduser/deluser if available, translate default
+	group to GIDs. Do not use a global variable getting the configuration,
+	some values may survive several get() calls
+
 2006-05-20  Carlos Garnacho  <carlosg@gnome.org>
 
 	* configure.in: fix problem expanding paths, detect Net::DBus, and
