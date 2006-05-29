@@ -139,7 +139,7 @@ sub is_forbidden
      "swap1",
      "syscons",
      "sysctl",
-     "tmp"
+     "tmp",
      "ttys",
      "var",
      "virecover",

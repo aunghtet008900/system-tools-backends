@@ -2,6 +2,7 @@
 
 	* files/general_isdn_ppp_options: do not load plugin userpass. Fixes
 	GNOME bug #319553
+	* Init/ServicesList.pm: add a missing comma
 
 2006-05-29  Joe Marcus Clarke  <marcus@freebsd.org>
 
