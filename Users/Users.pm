@@ -268,6 +268,7 @@ my $logindefs_dist_map = {
   'freebsd-4'       => $freebsd_logindefs_defaults,
   'freebsd-5'       => $freebsd_logindefs_defaults,
   'freebsd-6'       => $freebsd_logindefs_defaults,
+  'freebsd-7'       => $freebsd_logindefs_defaults,
   'suse-7.0'        => $gentoo_logindefs_defaults,
   'suse-9.0'        => $gentoo_logindefs_defaults,
   'suse-9.1'        => $gentoo_logindefs_defaults,

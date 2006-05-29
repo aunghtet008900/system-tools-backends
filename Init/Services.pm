@@ -89,6 +89,7 @@ sub get_runlevel_roles
 
      "freebsd-5"      => "freebsd-5",
      "freebsd-6"      => "freebsd-5",
+     "freebsd-7"      => "freebsd-5",
     );
 
   %runlevels=

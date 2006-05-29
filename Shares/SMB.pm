@@ -185,6 +185,7 @@ sub get_distro_smb_file
 
    "freebsd-5"       => "freebsd-5",
    "freebsd-6"       => "freebsd-5",
+   "freebsd-7"       => "freebsd-5",
   );
 
   my %dist_tables =

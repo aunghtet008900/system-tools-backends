@@ -215,6 +215,7 @@ sub conf_get_parse_table
 
    "freebsd-5"       => "redhat-6.2",
    "freebsd-6"       => "redhat-6.2",
+   "freebsd-7"       => "redhat-6.2",
    );
 
   my %dist_tables =

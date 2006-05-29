@@ -1,3 +1,11 @@
+2006-05-29  Joe Marcus Clarke  <marcus@freebsd.org>
+
+	* Network/Ifaces.pm: fix wireless support, improve interface type
+	detection.
+	* Init/Services.pm, Init/ServicesList.pm, Network/Hosts.pm,
+	Network/Ifaces.pm, Shares/SMB.pm, Time/NTP.pm, Time/TimeDate.pm,
+	Users/Users.pm, Utils/Platform.pm: add support for FreeBSD 7
+
 2006-05-26  Carlos Garnacho  <carlosg@gnome.org>
 
 	* system-tools-backends.conf.in: make dbus access file open for

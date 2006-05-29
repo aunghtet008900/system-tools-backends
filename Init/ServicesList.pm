@@ -104,6 +104,7 @@ sub is_forbidden
      "atm3\.sh",
      "ccd",
      "cleanvar",
+     "cleartmp",
      "devdb",
      "devfs",
      "dhclient",
@@ -138,7 +139,9 @@ sub is_forbidden
      "swap1",
      "syscons",
      "sysctl",
+     "tmp"
      "ttys",
+     "var",
      "virecover",
      # These are the services found in SuSE
      "rc[sS0-9]\.d",

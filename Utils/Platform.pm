@@ -87,6 +87,7 @@ my $PLATFORM_INFO = {
   "freebsd-4"       => [ "FreeBSD", "4", "" ],
   "freebsd-5"       => [ "FreeBSD", "5", "" ],
   "freebsd-6"       => [ "FreeBSD", "6", "" ],
+  "freebsd-7"       => [ "FreeBSD", "7", "" ],
   "gentoo"          => [ "Gentoo Linux", "", "" ],
   "vlos-1.2"        => [ "Vida Linux OS", "1.2" ],
   "archlinux"       => [ "Arch Linux", "", "" ],

@@ -79,6 +79,7 @@ sub get_fqdn_parse_table
     "vlos-1.2"     => "gentoo",
     "freebsd-5"    => "freebsd-5",
     "freebsd-6"    => "freebsd-5",
+    "freebsd-7"    => "freebsd-5",
 	  );
 
   my %dist_tables =

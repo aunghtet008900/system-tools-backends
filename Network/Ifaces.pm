@@ -114,7 +114,7 @@ sub get_freebsd_wireless_ifaces
   my ($fd, $line, $iface);
   my (@ifaces, $command);
 
-  $command = &Utils::File::get_cmd_path ("iwconfig");
+  $command = &Utils::File::get_cmd_path ("ifconfig");
   open $fd, "$command |";
   return @ifaces if $fd eq undef;
 
@@ -178,7 +178,7 @@ sub get_interface_type
       $types_cache{$dev} = "modem";
     }
   }
-  elsif ($dev =~ /^(eth|dc|ed|bfe|em|fxp|bge|de|xl|ixgb|txp|vx|lge|nge|pcn|re|rl|sf|sis|sk|ste|ti|tl|tx|vge|vr|wb|cs|ex|ep|fe|ie|lnc|sn|xe|le|an|awi|wi|ndis|wlaue|axe|cue|kue|rue|fwe|nve)[0-9]/)
+  elsif ($dev =~ /(eth|dc|ed|bfe|em|fxp|bge|de|xl|ixgb|txp|vx|lge|nge|pcn|re|rl|sf|sis|sk|ste|ti|tl|tx|vge|vr|wb|cs|ex|ep|fe|ie|lnc|sn|xe|le|an|awi|wi|ndis|wl|aue|axe|cue|kue|rue|fwe|nve|hme|ath|iwi|ipw|ral|ural|my)[0-9]/)
   {
     $types_cache{$dev} = "ethernet";
   }
@@ -1695,6 +1695,7 @@ sub get_interface_parse_table
     "vlos-1.2"     => "gentoo",
     "freebsd-5"    => "freebsd-5",
     "freebsd-6"    => "freebsd-5",
+    "freebsd-7"    => "freebsd-5",
    );
   
   my %dist_tables =
@@ -2415,6 +2416,7 @@ sub get_interface_replace_table
     "vlos-1.2"     => "gentoo",
     "freebsd-5"    => "freebsd-5",
     "freebsd-6"    => "freebsd-5",
+    "freebsd-7"    => "freebsd-5",
 	  );
 
   my %dist_tables =
