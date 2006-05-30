@@ -23,6 +23,16 @@
 
 package Network::Hosts;
 
+sub run_hostname
+{
+  my ($hostname) = @_;
+
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("network_hostname_set", $hostname);
+  &Utils::File::run ("hostname $hostname");
+  &Utils::Report::leave ();
+}
+
 sub get_fqdn_parse_table
 {
   my %dist_map =
@@ -155,7 +165,7 @@ sub get_fqdn_parse_table
        table =>
        [
         [ "hostname", \&Utils::Parse::get_sh, HOSTNAME, HOSTNAME ],
-        [ "domain",   \&Utils::Parse::get_sh, DOMAINNAME, DNSDOMAIN ],
+        [ "domain", \&Utils::Parse::get_sh, DOMAINNAME, DNSDOMAIN ],
         [ "domain", \&Utils::Parse::split_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
        ]
      },
@@ -171,6 +181,172 @@ sub get_fqdn_parse_table
        [
         [ "hostname", \&Utils::Parse::get_sh_re, RC_CONF, hostname, "^([^\.]*)\." ],
         [ "domain", \&Utils::Parse::split_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
+       ]
+     },
+   );
+
+  my $dist = $dist_map{$Utils::Backend::tool{"platform"}};
+  return %{$dist_tables{$dist}} if $dist;
+
+  &Utils::Report::do_report ("platform_no_table", $Utils::Backend::tool{"platform"});
+  return undef;
+}
+
+sub get_fqdn_replace_table
+{
+  my %dist_map =
+	 (
+    "redhat-5.2"   => "redhat-6.2",
+	  "redhat-6.0"   => "redhat-6.2",
+	  "redhat-6.1"   => "redhat-6.2",
+	  "redhat-6.2"   => "redhat-6.2",
+	  "redhat-7.0"   => "redhat-6.2",
+	  "redhat-7.1"   => "redhat-6.2",
+	  "redhat-7.2"   => "redhat-7.2",
+    "redhat-8.0"   => "redhat-7.2",
+    "redhat-9"     => "redhat-7.2",
+	  "openna-1.0"   => "redhat-6.2",
+	  "mandrake-7.1" => "redhat-6.2",
+	  "mandrake-7.2" => "redhat-6.2",
+    "mandrake-9.0" => "redhat-6.2",
+    "mandrake-9.1" => "redhat-6.2",
+    "mandrake-9.2" => "redhat-6.2",
+    "mandrake-10.0" => "redhat-6.2",
+    "mandrake-10.1" => "redhat-6.2",
+    "mandrake-10.2" => "redhat-6.2",
+    "mandriva-2006.0" => "redhat-6.2",
+    "mandriva-2006.1" => "redhat-6.2",
+    "yoper-2.2"    => "redhat-6.2",
+    "blackpanther-4.0" => "redhat-6.2",
+    "conectiva-9"  => "redhat-6.2", 
+    "conectiva-10" => "redhat-6.2", 
+    "debian-2.2"   => "debian-2.2",
+    "debian-3.0"   => "debian-2.2",
+    "debian-sarge" => "debian-2.2",
+    "ubuntu-5.04"  => "debian-2.2",
+    "ubuntu-5.10"  => "debian-2.2",
+    "ubuntu-6.04"  => "debian-2.2",
+    "suse-9.0"     => "suse-9.0",
+    "suse-9.1"     => "suse-9.0",
+	  "turbolinux-7.0"  => "redhat-7.0",
+    "pld-1.0"      => "redhat-6.2",
+    "pld-1.1"      => "redhat-6.2",
+    "pld-1.99"     => "redhat-6.2",
+    "fedora-1"     => "redhat-7.2",
+    "fedora-2"     => "redhat-7.2",
+    "fedora-3"     => "redhat-7.2",
+    "fedora-4"     => "redhat-7.2",
+    "rpath"        => "redhat-7.2",
+    "vine-3.0"     => "redhat-6.2",
+    "vine-3.1"     => "redhat-6.2",
+    "ark"          => "redhat-6.2",
+    "slackware-9.1.0" => "suse-9.0",
+    "slackware-10.0.0" => "suse-9.0",
+    "slackware-10.1.0" => "suse-9.0",
+    "slackware-10.2.0" => "suse-9.0",
+    "gentoo"       => "gentoo",
+    "vlos-1.2"     => "gentoo",
+    "freebsd-5"    => "freebsd-5",
+    "freebsd-6"    => "freebsd-5",
+    "freebsd-7"    => "freebsd-5",
+	  );
+
+  my %dist_tables =
+    (
+     "redhat-6.2" =>
+     {
+       fn =>
+       {
+         SYSCONFIG_NW => "/etc/sysconfig/network",
+         RESOLV_CONF  => "/etc/resolv.conf"
+       },
+       table =>
+       [
+        [ "hostname", \&Utils::Replace::set_sh, SYSCONFIG_NW, HOSTNAME ],
+        [ "hostname", \&run_hostname ],
+        [ "domain", \&Utils::Replace::set_sh, SYSCONFIG_NW, DOMAIN ],
+        [ "domain", \&Utils::Replace::join_first_str, RESOLV_CONF, "domain", "[ \t]+" ]
+       ]
+     },
+
+     "redhat-7.2" =>
+     {
+       fn =>
+       {
+         SYSCONFIG_NW => ["/etc/sysconfig/networking/profiles/default/network",
+                          "/etc/sysconfig/networking/network",
+                          "/etc/sysconfig/network"],
+         RESOLV_CONF  => ["/etc/sysconfig/networking/profiles/default/resolv.conf",
+                          "/etc/resolv.conf"],
+       },
+       table =>
+       [
+		    [ "hostname", \&Utils::Replace::set_sh, SYSCONFIG_NW, HOSTNAME ],
+        [ "hostname", \&run_hostname ],
+        [ "domain", \&Utils::Replace::set_sh, SYSCONFIG_NW, DOMAIN ],
+		    [ "domain", \&Utils::Replace::join_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
+		   ]
+     },
+
+     "debian-2.2" =>
+     {
+       fn =>
+       {
+         RESOLV_CONF => "/etc/resolv.conf",
+         HOSTNAME    => "/etc/hostname",
+       },
+       table =>
+       [
+        [ "hostname", \&Utils::Replace::set_first_line, HOSTNAME ],
+        [ "hostname", \&run_hostname ],
+        [ "domain",	\&Utils::Replace::join_first_str, RESOLV_CONF, "domain", "[ \t]+" ]
+       ]
+     },
+
+     "suse-9.0" =>
+     {
+       fn =>
+       {
+         RESOLV_CONF  => "/etc/resolv.conf",
+         HOSTNAME     => "/etc/HOSTNAME",
+       },
+       table =>
+       [
+        [ "hostname", \&Utils::Replace::set_fq_hostname, HOSTNAME, "%hostname%", "%domain%" ],
+        [ "hostname", \&run_hostname ],
+        [ "domain", \&Utils::Replace::join_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
+       ]
+     },
+    
+     "gentoo" =>
+     {
+       fn =>
+       {
+         HOSTNAME    => "/etc/conf.d/hostname",
+         DOMAINNAME  => "/etc/conf.d/domainname",
+         RESOLV_CONF => "/etc/resolv.conf",
+       },
+       table =>
+       [
+        [ "hostname", \&Utils::Replace::set_sh, HOSTNAME, HOSTNAME ],
+        [ "hostname", \&run_hostname ],
+        [ "domain", \&Utils::Replace::set_sh, DOMAINNAME, DNSDOMAIN ],
+        [ "domain", \&Utils::Replace::join_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
+       ]
+     },
+
+     "freebsd-5" =>
+     {
+       fn =>
+       {
+         RC_CONF     => "/etc/rc.conf",
+         RESOLV_CONF => "/etc/resolv.conf",
+       },
+       table =>
+       [
+        [ "hostname", \&Utils::Replace::set_sh, RC_CONF, hostname, "%hostname%.%domain%" ],
+        [ "hostname", \&run_hostname, "%hostname%.%domain%" ],
+        [ "domain", \&Utils::Replace::join_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
        ]
      },
    );
@@ -234,12 +410,12 @@ sub get_fqdn
   %dist_attrib = &get_fqdn_parse_table ();
 
   $hash = &Utils::Parse::get_from_table ($dist_attrib{"fn"},
-                                 $dist_attrib{"table"});
+                                         $dist_attrib{"table"});
 
   return ($$hash {"hostname"}, $$hash{"domain"});
 }
 
-sub get
+sub get_hosts
 {
   my ($statichosts, @arr);
 
@@ -273,17 +449,49 @@ sub get_search_domains
 
 sub set_fqdn
 {
-    # FIXME: implement, add a call to &ensure_loopback_statichost()
+  my ($hostname, $domain) = @_;
+  my (%dist_attrib, %hash, %old_hash);
+
+  $hash{"hostname"} = $hostname;
+  $hash{"domain"} = $domain;
+
+  ($old_hash{"hostname"}, $old_hash{"domain"}) = &get_fqdn ();
+
+  %dist_attrib = &get_fqdn_replace_table ();
+  &Utils::Replace::set_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
+                                   \%hash, \%old_hash);
 }
 
-sub set
+sub ensure_hostname
 {
-  my (@config) = @_;
+  my ($hosts, $hostname, $domain, $old_hostname, $olddomain) = @_;
+  my ($fqdn, $old_fqdn, $i);
+
+  $fqdn  = $hostname;
+  $fqdn .= ".$domain" if ($domain);
+
+  $old_fqdn  = $old_hostname;
+  $old_fqdn .= ".$old_domain" if ($old_domain);
+
+  foreach $i (@$hosts)
+  {
+    if ($i eq $old_fqdn)
+    {
+      $i = $fqdn;
+    }
+  }
+}
+
+sub set_hosts
+{
+  my ($config, $hostname, $domain) = @_;
+  my ($old_hostname, $old_domain) = &get_fqdn ();
   my ($i, %hash);
 
-  foreach $i (@config)
+  foreach $i (@$config)
   {
-    $hash{$i[0]} = $i[1];
+    &ensure_hostname ($$i[1], $hostname, $domain, $old_hostname, $old_domain);
+    $hash{$$i[0]} = $$i[1];
   }
 
   &Utils::Replace::join_hash ("/etc/hosts", "[ \t]+", "[ \t]+", %hash);

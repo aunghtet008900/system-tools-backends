@@ -1,5 +1,16 @@
 2006-05-30  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Network/Hosts.pm (run_hostname), (get_fqdn_replace_table)
+	(ensure_hostname): added
+	(set_fqdn): use get_fqdn_replace_table().
+	(set_hosts), (get_hosts): renamed, former get() and set()
+	(set_hosts): ensure that if hostname changes /etc/hosts file reflects
+	this too.
+	* HostsConfig.pm: ensure that the set() Dbus message format contains
+	hostname and domainname
+
+2006-05-30  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Network/Ifaces.pm (interface_configured): fix a typo with plip
 	interfaces.
 	(bootproto_to_code): new function, gets a numeric code according to
