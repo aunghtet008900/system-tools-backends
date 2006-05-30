@@ -1,3 +1,12 @@
+2006-05-30  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Network/Ifaces.pm (interface_configured): fix a typo with plip
+	interfaces.
+	(bootproto_to_code): new function, gets a numeric code according to
+	the bootproto.
+	(get): use this function
+	(set): set bootproto accordingly
+
 2006-05-29  Carlos Garnacho  <carlosg@gnome.org>
 
 	* files/general_isdn_ppp_options: do not load plugin userpass. Fixes

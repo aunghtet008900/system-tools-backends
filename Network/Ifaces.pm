@@ -3157,7 +3157,7 @@ sub interface_configured
   }
   elsif ($type eq "plip")
   {
-    return 1 if ($$iface{"bootproto"} eq "dhcp" || ($$iface{"address"} && $$iface{"remote_address"}));
+    return 1 if ($$iface{"address"} && $$iface{"remote_address"});
   }
   elsif ($type eq "modem" || $type eq "isdn")
   {
@@ -3244,6 +3244,14 @@ sub set_interfaces_config
   &Utils::Report::leave ();
 }
 
+sub bootproto_to_code
+{
+  my ($iface) = @_;
+
+  return 0 if (!&interface_configured ($iface));
+  return ($$iface{"bootproto"} eq "dhcp") ? 2 : 1;
+}
+
 sub get
 {
   my ($config, $iface, $type);
@@ -3260,14 +3268,14 @@ sub get
     if ($type eq "ethernet")
     {
       push @$ethernet, [ $$iface{"dev"}, $$iface{"enabled"},
-                         ($$iface{"bootproto"} eq "dhcp") ? 1 : 0,
+                         &bootproto_to_code ($iface),
                          $$iface{"address"}, $$iface{"netmask"},
                          $$iface{"network"}, $$iface{"broadcast"} ];
     }
     elsif ($type eq "wireless")
     {
       push @$wireless, [ $$iface{"dev"}, $$iface{"enabled"},
-                         ($$iface{"bootproto"} eq "dhcp") ? 1 : 0,
+                         &bootproto_to_code ($iface),
                          $$iface{"address"}, $$iface{"netmask"},
                          $$iface{"network"}, $$iface{"broadcast"},
                          $$iface{"essid"},
@@ -3277,7 +3285,7 @@ sub get
     elsif ($type eq "irlan")
     {
       push @$irlan, [ $$iface{"dev"}, $$iface{"enabled"},
-                      ($$iface{"bootproto"} eq "dhcp") ? 1 : 0,
+                      &bootproto_to_code ($iface),
                       $$iface{"address"}, $$iface{"netmask"},
                       $$iface{"network"}, $$iface{"broadcast"} ];
     }
@@ -3317,7 +3325,8 @@ sub set
 
   foreach $iface (@$ethernet)
   {
-    $bootproto = ($$iface[2] == 1) ? "dhcp" : "none";
+    $bootproto = ($$iface[2] == 2) ? "dhcp" : "none";
+
     $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1],
                           "bootproto" => $bootproto,
                           "address" => $$iface[3], "netmask" => $$iface[4] };
@@ -3325,8 +3334,9 @@ sub set
 
   foreach $iface (@$wireless)
   {
-    $bootproto = ($$iface[2] == 1) ? "dhcp" : "none";
+    $bootproto = ($$iface[2] == 2) ? "dhcp" : "none";
     $key_type = ($$iface[8] == 1) ? "hexadecimal" : "ascii";
+
     $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1],
                           "bootproto" => $bootproto,
                           "address" => $$iface[3], "netmask" => $$iface[4],
@@ -3335,7 +3345,7 @@ sub set
 
   foreach $iface (@$irlan)
   {
-    $bootproto = ($$iface[2] == 1) ? "dhcp" : "none";
+    $bootproto = ($$iface[2] == 2) ? "dhcp" : "none";
     $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1],
                           "bootproto" => $bootproto,
                           "address" => $$iface[3], "netmask" => $$iface[4] };
