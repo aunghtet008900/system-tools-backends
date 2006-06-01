@@ -1,7 +1,9 @@
 2006-06-01  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Utils/Replace.pm (set_init_bool): inverse logic to allow values != 1
-	to be TRUE
+	to be TRUE.
+	* Shares/SMB.pm (get): initialize $smb_conf_file before actually using
+	it.
 
 2006-05-30  Carlos Garnacho  <carlosg@gnome.org>
 

@@ -241,10 +241,8 @@ sub set_share_info
 
 sub get_shares
 {
-  my ($smb_conf_file);
+  my ($smb_conf_file) = @_;
   my (@sections, @table, $share);
-
-  $smb_conf_file = &get_distro_smb_file;
 
   # Get the sections.
   @sections = &Utils::Parse::get_ini_sections ($smb_conf_file);
@@ -263,14 +261,16 @@ sub get_shares
 
 sub get
 {
+  my ($smb_conf_file);
   my ($shares, $workgroup, $desc, $wins, $winsserver);
 
-  $shares = &get_shares ();
+  $smb_conf_file = &get_distro_smb_file;
+  $shares = &get_shares ($smb_conf_file);
   
-  $workgroup = &Utils::Parse::get_from_ini ($smb_conf, "global", "workgroup");
-  $smbdesc = &Utils::Parse::get_from_ini ($smb_conf, "global", "server string");
-  $wins = &Utils::Parse::get_from_ini_bool ($smb_conf, "global", "wins support");
-  $winsserver = &Utils::Parse::get_from_ini ($smb_conf, "global", "wins server");
+  $workgroup = &Utils::Parse::get_from_ini ($smb_conf_file, "global", "workgroup");
+  $smbdesc = &Utils::Parse::get_from_ini ($smb_conf_file, "global", "server string");
+  $wins = &Utils::Parse::get_from_ini_bool ($smb_conf_file, "global", "wins support");
+  $winsserver = &Utils::Parse::get_from_ini ($smb_conf_file, "global", "wins server");
 
   return ($shares, $workgroup, $smbdesc, $wins, $winsserver);
 }
