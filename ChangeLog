@@ -1,3 +1,8 @@
+2006-06-01  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Replace.pm (set_init_bool): inverse logic to allow values != 1
+	to be TRUE
+
 2006-05-30  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Network/Hosts.pm (run_hostname), (get_fqdn_replace_table)

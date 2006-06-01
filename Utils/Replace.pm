@@ -680,7 +680,7 @@ sub set_ini_bool
 {
   my ($file, $section, $var, $value) = @_;
 
-  $value = ($value == 1)? "yes": "no";
+  $value = ($value == 0)? "no": "yes";
 
   return &set_ini ($file, $section, $var, $value);
 }
