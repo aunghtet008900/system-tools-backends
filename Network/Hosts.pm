@@ -494,22 +494,22 @@ sub set_hosts
     $hash{$$i[0]} = $$i[1];
   }
 
-  &Utils::Replace::join_hash ("/etc/hosts", "[ \t]+", "[ \t]+", %hash);
+  &Utils::Replace::join_hash ("/etc/hosts", "[ \t]+", "[ \t]+", \%hash);
 }
 
 sub set_dns
 {
-  my (@dns) = @_;
+  my ($dns) = @_;
 
-  &Utils::Replace::join_all ("/etc/resolv.conf", "nameserver", "[ \t]+", @dns);
+  &Utils::Replace::join_all ("/etc/resolv.conf", "nameserver", "[ \t]+", $dns);
 }
 
 sub set_search_domains
 {
-  my (@search_domains) = @_;
+  my ($search_domains) = @_;
 
   &Utils::Replace::join_first_array ("/etc/resolv.conf", "search",
-                                     "[ \t]+", "[ \t]+", @search_domains);
+                                     "[ \t]+", "[ \t]+", $search_domains);
 }
 
 1;

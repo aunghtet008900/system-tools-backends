@@ -73,9 +73,9 @@ sub set
 {
   my ($self, @config) = @_;
 
-#  Network::Hosts::set_hosts ($config[2], $config[0], $config[1]);
-#  Network::Hosts::set_dns ($config[3]);
-#  Network::Hosts::set_search_domains ($config[4]);
+  Network::Hosts::set_hosts ($config[2], $config[0], $config[1]);
+  Network::Hosts::set_dns ($config[3]);
+  Network::Hosts::set_search_domains ($config[4]);
   Network::Hosts::set_fqdn ($config[0], $config[1]);
 }
 

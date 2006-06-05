@@ -1,3 +1,11 @@
+2006-06-05  Carlos Garnacho  <carlosg@gnome.org>
+
+	* HostsConfig.pm: uncomment some needed code.
+	* Network/Hosts.pm: fix a couple of code typos.
+	* IfacesConfig.pm, Network/Ifaces.pm: get/set "auto"
+	* Init/Services.pm (set_sysv_service): fix a typo that made links to
+	be erased/recreated, remove links for ignored services.
+
 2006-06-01  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Utils/Replace.pm (set_init_bool): inverse logic to allow values != 1

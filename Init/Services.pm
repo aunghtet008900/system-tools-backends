@@ -324,7 +324,7 @@ sub set_sysv_service
 {
   my ($service) = @_;
   my ($script, $priority, $runlevels);
-  my ($action);
+  my ($runlevel, $action, %configured_runlevels);
 
   ($rcd_path, $initd_path, $relative_path) = &get_sysv_paths ();
 
@@ -335,12 +335,26 @@ sub set_sysv_service
   {
     $runlevel = $$r[0];
     $action   = ($$r[1] eq "start") ? "S" : "K";
-    $priority = $$r[2];
+    $priority = sprintf ("%0.2d", $$r[2]);
+
+    $configured_runlevels{$runlevel} = 1;
 
     if (!-f "$rcd_path/rc$runlevel.d/$action$priority$script")
     {
       &remove_sysv_link ($rcd_path, $runlevel, $script);
       &add_sysv_link ($rcd_path, $relative_path, $runlevel, $action, $priority, $script);
+    }
+  }
+
+  # remove unneeded links
+  foreach $link (<$rcd_path/rc[0-6].d/[SK][0-9][0-9]$script>)
+	{
+    $link =~ /rc([0-6])\.d/;
+    $runlevel = $1;
+
+    if (!exists $configured_runlevels{$runlevel})
+    {
+      &remove_sysv_link ($rcd_path, $runlevel, $script);
     }
   }
 }

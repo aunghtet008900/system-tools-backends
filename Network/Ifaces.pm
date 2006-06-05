@@ -552,7 +552,6 @@ sub get_wep_key_type
 
   $val = &$func (@_);
 
-  return undef if (!$val);
   return "ascii" if ($val =~ /^s\:/);
   return "hexadecimal";
 }
@@ -3267,14 +3266,14 @@ sub get
 
     if ($type eq "ethernet")
     {
-      push @$ethernet, [ $$iface{"dev"}, $$iface{"enabled"},
+      push @$ethernet, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                          &bootproto_to_code ($iface),
                          $$iface{"address"}, $$iface{"netmask"},
                          $$iface{"network"}, $$iface{"broadcast"} ];
     }
     elsif ($type eq "wireless")
     {
-      push @$wireless, [ $$iface{"dev"}, $$iface{"enabled"},
+      push @$wireless, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                          &bootproto_to_code ($iface),
                          $$iface{"address"}, $$iface{"netmask"},
                          $$iface{"network"}, $$iface{"broadcast"},
@@ -3284,19 +3283,19 @@ sub get
     }
     elsif ($type eq "irlan")
     {
-      push @$irlan, [ $$iface{"dev"}, $$iface{"enabled"},
+      push @$irlan, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                       &bootproto_to_code ($iface),
                       $$iface{"address"}, $$iface{"netmask"},
                       $$iface{"network"}, $$iface{"broadcast"} ];
     }
     elsif ($type eq "plip")
     {
-      push @$plip, [ $$iface{"dev"}, $$iface{"enabled"},
+      push @$plip, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                      $$iface{"address"}, $$iface{"remote_address"} ];
     }
     elsif ($type eq "modem")
     {
-      push @$modem, [ $$iface{"dev"}, $$iface{"enabled"},
+      push @$modem, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                       $$iface{"phone_number"}, $$iface{"external_line"},
                       $$iface{"serial_port"}, $$iface{"volume"},
                       ($$iface{"dial_command"} eq "atdt") ? 0 : 1,
@@ -3306,7 +3305,7 @@ sub get
     }
     elsif ($type eq "isdn")
     {
-      push @$isdn, [ $$iface{"dev"}, $$iface{"enabled"},
+      push @$isdn, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                       $$iface{"phone_number"}, $$iface{"external_line"},
                       $$iface{"login"}, $$iface{"password"},
                       $$iface{"set_default_gw"}, $$iface{"update_dns"},
@@ -3325,57 +3324,57 @@ sub set
 
   foreach $iface (@$ethernet)
   {
-    $bootproto = ($$iface[2] == 2) ? "dhcp" : "none";
+    $bootproto = ($$iface[3] == 2) ? "dhcp" : "none";
 
-    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1],
+    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
                           "bootproto" => $bootproto,
-                          "address" => $$iface[3], "netmask" => $$iface[4] };
+                          "address" => $$iface[4], "netmask" => $$iface[5] };
   }
 
   foreach $iface (@$wireless)
   {
-    $bootproto = ($$iface[2] == 2) ? "dhcp" : "none";
-    $key_type = ($$iface[8] == 1) ? "hexadecimal" : "ascii";
+    $bootproto = ($$iface[3] == 2) ? "dhcp" : "none";
+    $key_type = ($$iface[9] == 1) ? "hexadecimal" : "ascii";
 
-    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1],
+    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
                           "bootproto" => $bootproto,
-                          "address" => $$iface[3], "netmask" => $$iface[4],
-                          "essid" => $$iface[7], "key_type" => $key_type, "key" => $$iface[9] };
+                          "address" => $$iface[4], "netmask" => $$iface[5],
+                          "essid" => $$iface[8], "key_type" => $key_type, "key" => $$iface[10] };
   }
 
   foreach $iface (@$irlan)
   {
-    $bootproto = ($$iface[2] == 2) ? "dhcp" : "none";
-    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1],
+    $bootproto = ($$iface[3] == 2) ? "dhcp" : "none";
+    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
                           "bootproto" => $bootproto,
-                          "address" => $$iface[3], "netmask" => $$iface[4] };
+                          "address" => $$iface[4], "netmask" => $$iface[5] };
   }
 
   foreach $iface (@$plip)
   {
-    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1],
-                          "address" => $$iface[2], "remote_address" => $$iface[3] };
+    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
+                          "address" => $$iface[3], "remote_address" => $$iface[4] };
   }
 
   foreach $iface (@$modem)
   {
-    $dial_command = ($$iface[6] == 0) ? "ATDT" : "ATDP";
-    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1],
-                          "phone_number" => $$iface[2], "external_line" => $$iface[3],
-                          "serial_port" => $$iface[4], "volume" => $$iface[5],
+    $dial_command = ($$iface[7] == 0) ? "ATDT" : "ATDP";
+    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
+                          "phone_number" => $$iface[3], "external_line" => $$iface[4],
+                          "serial_port" => $$iface[5], "volume" => $$iface[6],
                           "dial_command" => $dial_command,
-                          "login" => $$iface[7], "password" => $$iface[8],
-                          "set_default_gw" => $$iface[9], "update_dns"=> $$iface[10],
-                          "persist" => $$iface[11], "noauth" => $$iface[12] };
+                          "login" => $$iface[8], "password" => $$iface[9],
+                          "set_default_gw" => $$iface[10], "update_dns"=> $$iface[11],
+                          "persist" => $$iface[12], "noauth" => $$iface[13] };
   }
 
   foreach $iface (@$isdn)
   {
-    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1],
-                          "phone_number" => $$iface[2], "external_line" => $$iface[3],
-                          "login" => $$iface[4], "password" => $$iface[5],
-                          "set_default_gw" => $$iface[6], "update_dns"=> $$iface[7],
-                          "persist" => $$iface[8], "noauth" => $$iface[9] };
+    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
+                          "phone_number" => $$iface[3], "external_line" => $$iface[4],
+                          "login" => $$iface[5], "password" => $$iface[6],
+                          "set_default_gw" => $$iface[7], "update_dns"=> $$iface[8],
+                          "persist" => $$iface[9], "noauth" => $$iface[10] };
   }
 
   &set_interfaces_config (\%hash);
