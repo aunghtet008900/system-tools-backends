@@ -1,5 +1,7 @@
 sharesdir = $(scriptsdir)/Shares
 
-shares_SCRIPTS =	\
-	NFS.pm		\
+shares_DATA = \
+	NFS.pm	\
 	SMB.pm
+
+EXTRA_DIST = $(shares_DATA)

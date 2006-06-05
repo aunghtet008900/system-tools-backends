@@ -1,12 +1,14 @@
 utilsdir = $(scriptsdir)/Utils
 
-utils_SCRIPTS =	\
+utils_DATA = \
 	Backend.pm	\
 	File.pm		\
 	Monitor.pm	\
-	Parse.pm	\
+	Parse.pm		\
 	Platform.pm	\
 	Replace.pm	\
-	Report.pm	\
+	Report.pm		\
 	Util.pm		\
 	XML.pm
+
+EXTRA_DIST = $(utils_DATA)

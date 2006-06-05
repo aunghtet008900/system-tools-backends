@@ -1,5 +1,7 @@
-sharesdir = $(scriptsdir)/Init
+initdir = $(scriptsdir)/Init
 
-shares_SCRIPTS = \
+init_DATA = \
 	Services.pm	\
 	ServicesList.pm
+
+EXTRA_DIST = $(init_DATA)

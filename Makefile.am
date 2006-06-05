@@ -1,16 +1,18 @@
 SUBDIRS = m4macros files Init Network Shares Time Users Utils
 
-scripts = \
-	SystemToolsBackends.pl	\
-	GroupsConfig.pm		\
+modules =	\
+	GroupsConfig.pm	\
 	HostsConfig.pm		\
-	IfacesConfig.pm		\
+	IfacesConfig.pm	\
 	NFSConfig.pm		\
 	NTPConfig.pm		\
 	ServicesConfig.pm	\
 	SMBConfig.pm		\
 	TimeConfig.pm		\
-	UsersConfig.pm	
+	UsersConfig.pm
+
+scripts = \
+	SystemToolsBackends.pl
 
 scripts_SCRIPTS = $(scripts)
 
@@ -18,6 +20,7 @@ EXTRA_DIST = \
 	system-tools-backends-2.0.pc.in \
 	system-tools-backends.conf.in \
 	org.freedesktop.SystemToolsBackends.service.in \
+	$(modules) \
 	README \
 	AUTHORS \
 	NEWS

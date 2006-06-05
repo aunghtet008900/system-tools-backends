@@ -1,5 +1,7 @@
-sharesdir = $(scriptsdir)/Network
+networkdir = $(scriptsdir)/Network
 
-shares_SCRIPTS = \
+network_DATA = \
 	Hosts.pm	\
 	Ifaces.pm
+
+EXTRA_DIST = $(network_DATA)
