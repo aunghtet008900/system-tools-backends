@@ -106,7 +106,7 @@ sub add_group
 sub change_group
 {
 	my ($old_group, $new_group) = @_;
-  my (%users, $user, $users_arr, $str);
+  my (%users, %user, $users_arr, $str);
 
 	my ($n, $o, $users, $i, $j, $max_n, $max_o, $r, @tmp); # for iterations
 
@@ -138,7 +138,7 @@ sub change_group
 
       foreach $user (keys %users)
       {
-        $state = $users{$u};
+        $state = $users{$user};
 
         if ($state == 2)
         {

@@ -539,7 +539,9 @@ sub change_user_chfn
     {
       $command .= " -o \'" . $office . "\'" .
           " -p \'" . $office_phone . "\'";
-    }  
+    }
+
+    $command .= " $login";
   }
 
   &Utils::File::run ($command);
@@ -595,7 +597,7 @@ sub add_user
       # password can't be set in non-interactive
       # mode with adduser, call usermod instead
       $command = "$cmd_usermod " .
-          "' -p '" . $$user[$PASSWD] . "' " . $$user[$LOGIN];
+          " -p '" . $$user[$PASSWD] . "' " . $$user[$LOGIN];
 
       &Utils::File::run ($command);
     }

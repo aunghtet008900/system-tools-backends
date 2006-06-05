@@ -1,5 +1,11 @@
 2006-06-05  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Users/Users.pm (change_user_chfn): specify which user to modify.
+	(add_user): remove a stray apostrophe.
+	* Users/Groups.pm (change_group): get the correct state for the users
+
+2006-06-05  Carlos Garnacho  <carlosg@gnome.org>
+
 	* HostsConfig.pm: uncomment some needed code.
 	* Network/Hosts.pm: fix a couple of code typos.
 	* IfacesConfig.pm, Network/Ifaces.pm: get/set "auto"
