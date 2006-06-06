@@ -1,7 +1,24 @@
+System Tools Backends Version 1.9.0, 2006-06-06
+-----------------------------------------------
+
+The System Tools Backends version 1.9.0 "Pluto tan" have been released.
+
+This is the first release towards 2.x series, which will feature DBus interfaces to access data, signals to notify asynchronously about modifications in the configuration and a cleaner codebase. If you're interested in the 1.4.x series, checkout the stb-1-4 CVS branch.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), Gentoo, Slackware, FreeBSD, OpenNA, PLD, Vine and Specifix.
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/1.9/
+
+
 System Tools Backends Version 1.4.2, 2006-01-02
 -----------------------------------------------
 
-The System Tools Backends version 1.4.1 "Radical cut" have been released.
+The System Tools Backends version 1.4.2 "Radical cut" have been released.
 
 The System Tools Backends are a set of cross-platform scripts for Linux and other Unix systems. The backends provide an standard XML interface for modifying the configuration regarless of the distribution that's being used.
 

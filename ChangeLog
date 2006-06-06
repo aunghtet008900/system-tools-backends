@@ -1,3 +1,7 @@
+2006-06-06  Carlos Garnacho <carlosg@gnome.org>
+
+	* Release 1.9.0
+
 2006-06-05  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Makefile.am, Init/Makefile.am, Network/Makefile.am,
