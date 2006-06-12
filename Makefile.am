@@ -1,6 +1,7 @@
 SUBDIRS = m4macros files Init Network Shares Time Users Utils
 
-modules =	\
+modulesdir = $(scriptsdir)
+modules_DATA =	\
 	GroupsConfig.pm	\
 	HostsConfig.pm		\
 	IfacesConfig.pm	\
@@ -20,7 +21,7 @@ EXTRA_DIST = \
 	system-tools-backends-2.0.pc.in \
 	system-tools-backends.conf.in \
 	org.freedesktop.SystemToolsBackends.service.in \
-	$(modules) \
+	$(modules_DATA) \
 	README \
 	AUTHORS \
 	NEWS
@@ -43,3 +44,4 @@ service_DATA = org.freedesktop.SystemToolsBackends.service
 # DBus system.d file
 systemddir = $(DBUS_SYSTEMD_DIR)
 systemd_DATA = system-tools-backends.conf
+
