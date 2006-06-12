@@ -1,3 +1,24 @@
+System Tools Backends Version 1.9.1, 2006-06-12
+-----------------------------------------------
+
+The System Tools Backends version 1.9.1 "Face your back" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), Gentoo, Slackware, FreeBSD, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  - Makefile.am fix, install needed .pm files (garnacho)
+
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/1.9/
+
+
 System Tools Backends Version 1.9.0, 2006-06-06
 -----------------------------------------------
 

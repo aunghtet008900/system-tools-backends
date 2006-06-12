@@ -1,5 +1,9 @@
 2006-06-12  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Release 1.9.1
+
+2006-06-12  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Makefile.am: install *Config.pm too!
 
 2006-06-06  Carlos Garnacho <carlosg@gnome.org>
