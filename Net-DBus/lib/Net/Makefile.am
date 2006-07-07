@@ -1,0 +1,3 @@
+SUBDIRS = DBus
+
+EXTRA_DIST = DBus.pm

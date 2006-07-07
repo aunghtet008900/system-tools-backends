@@ -75,10 +75,21 @@ dnl check for Net::DBus
 AC_MSG_CHECKING([for Net::DBus])
 if `$PERL_PATH -e "use lib '$netdbusdir'; require Net::DBus" 2>/dev/null`; then
    AC_MSG_RESULT([ok])
+   internalnetdbus=no
 else
-   AC_MSG_ERROR([Net::DBus is required for SystemToolsBackends])
+   AC_MSG_RESULT([missing, going for internal copy])
+   DBUS_REQUIRED=0.35
+   PKG_CHECK_MODULES([DBUS],[dbus-1 >= $DBUS_REQUIRED])
+   AC_SUBST([DBUS_CFLAGS])
+   AC_SUBST([DBUS_LIBS])
+
+   netdbusdir="${prefix}/lib/perl"
+   AC_SUBST(netdbusdir)
+
+   internalnetdbus=yes
 fi
 
+AM_CONDITIONAL(INTERNAL_NET_DBUS, test x$internalnetdbus = xyes)
 
 AC_OUTPUT([
 Makefile
@@ -94,6 +105,14 @@ Utils/Makefile
 SystemToolsBackends.pl
 org.freedesktop.SystemToolsBackends.service
 system-tools-backends.conf
+Net-DBus/Makefile
+Net-DBus/lib/Makefile
+Net-DBus/lib/Net/Makefile
+Net-DBus/lib/Net/DBus/Makefile
+Net-DBus/lib/Net/DBus/Binding/Makefile
+Net-DBus/lib/Net/DBus/Binding/Message/Makefile
+Net-DBus/lib/Net/DBus/Test/Makefile
+Net-DBus/lib/Net/DBus/Tutorial/Makefile
 ])
 
 echo "
@@ -103,6 +122,7 @@ Configuration (BACKENDS):
   Prefix                            : ${prefix}
   The backends will be installed in : ${scriptsdir}
   The files will be installed in    : ${filesdir}
+  Using internal copy of Net::Dbus  : ${internalnetdbus}
 
   DBus system.d directory           : ${DBUS_SYSTEMD_DIR}
   System tools backends admin group : ${STB_GROUP}

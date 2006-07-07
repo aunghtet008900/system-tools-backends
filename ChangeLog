@@ -1,5 +1,11 @@
 2006-07-07  Carlos Garnacho  <carlosg@gnome.org>
 
+	* AUTHORS.Net-DBus, COPYING.Net-DBus, Net-DBus/*, configure.in,
+	Makefile.am: Modified patch from Frederic Peters  <fpeters@0d.be> to
+	include an internal copy of Net::DBus.
+
+2006-07-07  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Utils/Monitor.pm (do_monitor_files): improvements to the "changed"
 	signal emission.
 
