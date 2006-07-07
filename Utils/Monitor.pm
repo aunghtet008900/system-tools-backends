@@ -36,7 +36,7 @@ if ($has_gamin)
 
 sub do_monitor_files
 {
-  my ($event, $data, $func, $path);
+  my ($event, $data, $func, $path, $object);
 
   return if (!$has_gamin);
 
@@ -47,11 +47,9 @@ sub do_monitor_files
     if ($event->type eq "change")
     {
       $data = $objects {$event->filename};
-      $path = $Utils::Backend::DBUS_PREFIX . "." . $$data{"name"};
+      $object = $$data{"object"};
 
-      &Net::DBus::Object::emit_signal ($$data {"object"},
-                                       $path,
-                                       $$data {"signal"});
+      $object->emit_signal ($$data{"signal"});
     }
   }
 }

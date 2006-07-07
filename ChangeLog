@@ -1,3 +1,8 @@
+2006-07-07  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Monitor.pm (do_monitor_files): improvements to the "changed"
+	signal emission.
+
 2006-06-12  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 1.9.1
