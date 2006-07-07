@@ -111,8 +111,6 @@ Net-DBus/lib/Net/Makefile
 Net-DBus/lib/Net/DBus/Makefile
 Net-DBus/lib/Net/DBus/Binding/Makefile
 Net-DBus/lib/Net/DBus/Binding/Message/Makefile
-Net-DBus/lib/Net/DBus/Test/Makefile
-Net-DBus/lib/Net/DBus/Tutorial/Makefile
 ])
 
 echo "
