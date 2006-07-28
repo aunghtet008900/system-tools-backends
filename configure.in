@@ -26,8 +26,10 @@ AC_SUBST(EXPANDED_SYSCONFDIR)
 dnl scriptsdir & filesdir
 scriptsdir="${EXPANDED_DATADIR}/system-tools-backends-2.0/scripts"
 filesdir="${EXPANDED_DATADIR}/system-tools-backends-2.0/files"
+modulesdir="${EXPANDED_DATADIR}/system-tools-backends-2.0/modules"
 AC_SUBST(scriptsdir)
 AC_SUBST(filesdir)
+AC_SUBST(modulesdir)
 
 
 dnl DBus services dir
@@ -83,7 +85,7 @@ else
    AC_SUBST([DBUS_CFLAGS])
    AC_SUBST([DBUS_LIBS])
 
-   netdbusdir="${prefix}/lib/perl"
+   netdbusdir="${modulesdir}/lib/perl"
    AC_SUBST(netdbusdir)
 
    internalnetdbus=yes

@@ -1,3 +1,9 @@
+2006-07-28  Carlos Garnacho  <carlosg@gnome.org>
+
+	* configure.in, Net-DBus/Makefile.am: do not use standard prefix when
+	installing the internal copy of Net::DBus to avoid conflicts
+	* Net-DBus/lib/DBus.pm: remove an unnecessary include
+
 2006-07-07  Carlos Garnacho  <carlosg@gnome.org>
 
 	* AUTHORS.Net-DBus, COPYING.Net-DBus, Net-DBus/*, configure.in,

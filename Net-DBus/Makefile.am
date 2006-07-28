@@ -19,11 +19,11 @@ fake_DATA=build-perl-stamp
 
 $(PERL_MAKEFILE): DBus.xs
 	test -e Makefile.PL || $(LN_S) $(srcdir)/Makefile.PL .
-	VERSION=$(VERSION) CC=$(CC) CFLAGS="$(AM_CPPFLAGS) $(AM_CFLAGS) $(SWIG_OPTS) $(CPPFLAGS) $(AM_STANDARD_CFLAGS)" $(PERL) $(srcdir)/Makefile.PL DESTDIR=$(DESTDIR) PREFIX=$(prefix) $(MAKE_PL_OPTS)
+	VERSION=$(VERSION) CC=$(CC) CFLAGS="$(AM_CPPFLAGS) $(AM_CFLAGS) $(SWIG_OPTS) $(CPPFLAGS) $(AM_STANDARD_CFLAGS)" $(PERL) $(srcdir)/Makefile.PL DESTDIR=$(DESTDIR) PREFIX=$(modulesdir) $(MAKE_PL_OPTS)
 
 -perl install-perl: $(PERL_MAKEFILE)
 	target=`echo $@ | sed -e 's/-perl//'`; \
-	$(MAKE) -f $(PERL_MAKEFILE) DESTDIR=$(DESTDIR) PREFIX=$(prefix) $$target
+	$(MAKE) -f $(PERL_MAKEFILE) DESTDIR=$(DESTDIR) PREFIX=$(modulesdir) $$target
 
 test-perl: $(PERL_MAKEFILE)
 	$(RUN)$(MAKE) -f $(PERL_MAKEFILE) test
