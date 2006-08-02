@@ -1,6 +1,6 @@
 SUBDIRS = lib
 
-EXTRA_DIST = Makefile.PL DBus.xs
+EXTRA_DIST = Makefile.PL DBus.xs typemap
 
 INCLUDES = -I$(top_srcdir)
 

@@ -5,7 +5,6 @@ EXTRA_DIST = \
 	Connection.pm \
 	Introspector.pm \
 	Iterator.pm \
-	Message \
 	Message.pm \
 	PendingCall.pm \
 	Server.pm \

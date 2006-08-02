@@ -1,9 +1,8 @@
-SUBDIRS = Binding 
+SUBDIRS = Binding
 
 EXTRA_DIST = \
 	Annotation.pm \
 	ASyncReply.pm \
-	Binding \
 	Callback.pm \
 	Dumper.pm \
 	Error.pm \
@@ -13,4 +12,3 @@ EXTRA_DIST = \
 	RemoteObject.pm \
 	RemoteService.pm \
 	Service.pm
-

@@ -1,5 +1,9 @@
 2006-08-02  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Release 1.9.2
+
+2006-08-02  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Utils/Monitor.pm: monitor also "created" events
 
 2006-07-28  Carlos Garnacho  <carlosg@gnome.org>
