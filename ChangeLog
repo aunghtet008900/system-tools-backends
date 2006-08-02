@@ -1,3 +1,7 @@
+2006-08-02  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Monitor.pm: monitor also "created" events
+
 2006-07-28  Carlos Garnacho  <carlosg@gnome.org>
 
 	* configure.in, Net-DBus/Makefile.am: do not use standard prefix when

@@ -43,8 +43,9 @@ sub do_monitor_files
   while ($fm->pending)
   {
     $event = $fm->next_event;
-
-    if ($event->type eq "change")
+    
+    if ($event->type eq "change" ||
+        $event->type eq "create")
     {
       $data = $objects {$event->filename};
       $object = $$data{"object"};
