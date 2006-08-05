@@ -89,6 +89,8 @@ sub get_cmd_path
    my ($cmd) = @_;
 
    my $command = &do_get_cmd_path ($cmd);
+
+   return -1 if ($command == -1);
    return ("LC_ALL=C PATH=\$PATH:/sbin:/usr/sbin $command 2> /dev/null");
 }
 
@@ -456,7 +458,7 @@ sub run_pipe
   {
     $command = &get_cmd_path ($cmd);
   }
-  
+
   if ($command == -1)
   {
     &Utils::Report::do_report ("file_run_pipe_failed", $command);
@@ -464,7 +466,7 @@ sub run_pipe
     return undef;
   }
 
-  $command .= " |"        if $mode_mask & $FILE_READ;
+  $command .= " |" if $mode_mask & $FILE_READ;
   $command = "| $command > /dev/null" if $mode_mask & $FILE_WRITE;
 
   open PIPE, $command;

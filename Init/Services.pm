@@ -682,7 +682,7 @@ sub get_gentoo_runlevels
 {
   my($raw_output) = Utils::File::run_backtick("rc-status -l");
   my(@runlevels) = split(/\n/,$raw_output);
-    
+
   return @runlevels;
 }
 
@@ -780,53 +780,47 @@ sub get_gentoo_runlevel_status_by_service
   {
     if (defined $start_runlevels{$runlevel})
     {
-      push @arr, { "name"   => $runlevel,
-                   "action" => "start" };
+      push @arr, [ $runlevel, "start", 0 ];
     }
     else
     {
-      push @arr, { "name"   => $runlevel,
-                   "action" => "stop" };
+      push @arr, [ $runlevel, "stop", 0 ];
     }
   }
 
-  push @ret, { "runlevel" => \@arr };
-  return @ret;
+  return \@arr;
 }
 
 sub get_gentoo_service_info
 {
 	my ($service) = @_;
 	my ($script, @actions, @runlevels);
-	my %hash;
+	my ($role);
 	
 	# We have to check out if the service is in the "forbidden" list
-	return undef if (&Init::ServicesList::is_forbidden ($service));
+	return if (&Init::ServicesList::is_forbidden ($service));
 
-	my($runlevels) = &get_gentoo_runlevel_status_by_service ($service);
+  $runlevels = &get_gentoo_runlevel_status_by_service ($service);
+  $role = &Init::ServicesList::get_role ($service);
 
-	$hash{"script"} = $service;
-	$hash{"runlevels"} = $runlevels unless ($runlevels eq undef);
-  $hash{"role"} = &Init::ServicesList::get_role ($service);
-
-	return \%hash;
+  return ($service, $role, $runlevels);
 }
 
 sub get_gentoo_services
 {
   my ($service);
-  my (%ret);
+  my (@arr);
   my ($service_list) = &get_gentoo_services_list ();
 
   foreach $service (@$service_list)
   {
-    my (%hash);
+    my (@info);
 
-    $hash = &get_gentoo_service_info ($service);
-    $ret{$service} = $hash if ($hash ne undef);
+    @info = &get_gentoo_service_info ($service);
+    push @arr, \@info if scalar (@info);
   }
 
-  return \%ret;
+  return \@arr;
 }
 
 sub set_gentoo_service_status
@@ -1128,6 +1122,10 @@ sub set_suse_services
 # generic functions to get the available services
 sub get_init_type
 {
+  my $gst_dist;
+
+  $gst_dist = $Utils::Backend::tool{"platform"};
+
   if (($gst_dist =~ /debian/) && (Utils::File::exists ("/etc/runlevel.conf")))
   {
     return "file-rc";

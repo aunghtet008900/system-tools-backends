@@ -1,3 +1,10 @@
+2006-08-05  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Services.pm (get_gentoo_runlevel_status_by_service)
+	(get_gentoo_service_info) (get_gentoo_services) (get_init_type): Fix
+	glitches that made ServicesConfig misbehave with gentoo
+	* File.pm (get_cmd_command): return -1 if the command doesn't exist
+
 2006-08-02  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 1.9.2
