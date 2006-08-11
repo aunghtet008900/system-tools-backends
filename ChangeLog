@@ -1,3 +1,16 @@
+2006-08-11  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Platform.pm (guess): make distribution detection more generic,
+	remove lots of check_distro() functions.
+	(ensure_distro_map): create a distro metamap, from now adding a new
+	distro that behaves exactly like another will be one liner.
+	(PLATFORM_INFO): remove some ancient (as in ooold) distros.
+
+	* Init/Services.pm, Network/Hosts.pm, Network/Ifaces.pm,
+	Shares/SMB.pm, Time/NTP.pm, Time/TimeDate.pm, Users/Users.pm: Unify
+	parse/replace distro maps where necessary, make shorter those lists 
+	now that the distro metamap is there.
+
 2006-08-05  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Services.pm (get_gentoo_runlevel_status_by_service)

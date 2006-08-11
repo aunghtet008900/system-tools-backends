@@ -27,60 +27,20 @@ sub get_config_file ()
 {
   my %dist_map =
   (
-    "redhat-6.0"      => "redhat-6.2",
-    "redhat-6.1"      => "redhat-6.2",
     "redhat-6.2"      => "redhat-6.2",
-
     "redhat-7.0"      => "redhat-6.2",
     "redhat-7.1"      => "redhat-6.2",
     "redhat-7.2"      => "redhat-6.2",
     "redhat-7.3"      => "redhat-6.2",
     "redhat-8.0"      => "redhat-6.2",
-    "redhat-9"        => "redhat-6.2",
-    "openna-1.0"      => "redhat-6.2",
-
-    "mandrake-7.1"    => "redhat-6.2",
-    "mandrake-7.2"    => "redhat-6.2",
     "mandrake-9.0"    => "redhat-6.2",
-    "mandrake-9.1"    => "redhat-6.2",
-    "mandrake-9.2"    => "redhat-6.2",
-    "mandrake-10.0"   => "redhat-6.2",
-    "mandrake-10.1"   => "redhat-6.2",
-
-    "debian-2.2"      => "redhat-6.2",
     "debian-3.0"      => "redhat-6.2",
-    "debian-sarge"    => "redhat-6.2",
-
-    "suse-7.0"        => "redhat-6.2",
     "suse-9.0"        => "redhat-6.2",
-    "suse-9.1"        => "redhat-6.2",
-
-    "turbolinux-7.0"  => "redhat-6.2",
-    
-    "slackware-8.0.0" => "redhat-6.2",
-    "slackware-8.1"   => "redhat-6.2",
-    "slackware-9.0.0" => "redhat-6.2",
     "slackware-9.1.0" => "redhat-6.2",
-    "slackware-10.0.0" => "redhat-6.2",
-    "slackware-10.1.0" => "redhat-6.2",
-
     "gentoo"          => "redhat-6.2",
-
     "pld-1.0"         => "pld-1.0",
-    "pld-1.1"         => "pld-1.0",
-    "pld-1.99"        => "pld-1.0",
-    "fedora-1"        => "redhat-6.2",
-    "fedora-2"        => "redhat-6.2",
-    "fedora-3"        => "redhat-6.2",
-    
-    "rpath"           => "redhat-6.2",
-
     "vine-3.0"        => "redhat-6.2",
-    "vine-3.1"        => "redhat-6.2",
-
     "freebsd-5"       => "redhat-6.2",
-    "freebsd-6"       => "redhat-6.2",
-    "freebsd-7"       => "redhat-6.2",
   );
 
   my %dist_table =

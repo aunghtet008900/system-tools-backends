@@ -155,69 +155,32 @@ sub set_timezone
   return -1;
 }
 
-sub conf_get_parse_table
+sub get_dist
 {
   my %dist_map =
   (
-   "redhat-6.0"      => "redhat-6.2",
-   "redhat-6.1"      => "redhat-6.2",
    "redhat-6.2"      => "redhat-6.2",
-
    "redhat-7.0"      => "redhat-6.2",
    "redhat-7.1"      => "redhat-6.2",
    "redhat-7.2"      => "redhat-6.2",
    "redhat-7.3"      => "redhat-6.2",
    "redhat-8.0"      => "redhat-6.2",
-   "redhat-9"        => "redhat-6.2",
-   "openna-1.0"      => "redhat-6.2",
-
-   "mandrake-7.1"    => "redhat-6.2",
-   "mandrake-7.2"    => "redhat-6.2",
    "mandrake-9.0"    => "redhat-6.2",
-   "mandrake-9.1"    => "redhat-6.2",
-   "mandrake-9.2"    => "redhat-6.2",
-   "mandrake-10.0"   => "redhat-6.2",
-   "mandrake-10.1"   => "redhat-6.2",
-
-   "debian-2.2"      => "redhat-6.2",
    "debian-3.0"      => "debian-3.0",
-   "debian-sarge"    => "debian-3.0",
-
-   "suse-7.0"        => "redhat-6.2",
    "suse-9.0"        => "redhat-6.2",
-   "suse-9.1"        => "redhat-6.2",
-
-   "turbolinux-7.0"  => "redhat-6.2",
-   
-   "slackware-8.0.0" => "redhat-6.2",
-   "slackware-8.1"   => "redhat-6.2",
-   "slackware-9.0.0" => "redhat-6.2",
    "slackware-9.1.0" => "redhat-6.2",
-   "slackware-10.0.0" => "redhat-6.2",
-   "slackware-10.1.0" => "redhat-6.2",
-   "slackware-10.2.0" => "redhat-6.2",
-
    "gentoo"          => "redhat-6.2",
-   "vlos-1.2"        => "redhat-6.2",
-
    "archlinux"       => "archlinux",
-
    "pld-1.0"         => "redhat-6.2",
-   "pld-1.1"         => "redhat-6.2",
-   "pld-1.99"        => "redhat-6.2",
-   "fedora-1"        => "redhat-6.2",
-   "fedora-2"        => "redhat-6.2",
-   "fedora-3"        => "redhat-6.2",
-   "rpath"           => "redhat-6.2",
-
    "vine-3.0"        => "redhat-6.2",
-   "vine-3.1"        => "redhat-6.2",
-
    "freebsd-5"       => "redhat-6.2",
-   "freebsd-6"       => "redhat-6.2",
-   "freebsd-7"       => "redhat-6.2",
    );
 
+  return $dist_map{$Utils::Backend::tool{"platform"}};
+}
+
+sub conf_get_parse_table
+{
   my %dist_tables =
   (
    "redhat-6.2" =>
@@ -264,7 +227,7 @@ sub conf_get_parse_table
    },
   );
 
-  my $dist = $dist_map {$Utils::Backend::tool{"platform"}};
+  my $dist = &get_dist();
   return %{$dist_tables{$dist}} if $dist;
 
   &Utils::Report::do_report ("platform_no_table", $Utils::backend::tool{"platform"});
@@ -273,66 +236,6 @@ sub conf_get_parse_table
 
 sub conf_get_replace_table
 {
-  my %dist_map =
-  (
-   "redhat-6.0"      => "redhat-6.2",
-   "redhat-6.1"      => "redhat-6.2",
-   "redhat-6.2"      => "redhat-6.2",
-   
-   "redhat-7.0"      => "redhat-6.2",
-   "redhat-7.1"      => "redhat-6.2",
-   "redhat-7.2"      => "redhat-6.2",
-   "redhat-7.3"      => "redhat-6.2",
-   "redhat-8.0"      => "redhat-6.2",
-   "redhat-9"        => "redhat-6.2",
-   "openna-1.0"      => "redhat-6.2",
-
-   "mandrake-7.1"    => "redhat-6.2",
-   "mandrake-7.2"    => "redhat-6.2",
-   "mandrake-9.0"    => "redhat-6.2",
-   "mandrake-9.1"    => "redhat-6.2",
-   "mandrake-9.2"    => "redhat-6.2",
-   "mandrake-10.0"   => "redhat-6.2",
-   "mandrake-10.1"   => "redhat-6.2",
-
-   "debian-2.2"      => "redhat-6.2",
-   "debian-3.0"      => "debian-3.0",
-   "debian-sarge"    => "debian-3.0",
-
-   "suse-7.0"        => "redhat-6.2",
-   "suse-9.0"        => "redhat-6.2",
-   "suse-9.1"        => "redhat-6.2",
-
-   "turbolinux-7.0"  => "redhat-6.2",
-   
-   "slackware-8.0.0" => "redhat-6.2",
-   "slackware-8.1"   => "redhat-6.2",
-   "slackware-9.0.0" => "redhat-6.2",
-   "slackware-9.1.0" => "redhat-6.2",
-   "slackware-10.0.0" => "redhat-6.2",
-   "slackware-10.1.0" => "redhat-6.2",
-   "slackware-10.2.0" => "redhat-6.2",
-
-   "gentoo"          => "redhat-6.2",
-   "vlos-1.2"        => "redhat-6.2",
-
-   "archlinux"       => "archlinux",
-
-   "pld-1.0"         => "redhat-6.2",
-   "pld-1.1"         => "redhat-6.2",
-   "pld-1.99"        => "redhat-6.2",
-   "fedora-1"        => "redhat-6.2",
-   "fedora-2"        => "redhat-6.2",
-   "fedora-3"        => "redhat-6.2",
-   "rpath"           => "redhat-6.2",
-
-   "vine-3.0"        => "redhat-6.2",
-   "vine-3.1"        => "redhat-6.2",
-
-   "freebsd-5"       => "redhat-6.2",
-   "freebsd-6"       => "redhat-6.2",
-   );
-
   my %dist_tables =
   (
    "redhat-6.2" =>
@@ -382,7 +285,7 @@ sub conf_get_replace_table
    },
   );
 
-  my $dist = $dist_map {$Utils::Backend::tool{"platform"}};
+  my $dist = &get_dist ();
   return %{$dist_tables{$dist}} if $dist;
 
   &Utils::Report::do_report ("platform_no_table", $Utils::Backend::tool{"platform"});

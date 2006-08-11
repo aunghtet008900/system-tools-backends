@@ -42,12 +42,12 @@ dbus_signal ("noPlatformDetected", []);
 # --- System guessing --- #
 
 my $PLATFORM_INFO = {
-  "debian-2.2"      => [ "Debian GNU/Linux", "2.2", "Potato" ],
   "debian-3.0"      => [ "Debian GNU/Linux", "3.0", "Woody" ],
-  "debian-sarge"    => [ "Debian GNU/Linux", "3.1", "Sarge" ],
+  "debian-3.1"      => [ "Debian GNU/Linux", "3.1", "Sarge" ],
   "ubuntu-5.04"     => [ "Ubuntu Linux", "5.04", "Hoary" ],
   "ubuntu-5.10"     => [ "Ubuntu Linux", "5.10", "Breezy" ],
   "ubuntu-6.04"     => [ "Ubuntu Linux", "6.04", "Dapper" ],
+  "ubuntu-6.10"     => [ "Ubuntu Linux", "6.10", "Edgy" ],
   "redhat-5.2"      => [ "Red Hat Linux", "5.2", "Apollo" ],
   "redhat-6.0"      => [ "Red Hat Linux", "6.0", "Hedwig" ],
   "redhat-6.1"      => [ "Red Hat Linux", "6.1", "Cartman" ],
@@ -76,10 +76,6 @@ my $PLATFORM_INFO = {
   "conectiva-10"    => [ "Conectiva Linux", "10", "" ],
   "suse-9.0"        => [ "SuSE Linux", "9.0", "" ],
   "suse-9.1"        => [ "SuSE Linux", "9.1", "" ],
-  "turbolinux-7.0"  => [ "Turbolinux", "7.0", "" ],
-  "slackware-8.0.0" => [ "Slackware", "8.0.0", "" ],
-  "slackware-8.1"   => [ "Slackware", "8.1", "" ],
-  "slackware-9.0.0" => [ "Slackware", "9.0.0", "" ],
   "slackware-9.1.0" => [ "Slackware", "9.1.0", "" ],
   "slackware-10.0.0" => [ "Slackware", "10.0.0", "" ],
   "slackware-10.1.0" => [ "Slackware", "10.1.0", "" ],
@@ -100,16 +96,61 @@ my $PLATFORM_INFO = {
   "fedora-2"        => [ "Fedora Core", "2", "Tettnang" ],
   "fedora-3"        => [ "Fedora Core", "3", "Heidelberg" ],
   "fedora-4"        => [ "Fedora Core", "4", "Stentz" ],
-  "rpath"           => [ "rPath Linux", "", "" ],
+  "rpath"           => [ "rPath Linux" ],
   "ark"             => [ "Ark Linux" ]
 };
+
+sub ensure_distro_map
+{
+  my ($distro) = @_;
+
+  # This is a distro metamap, if one distro
+  # behaves *exactly* like another, just specify it here
+  my %metamap =
+    (
+     "blackpanther-4.0" => "mandrake-9.0",
+     "conectiva-10"     => "conectiva-9",
+     "debian-3.1"       => "debian-3.0",
+     "mandrake-7.1"     => "redhat-6.2",
+     "mandrake-7.2"     => "redhat-6.2",
+     "mandrake-9.1"     => "mandrake-9.0",
+     "mandrake-9.2"     => "mandrake-9.0",
+     "mandrake-10.0"    => "mandrake-9.0",
+     "mandrake-10.1"    => "mandrake-9.0",
+     "mandrake-10.2"    => "mandrake-9.0",
+     "mandriva-2006.0"  => "mandrake-9.0",
+     "mandriva-2006.1"  => "mandrake-9.0",
+     "fedora-1"         => "redhat-7.2",
+     "fedora-2"         => "redhat-7.2",
+     "fedora-3"         => "redhat-7.2",
+     "fedora-4"         => "redhat-7.2",
+     "fedora-5"         => "redhat-7.2",
+     "freebsd-6"        => "freebsd-5",
+     "freebsd-7"        => "freebsd-5",
+     "openna-1.0"       => "redhat-6.2",
+     "pld-1.1"          => "pld-1.0",
+     "pld-1.99"         => "pld-1.0",
+     "redhat-9"         => "redhat-8.0",
+     "rpath"            => "redhat-7.2",
+     "slackware-10.0.0" => "slackware-9.1.0",
+     "slackware-10.1.0" => "slackware-9.1.0",
+     "slackware-10.2.0" => "slackware-9.1.0",
+     "suse-9.1"         => "suse-9.0",
+     "ubuntu-5.04"      => "debian-3.0",
+     "ubuntu-5.10"      => "debian-3.0",
+     "ubuntu-6.06"      => "debian-3.0",
+     "ubuntu-6.10"      => "debian-3.0",
+     "vine-3.1"         => "vine-3.0",
+     "vlos-1.2"         => "gentoo"
+     );
+
+  return $metamap{$distro} if ($metamap{$distro});
+  return $distro;
+}
   
 sub check_lsb
 {
   my ($ver, $dist);
-#  my %vermap =
-#      ("3.0" => "woody");
-  
   my %distmap =
       ("Debian" => "debian"),
       ("Mandrake" => "mandrake"),
@@ -119,137 +160,10 @@ sub check_lsb
   $dist = lc (&Utils::Parse::get_sh ("/etc/lsb-release", "DISTRIB_ID"));
   $ver = lc (&Utils::Parse::get_sh ("/etc/lsb-release", "DISTRIB_RELEASE"));
   
-#  $ver = $vermap{$ver} if exists $vermap{$ver};
   $dist = $distmap{$dist} if exists $dirmap{$dir};
 
   return -1 if ($dist eq "") || ($ver eq "");
   return "$dist-$ver";
-}
-
-sub check_debian
-{
-  my ($ver, $i);
-  my %vermap =
-      ("testing/unstable" => "sarge",
-       "3.1"              => "sarge");
-
-  open DEBIAN, "$gst_prefix/etc/debian_version" or return -1;
-  chomp ($ver = <DEBIAN>);
-  close DEBIAN;
-
-  $ver = $vermap{$ver} if exists $vermap{$ver};
-  
-  return "debian-$ver";
-}
-
-
-sub check_redhat
-{
-  open RELEASE, "$gst_prefix/etc/redhat-release" or return -1;
-  while (<RELEASE>)
-  {
-    chomp;
-    if (/^Red Hat Linux.*\s+([0-9.]+)\s+.*/)
-    {
-      close RELEASE;
-      return "redhat-$1";
-    }
-  }
-  close RELEASE;
-  return -1;
-}
-
-sub check_openna
-{
-  open OPENNA, "$gst_prefix/etc/openna-release" or return -1;
-  while (<OPENNA>)
-  {
-    chomp;
-    if (/^OpenNA*/)
-    {
-      close OPENNA;
-      return "openna-$1";
-    }
-  }
-  close OPENNA;
-  return -1;
-}
-
-sub check_caldera
-{
-  open INSTALLED, "$gst_prefix/etc/.installed" or return -1;
-  while (<INSTALLED>)
-  {
-    chomp;
-    if (/^OpenLinux-(.*)-.*/)
-    {
-      close INSTALLED;
-      return "caldera-$1";
-    }
-  }
-  close INSTALLED;
-  return -1;
-}
-
-
-sub check_suse
-{
-  open RELEASE, "$gst_prefix/etc/SuSE-release" or return -1;
-  while (<RELEASE>)
-  {
-    chomp;
-    if (/^VERSION\s*=\s*(\S+)/)
-    {
-      close RELEASE;
-      return "suse-$1";
-    }
-  }
-  close RELEASE;
-  return -1;
-}
-
-sub check_mandrake
-{
-  open MANDRAKE, "$gst_prefix/etc/mandrake-release" or return -1;
-  while (<MANDRAKE>)
-  {
-    $ver = $_;
-    chomp ($ver);
-    if ($ver =~ /^Linux Mandrake release (\S+)/)
-    {
-      close MANDRAKE;
-      return "mandrake-$1";
-    }
-    elsif ($ver =~ /^Mandrake( L|l)inux release ([\d\.]+)/i)
-    {
-      close MANDRAKE;
-      return "mandrake-$2";
-    }
-  }
-  close MANDRAKE;
-  return -1;
-}
-
-sub check_mandriva
-{
-  open MANDRIVA, "$gst_prefix/etc/mandriva-release" or return -1;
-  while (<MANDRIVA>)
-  {
-    $ver = $_;
-    chomp ($ver);
-    if ($ver =~ /^Linux Mandriva release (\S+)/)
-    {
-      close MANDRIVA;
-      return "mandriva-$1";
-    }
-    elsif ($ver =~ /^Mandriva( L|l)inux release ([\d\.]+)/i)
-    {
-      close MANDRIVA;
-      return "mandriva-$2";
-    }
-  }
-  close MANDRIVA;
-  return -1;
 }
 
 sub check_yoper
@@ -279,49 +193,6 @@ sub check_yoper
    return -1;
 }
 
-sub check_blackpanther
-{
-  open BLACKPANTHER, "$gst_prefix/etc/blackPanther-release" or return -1;
-
-  while (<BLACKPANTHER>)
-  {
-    $ver = $_;
-    chomp ($ver);
-    if ($ver =~ /^Linux Black Panther release (\S+)/)
-    {
-      close BLACKPANTHER;
-      return "blackPanther-$1";    
-    }
-    elsif ($ver =~ /^Black Panther ( L|l)inux release ([\d\.]+)/i)
-    {
-      close BLACKPANTHER;
-      return "blackPanther-$2";     
-    }
-  }
-
-  close BLACKPANTHER;
-  return -1;
-}
-
-sub check_fedora
-{
-    open FEDORA, "$gst_prefix/etc/fedora-release" or return -1;
-    while (<FEDORA>)
-    {
-      $ver = $_;
-      chomp ($ver);
-
-      if ($ver =~ /^Fedora Core release (\S+)/)
-      {
-        close FEDORA;
-        return "fedora-$1";
-      }
-    }
-
-    close FEDORA;
-    return -1;
-}
-
 sub check_rpath
 {
   open RPATH, "$gst_prefix/etc/distro-release" or return -1;
@@ -344,133 +215,6 @@ sub check_rpath
   }
 
   close RPATH;
-  return -1;
-}
-
-sub check_conectiva
-{
-  open RELEASE, "$gst_prefix/etc/conectiva-release" or return -1;
-
-  while (<RELEASE>)
- 	{
-    chomp;
-
-    if (/^Conectiva Linux (\S+)/)
- 		{
-      close RELEASE;
- 			return "conectiva-$1";
- 		}
- 	}
-
-  close RELEASE;
- 	return -1;
-}
-
-sub check_turbolinux
-{
-  open RELEASE, "$gst_prefix/etc/turbolinux-release" or return -1;
-  while (<RELEASE>)
-  {
-    chomp;
-    if (/^Turbolinux\s.*\s([0-9.]+)\s.*/)
-    {
-      close RELEASE;
-      return "turbolinux-$1";
-    }
-  }
-  close RELEASE;
-  return -1;
-}
-
-sub check_slackware
-{
-  open RELEASE, "$gst_prefix/etc/slackware-version" or return -1;
-  while (<RELEASE>)
-  {
-    chomp;
-    if (/^Slackware ([0-9.]+)/)
-    {
-        close RELEASE;
-        return "slackware-$1";
-    }
-  }
-  close RELEASE;
-  return -1;
-}
-
-sub check_gentoo
-{
-  return "gentoo" if stat ("$gst_prefix/usr/portage");
-  return -1;
-}
-
-sub check_vlos
-{
-  open RELEASE, "$gst_prefix/etc/vlos-release" or return -1;
-  while (<RELEASE>)
-  {
-    chomp;
-    if (/^VLOS.*\s+([0-9.]+)/)
-    {
-      close RELEASE;
-      return "vlos-$1";
-    }
-  }
-  close RELEASE;
-  return -1;
-}
-
-sub check_archlinux
-{
-  return "archlinux" if stat ("$gst_prefix/etc/arch-release");
-  return -1;
-}
-
-sub check_linuxppc
-{
-  open RELEASE, "$gst_prefix/etc/redhat-release" or return -1;
-  while (<RELEASE>)
-  {
-    chomp;
-    if (/^LinuxPPC\s+(\S+)/)
-    {
-      close RELEASE;
-      return "linuxppc-$1";
-    }
-  }
-  close RELEASE;
-  return -1;
-}
-
-sub check_pld
-{
-  open RELEASE, "$gst_prefix/etc/pld-release" or return -1;
-  while (<RELEASE>)
-  {
-    chomp;
-               if(/^([0-9.]+) PLD Linux/)
-    {
-      close RELEASE;
-      return "pld-$1";
-    }
-  }
-  close RELEASE;
-  return -1;
-}
-
-sub check_vine
-{
-  open RELEASE, "$gst_prefix/etc/vine-release" or return -1;
-  while (<RELEASE>)
-  {
-    chomp;
-    if(/^Vine Linux ([0-9.]+)\s+.*/)
-    {
-      close RELEASE;
-      return "vine-$1";
-    }
-  }
-  close RELEASE;
   return -1;
 }
 
@@ -535,6 +279,40 @@ sub check_solaris
   return -1;
 }
 
+sub check_distro_file
+{
+  my ($file, $dist, $re, $map) = @_;
+  my ($ver);
+  local *FILE;
+
+  open FILE, "$gst_prefix/$file" or return -1;
+
+  while (<FILE>)
+  {
+    chomp;
+
+    if ($_ =~ "$re")
+    {
+      $ver = $1;
+      $ver = $$map{$ver} if ($$map{$ver});
+
+      close FILE;
+      return "$dist-$ver";
+    }
+  }
+
+  close FILE;
+  return -1;
+}
+
+sub check_file_exists
+{
+  my ($file, $distro) = @_;
+
+  return $distro if &Utils::File::exists ($file);
+  return -1;
+}
+
 sub get_system
 {
   # get the output of 'uname -s', it returns the system we are running
@@ -551,6 +329,8 @@ sub set_platform
   {
     if ($p eq $platform)
     {
+      $platform = &ensure_distro_map ($platform);
+
       $Utils::Backend::tool{"platform"} = $gst_dist = $platform;
       &Utils::Report::do_report ("platform_success", $platform);
       &Utils::Report::end ();
@@ -587,32 +367,51 @@ sub ensure_platform
 sub guess
 {
   my ($object) = @_;
+  my ($distro, $func);
+  my ($checks, $check);
 
-  my %check = (
-    # Red Hat check must run after Vine, Mandrake and Fedora, and Mandrake after BlackPanther
-    "Linux" => [ \&check_lsb, \&check_debian,   \&check_caldera, \&check_suse, \&check_blackpanther, \&check_vine,
-                 \&check_fedora, \&check_mandrake, \&check_mandriva, \&check_conectiva, \&check_linuxppc, \&check_redhat,  \&check_openna,
-                 \&check_turbolinux, \&check_slackware, \&check_vlos, \&check_gentoo,  \&check_pld, \&check_rpath, \&check_archlinux, \&check_ark, \&check_yoper ],
-    "FreeBSD" => [ \&check_freebsd ],
-    "SunOS"    => [ \&check_solaris ]
-               );
-  my $plat;
+  my %platform_checks = (
+    "Linux"   => [[ \&check_lsb ],
+                  [ \&check_distro_file, "/etc/debian_version", "debian", "(.*)", { "testing/unstable" => "sarge" } ],
+                  [ \&check_distro_file, "/etc/SuSE-release", "suse", "VERSION\s*=\s*(\S+)" ],
+                  [ \&check_distro_file, "/etc/blackPanther-release", "blackpanther", "^Linux Black Panther release (\S+)" ],
+                  [ \&check_distro_file, "/etc/blackPanther-release", "blackpanther", "^Black Panther ( L|l)inux release ([\d\.]+)" ],
+                  [ \&check_distro_file, "/etc/vine-release", "vine", "^Vine Linux ([0-9.]+)" ],
+                  [ \&check_distro_file, "/etc/fedora-release", "fedora", "^Fedora Core release (\S+)" ],
+                  [ \&check_distro_file, "/etc/mandrake-release", "mandrake", "^Linux Mandrake release (\S+)" ],
+                  [ \&check_distro_file, "/etc/mandrake-release", "mandrake", "^Mandrake( L|l)inux release ([\d\.]+)" ],
+                  [ \&check_distro_file, "/etc/mandriva-release", "mandriva", "^Linux Mandriva release (\S+)" ],
+                  [ \&check_distro_file, "/etc/mandriva-release", "mandriva", "^Mandriva( L|l)inux release ([\d\.]+)" ],
+                  [ \&check_distro_file, "/etc/conectiva-release", "conectiva", "^Conectiva Linux (\S+)" ],
+                  [ \&check_distro_file, "/etc/redhat-release", "redhat", "^Red Hat Linux.*\s+([0-9.]+)" ],
+                  [ \&check_distro_file, "/etc/openna-release", "openna", "^OpenNA (\S+)" ],
+                  [ \&check_distro_file, "/etc/slackware-version", "slackware", "^Slackware ([0-9.]+)" ],
+                  [ \&check_distro_file, "/etc/vlos-release", "vlos", "^VLOS.*\s+([0-9.]+)" ],
+                  [ \&check_file_exists, "/usr/portage", "gentoo" ],
+                  [ \&check_distro_file, "/etc/pld-release", "pld", "^([0-9.]+) PLD Linux" ],
+                  [ \&check_rpath ],
+                  [ \&check_file_exists, "/etc/arch-release", "archlinux" ],
+                  [ \&check_ark ],
+                  [ \&check_yoper ],
+                 ],
+    "FreeBSD" => [[ \&check_freebsd ]],
+    "SunOS"   => [[ \&check_solaris ]]
+  );
 
-  foreach $plat (keys %check)
-  {
-    if ($Utils::Backend::tool{"system"} =~ /$plat/)
+  $distro = $Utils::Backend::tool{"system"};
+  $checks = $platform_checks{$distro};
+
+  foreach $check (@$checks) {
+    $func = shift (@$check);
+    $dist = &$func (@$check);
+
+    # FIXME: is necessary ensure_platform?
+    if ($dist != -1 && &ensure_platform ($dist))
     {
-      my ($check, $dist);
-      
-      foreach $check (@{$check{$plat}})
-      {
-        $dist = &$check ();
-        if ($dist != -1 && &ensure_platform ($dist))
-        {
-          $Utils::Backend::tool{"platform"} = $gst_dist = $dist;
-          return;
-        }
-      }
+      $dist = &ensure_distro_map ($dist);
+      $Utils::Backend::tool{"platform"} = $gst_dist = $dist;
+      &Utils::Report::do_report ("platform_success", $dist);
+      return;
     }
   }
 

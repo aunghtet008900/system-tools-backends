@@ -1639,64 +1639,33 @@ sub set_pppconf_volume
   }
 }
 
-sub get_interface_parse_table
+sub get_interface_dist
 {
   my %dist_map =
 	 (
-    "redhat-5.2"   => "redhat-6.2",
-	  "redhat-6.0"   => "redhat-6.2",
-	  "redhat-6.1"   => "redhat-6.2",
-	  "redhat-6.2"   => "redhat-6.2",
-	  "redhat-7.0"   => "redhat-6.2",
-	  "redhat-7.1"   => "redhat-6.2",
-	  "redhat-7.2"   => "redhat-7.2",
-    "redhat-8.0"   => "redhat-8.0",
-    "redhat-9"     => "redhat-8.0",
-	  "openna-1.0"   => "redhat-6.2",
-	  "mandrake-7.1" => "redhat-6.2",
-    "mandrake-7.2" => "redhat-6.2",
-    "mandrake-9.0" => "mandrake-9.0",
-    "mandrake-9.1" => "mandrake-9.0",
-    "mandrake-9.2" => "mandrake-9.0",
-    "mandrake-10.0" => "mandrake-9.0",
-    "mandrake-10.1" => "mandrake-9.0",
-    "mandrake-10.2" => "mandrake-9.0",
-    "mandriva-2006.0" => "mandrake-9.0",
-    "mandriva-2006.1" => "mandrake-9.0",
-    "yoper-2.2"    => "redhat-6.2",
-    "blackpanther-4.0" => "mandrake-9.0",
-    "conectiva-9"  => "conectiva-9",
-    "conectiva-10" => "conectiva-9",
-    "debian-3.0"   => "debian-3.0",
-    "debian-sarge" => "debian-3.0",
-    "ubuntu-5.04"  => "debian-3.0",
-    "ubuntu-5.10"  => "debian-3.0",
-    "ubuntu-6.04"  => "debian-3.0",
-    "suse-9.0"     => "suse-9.0",
-    "suse-9.1"     => "suse-9.0",
-	  "turbolinux-7.0"   => "redhat-6.2",
-    "pld-1.0"      => "pld-1.0",
-    "pld-1.1"      => "pld-1.0",
-    "pld-1.99"     => "pld-1.0",
-    "fedora-1"     => "redhat-7.2",
-    "fedora-2"     => "redhat-7.2",
-    "fedora-3"     => "redhat-7.2",
-    "fedora-4"     => "redhat-7.2",
-    "rpath"        => "redhat-7.2",
-    "vine-3.0"     => "vine-3.0",
-    "vine-3.1"     => "vine-3.0",
-    "ark"          => "vine-3.0",
+    "redhat-6.2"      => "redhat-6.2",
+    "redhat-7.0"      => "redhat-6.2",
+    "redhat-7.1"      => "redhat-6.2",
+    "redhat-7.2"      => "redhat-7.2",
+    "redhat-8.0"      => "redhat-8.0",
+    "mandrake-9.0"    => "mandrake-9.0",
+    "yoper-2.2"       => "redhat-6.2",
+    "conectiva-9"     => "conectiva-9",
+    "debian-3.0"      => "debian-3.0",
+    "suse-9.0"        => "suse-9.0",
+    "pld-1.0"         => "pld-1.0",
+    "vine-3.0"        => "vine-3.0",
+    "ark"             => "vine-3.0",
     "slackware-9.1.0" => "slackware-9.1.0",
-    "slackware-10.0.0" => "slackware-9.1.0",
-    "slackware-10.1.0" => "slackware-9.1.0",
-    "slackware-10.2.0" => "slackware-9.1.0",
-    "gentoo"       => "gentoo",
-    "vlos-1.2"     => "gentoo",
-    "freebsd-5"    => "freebsd-5",
-    "freebsd-6"    => "freebsd-5",
-    "freebsd-7"    => "freebsd-5",
+    "gentoo"          => "gentoo",
+    "freebsd-5"       => "freebsd-5",
    );
-  
+
+  return $dist_map{$Utils::Backend::tool{"platform"}};
+}
+
+sub get_interface_parse_table
+{
   my %dist_tables =
     (
      "redhat-6.2" =>
@@ -2353,7 +2322,7 @@ sub get_interface_parse_table
      },
 	  );
   
-  my $dist = $dist_map{$Utils::Backend::tool{"platform"}};
+  my $dist = &get_interface_dist ();
   return %{$dist_tables{$dist}} if $dist;
 
   &Utils::Report::do_report ("platform_no_table", $Utils::Backend::tool{"platform"});
@@ -2362,62 +2331,6 @@ sub get_interface_parse_table
 
 sub get_interface_replace_table
 {
-  my %dist_map =
-	 (
-    "redhat-5.2"   => "redhat-6.2",
-	  "redhat-6.0"   => "redhat-6.2",
-	  "redhat-6.1"   => "redhat-6.2",
-	  "redhat-6.2"   => "redhat-6.2",
-	  "redhat-7.0"   => "redhat-6.2",
-	  "redhat-7.1"   => "redhat-6.2",
-	  "redhat-7.2"   => "redhat-7.2",
-    "redhat-8.0"   => "redhat-8.0",
-    "redhat-9"     => "redhat-8.0",
-	  "openna-1.0"   => "redhat-6.2",
-	  "mandrake-7.1" => "redhat-6.2",
-    "mandrake-7.2" => "redhat-6.2",
-    "mandrake-9.0" => "mandrake-9.0",
-    "mandrake-9.1" => "mandrake-9.0",
-    "mandrake-9.2" => "mandrake-9.0",
-    "mandrake-10.0" => "mandrake-9.0",
-    "mandrake-10.1" => "mandrake-9.0",
-    "mandrake-10.2" => "mandrake-9.0",
-    "mandriva-2006.0" => "mandrake-9.0",
-    "mandriva-2006.1" => "mandrake-9.0",
-    "yoper-2.2"    => "redhat-6.2",
-    "blackpanther-4.0" => "mandrake-9.0",
-    "conectiva-9"  => "conectiva-9",
-    "conectiva-10" => "conectiva-9",
-    "debian-3.0"   => "debian-3.0",
-    "debian-sarge" => "debian-3.0",
-    "ubuntu-5.04"  => "debian-3.0",
-    "ubuntu-5.10"  => "debian-3.0",
-    "ubuntu-6.04"  => "debian-3.0",
-    "suse-9.0"     => "suse-9.0",
-    "suse-9.1"     => "suse-9.0",
-	  "turbolinux-7.0"   => "redhat-6.2",
-    "pld-1.0"      => "pld-1.0",
-    "pld-1.1"      => "pld-1.0",
-    "pld-1.99"     => "pld-1.0",
-    "fedora-1"     => "redhat-7.2",
-    "fedora-2"     => "redhat-7.2",
-    "fedora-3"     => "redhat-7.2",
-    "fedora-4"     => "redhat-7.2",
-    "rpath"        => "redhat-7.2",
-    "vine-3.0"     => "vine-3.0",
-    "vine-3.1"     => "vine-3.0",
-    "ark"          => "vine-3.0",
-    "slackware-9.1.0" => "slackware-9.1.0",
-    "slackware-10.0.0" => "slackware-9.1.0",
-    "slackware-10.1.0" => "slackware-9.1.0",
-    "slackware-10.2.0" => "slackware-9.1.0",
-    "gentoo"       => "gentoo",
-    "vlos-1.2"     => "gentoo",
-    "freebsd-5"    => "freebsd-5",
-    "freebsd-6"    => "freebsd-5",
-    "freebsd-7"    => "freebsd-5",
-	  );
-
   my %dist_tables =
   (
    "redhat-6.2" =>
@@ -3052,7 +2965,7 @@ sub get_interface_replace_table
     }
   );
   
-  my $dist = $dist_map{$Utils::Backend::tool{"platform"}};
+  my $dist = &get_interface_dist ();
   return %{$dist_tables{$dist}} if $dist;
 
   &Utils::Report::do_report ("platform_no_table", $Utils::Backend::tool{"platform"});

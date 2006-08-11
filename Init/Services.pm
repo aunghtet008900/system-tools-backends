@@ -33,68 +33,26 @@ sub get_runlevel_roles
 
   %dist_map =
     (
-     "redhat-5.2"     => "redhat-5.2",
-     "redhat-6.0"     => "redhat-5.2",
-     "redhat-6.1"     => "redhat-5.2",
-     "redhat-6.2"     => "redhat-5.2",
-     "redhat-7.0"     => "redhat-5.2",
-     "redhat-7.1"     => "redhat-5.2",
-     "redhat-7.2"     => "redhat-5.2",
-     "redhat-7.3"     => "redhat-5.2",
-     "redhat-8.0"     => "redhat-5.2",
-     "redhat-9"       => "redhat-5.2",
-     "openna-1.0"     => "redhat-5.2",
-     
-     "mandrake-7.1"   => "redhat-5.2",
-     "mandrake-7.2"   => "redhat-5.2",
-     "mandrake-9.0"   => "redhat-5.2",
-     "mandrake-9.1"   => "redhat-5.2",
-     "mandrake-9.2"   => "redhat-5.2",
-     "mandrake-10.0"  => "redhat-5.2",
-     "mandrake-10.1"  => "redhat-5.2",
-     
-     "blackpanther-4.0" => "redhat-5.2",
-
-     "conectiva-9"    => "redhat-5.2",
-     "conectiva-10"   => "redhat-5.2",
-     
-     "debian-2.2"     => "debian-2.2",
-     "debian-3.0"     => "debian-2.2",
-     "debian-sarge"   => "debian-2.2",
-     "ubuntu-5.04"    => "debian-2.2",     
-          
-     "suse-7.0"       => "redhat-5.2",
-     "suse-9.0"       => "redhat-5.2",
-     "suse-9.1"       => "redhat-5.2",
-     
-     "turbolinux-7.0" => "redhat-5.2",
-     "pld-1.0"        => "redhat-5.2",
-     "pld-1.1"        => "redhat-5.2",
-     "pld-1.99"       => "redhat-5.2",
-     "fedora-1"       => "redhat-5.2",
-     "fedora-2"       => "redhat-5.2",
-     "fedora-3"       => "redhat-5.2",
-
-     "rpath"          => "redhat-5.2",
-
-     "vine-3.0"       => "redhat-5.2",
-     "vine-3.1"       => "redhat-5.2",
-
+     "redhat-6.2"       => "redhat-6.2",
+     "redhat-7.0"       => "redhat-6.2",
+     "redhat-7.1"       => "redhat-6.2",
+     "redhat-7.2"       => "redhat-6.2",
+     "redhat-7.3"       => "redhat-6.2",
+     "redhat-8.0"       => "redhat-6.2",
+     "mandrake-9.0"     => "redhat-6.2",
+     "conectiva-9"      => "redhat-6.2",
+     "debian-3.0"       => "debian-3.0",
+     "suse-9.0"         => "redhat-6.2",
+     "pld-1.0"          => "redhat-6.2",
+     "vine-3.0"         => "redhat-6.2",
      "slackware-9.1.0"  => "slackware-9.1.0",
-     "slackware-10.0.0" => "slackware-9.1.0",
-     "slackware-10.1.0" => "slackware-9.1.0",
-
-     "gentoo"         => "gentoo",
-     "vlos-1.2"       => "gentoo",
-
-     "freebsd-5"      => "freebsd-5",
-     "freebsd-6"      => "freebsd-5",
-     "freebsd-7"      => "freebsd-5",
+     "gentoo"           => "gentoo",
+     "freebsd-5"        => "freebsd-5",
     );
 
   %runlevels=
     (
-     "redhat-5.2"      => [["0",         "HALT"      ],
+     "redhat-6.2"      => [["0",         "HALT"      ],
                            ["1",         "RECOVER"   ],
                            ["2",         "NONE"      ],
                            ["3",         "TEXT"      ],
@@ -102,7 +60,7 @@ sub get_runlevel_roles
                            ["5",         "GRAPHICAL" ],
                            ["6",         "REBOOT"    ]],
 
-     "debian-2.2"      => [["0",         "HALT"      ],
+     "debian-3.0"      => [["0",         "HALT"      ],
                            ["1",         "RECOVER"   ],
                            ["2",         "NONE"      ],
                            ["3",         "NONE"      ],
@@ -148,62 +106,20 @@ sub get_sysv_paths
   my %dist_map =
     (
      # gst_dist => [rc.X dirs location, init.d scripts location, relative path location]
-     "redhat-5.2"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "redhat-6.0"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "redhat-6.1"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "redhat-6.2"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "redhat-7.0"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "redhat-7.1"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "redhat-7.2"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "redhat-7.3"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "redhat-8.0"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "redhat-9"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "openna-1.0"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-
-     "mandrake-7.1"  => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "mandrake-7.2"  => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "mandrake-9.0"  => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "mandrake-9.1"  => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "mandrake-9.2"  => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "mandrake-10.0" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "mandrake-10.1" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "mandrake-10.2" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "mandriva-2006.0" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "mandriva-2006.1" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-
-     "yoper-2.2" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "blackpanther-4.0" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-
-     "conectiva-9"   => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "conectiva-10"  => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-
-     "debian-2.2"    => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],
-     "debian-3.0"    => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],
-     "debian-sarge"  => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],
-     "ubuntu-5.04"   => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],       
-     "ubuntu-5.10"   => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],
-     "ubuntu-6.04"   => ["$gst_prefix/etc", "$gst_prefix/etc/init.d", "../init.d"],
-
-     "suse-7.0"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d", "../"],
-     "suse-9.0"      => ["$gst_prefix/etc/init.d", "$gst_prefix/etc/init.d", "../"],
-     "suse-9.1"      => ["$gst_prefix/etc/init.d", "$gst_prefix/etc/init.d", "../"],
-
-     "turbolinux-7.0" => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-
-     "pld-1.0"       => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "pld-1.1"       => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "pld-1.99"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-
-     "fedora-1"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "fedora-2"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "fedora-3"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "fedora-4"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-
-     "rpath"         => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-
-     "vine-3.0"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "vine-3.1"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
-     "ark"           => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "redhat-6.2"     => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "redhat-7.0"     => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "redhat-7.1"     => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "redhat-7.2"     => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "redhat-7.3"     => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "redhat-8.0"     => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "mandrake-9.0"   => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "yoper-2.2"      => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "conectiva-9"    => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "debian-3.0"     => ["$gst_prefix/etc",      "$gst_prefix/etc/init.d",      "../init.d"],
+     "suse-9.0"       => ["$gst_prefix/etc/init.d", "$gst_prefix/etc/init.d",    "../"],
+     "pld-1.0"        => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "vine-3.0"       => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "ark"            => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
      );
   my $res;
 
