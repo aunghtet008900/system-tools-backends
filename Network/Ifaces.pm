@@ -86,6 +86,27 @@ sub check_pppd_plugin
   return &Utils::File::exists ("/usr/lib/pppd/$version/$plugin.so");
 }
 
+sub check_capi
+{
+  my ($line, $i);
+
+  if ($Utils::Backend::tool{"system"} ne "Linux")
+  {
+    return &check_pppd_plugin("capiplugin");
+  }
+
+  $i=0;
+  $fd = &Utils::File::open_read_from_names ("proc/capi/controller");
+  return 0 if !$fd;
+
+  while (($line = &Utils::Parse::chomp_line_hash_comment ($fd)) != -1)
+  {
+    $i++;
+  }
+
+  return ($i > 0) ? &check_pppd_plugin("capiplugin") : 0;
+}
+
 sub get_linux_wireless_ifaces
 {
   my ($fd, $line);
@@ -169,7 +190,7 @@ sub get_interface_type
   if ($dev =~ /^(ppp|tun)/)
   {
     # check whether the proper plugin exists
-    if (&check_pppd_plugin ("capiplugin"))
+    if (&check_capi ())
     {
       $types_cache{$dev} = "isdn";
     }
@@ -2723,6 +2744,7 @@ sub get_interface_replace_table
       [ "set_default_gw",     \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "defaultroute" ]],
       [ "persist",            \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "persist" ]],
       [ "serial_port",        \&check_type, [IFACE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
+      [ "serial_speed",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
       [ "login",              \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^user (.*)", "user \"%login%\"" ]],
       [ "password",           \&check_type, [IFACE, "(modem|isdn)", \&set_pap_passwd, PAP, "%login%" ]],
       [ "password",           \&check_type, [IFACE, "(modem|isdn)", \&set_pap_passwd, CHAP, "%login%" ]],
@@ -2737,7 +2759,6 @@ sub get_interface_replace_table
 #      [ "serial_hwctl",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "crtscts" ]],
 #      [ "mtu",                \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::join_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
 #      [ "mru",                \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::join_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
-#      [ "serial_speed",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
      ]
    },
 
@@ -3278,7 +3299,9 @@ sub set
                           "dial_command" => $dial_command,
                           "login" => $$iface[8], "password" => $$iface[9],
                           "set_default_gw" => $$iface[10], "update_dns"=> $$iface[11],
-                          "persist" => $$iface[12], "noauth" => $$iface[13] };
+                          "persist" => $$iface[12], "noauth" => $$iface[13],
+                          # FIXME: hardcoded serial speed ATM
+                          "serial_speed" => "115200"};
   }
 
   foreach $iface (@$isdn)

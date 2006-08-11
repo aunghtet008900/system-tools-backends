@@ -1348,7 +1348,7 @@ sub set_ppp_options_connect
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("network_set_ppp_connect", $file);
-  $ret = &set_ppp_options_re ($file, "^connect", "connect \"/usr/sbin/chat -v -f $value\"");
+  $ret = &set_ppp_options_re ($file, "^connect", "connect \"/usr/sbin/chat -v -f /etc/chatscripts/$value\"");
   &Utils::Report::leave ();
   return $ret;
 }

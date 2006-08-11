@@ -46,7 +46,7 @@ my $PLATFORM_INFO = {
   "debian-3.1"      => [ "Debian GNU/Linux", "3.1", "Sarge" ],
   "ubuntu-5.04"     => [ "Ubuntu Linux", "5.04", "Hoary" ],
   "ubuntu-5.10"     => [ "Ubuntu Linux", "5.10", "Breezy" ],
-  "ubuntu-6.04"     => [ "Ubuntu Linux", "6.04", "Dapper" ],
+  "ubuntu-6.06"     => [ "Ubuntu Linux", "6.06", "Dapper" ],
   "ubuntu-6.10"     => [ "Ubuntu Linux", "6.10", "Edgy" ],
   "redhat-5.2"      => [ "Red Hat Linux", "5.2", "Apollo" ],
   "redhat-6.0"      => [ "Red Hat Linux", "6.0", "Hedwig" ],
@@ -151,17 +151,10 @@ sub ensure_distro_map
 sub check_lsb
 {
   my ($ver, $dist);
-  my %distmap =
-      ("Debian" => "debian"),
-      ("Mandrake" => "mandrake"),
-      ("Conectiva" => "conectiva"),
-      ("Blackpanther" => "blackpanther");
 
   $dist = lc (&Utils::Parse::get_sh ("/etc/lsb-release", "DISTRIB_ID"));
   $ver = lc (&Utils::Parse::get_sh ("/etc/lsb-release", "DISTRIB_RELEASE"));
   
-  $dist = $distmap{$dist} if exists $dirmap{$dir};
-
   return -1 if ($dist eq "") || ($ver eq "");
   return "$dist-$ver";
 }

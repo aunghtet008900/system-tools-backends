@@ -56,15 +56,6 @@ sub get_backup_path
   return (&get_base_path () . "/backup");
 }
 
-
-sub get_data_path
-{
-  my $path = &get_base_path (). "/data";
-  chmod (0755, $path);
-  return $path;
-}
-
-
 # Give a command, and it will put in C locale, some sane PATH values and find
 # the program to run in the path. Redirects stderr to null.
 sub do_get_cmd_path

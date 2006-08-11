@@ -287,6 +287,7 @@ sub get_role
     "postgresql" => "DATABASE_SERVER",
     "postgresql-7.4" => "DATABASE_SERVER",
     "postgresql-8.0" => "DATABASE_SERVER",
+    "postgresql-8.1" => "DATABASE_SERVER",
     "ppp"	=> "NETWORK",
     "proftpd" => "FTP_SERVER",
     "privoxy" => "NETWORK",

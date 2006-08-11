@@ -1,5 +1,22 @@
 2006-08-11  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Init/ServicesList.pm: add postgresql-8.1 to the list. Ubuntu patch
+	* Network/Ifaces.pm (check_capi): modified Ubuntu patch. More reliable
+	ISDN detection on Linux.
+	(get_interface_replace_table) (set): hardcode serial speed to 115200.
+	Modified Ubuntu patch
+	* Utils/Backend.pm (daemonize) (set_no_daemon) (init): run daemonized
+	by default, add --no-daemon. Modified Ubuntu patch. Also, remove lots
+	of unused code
+	* Utils/File.pm (get_data_path): removed, no longer necessary
+	* Utils/Platform.pm: slight code fixes
+	* Utils/Replace.pm (set_ppp_options_connect): use chatscript path.
+	Ubuntu patch.
+
+	Thanks to the Ubuntu Folks!! (mvo and dholbach surely)
+
+2006-08-11  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Utils/Platform.pm (guess): make distribution detection more generic,
 	remove lots of check_distro() functions.
 	(ensure_distro_map): create a distro metamap, from now adding a new
