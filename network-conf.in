@@ -72,7 +72,7 @@ $version = "@VERSION@";
               "ubuntu-5.04", "ubuntu-5.10", "ubuntu-6.04",
               "suse-7.0", "suse-9.0", "suse-9.1",
               "turbolinux-7.0", "fedora-1", "fedora-2", "fedora-3", "fedora-4", "rpath",
-              "pld-1.0", "pld-1.1", "pld-1.99",
+              "pld-1.0", "pld-1.1", "pld-1.99", "pld-2.99",
               "conectiva-9", "conectiva-10",
               "vine-3.0", "vine-3.1",
               "ark", 

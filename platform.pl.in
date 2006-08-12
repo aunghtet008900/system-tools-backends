@@ -91,6 +91,7 @@ $PLATFORM_INFO = {
   "pld-1.0"         => "PLD 1.0 Ra",
   "pld-1.1"         => "PLD 1.1 Ra",
   "pld-1.99"        => "PLD 1.99 Ac-pre",
+  "pld-2.99"        => "PLD 2.99 Th-pre",
   "vine-3.0"        => "Vine Linux 3.0",
   "vine-3.1"        => "Vine Linux 3.1",
   "fedora-1"        => "Fedora Core 1 (Yarrow)",

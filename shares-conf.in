@@ -70,7 +70,7 @@ $version = "@VERSION@";
               "debian-2.2", "debian-3.0", "debian-sarge",
               "suse-7.0", "suse-9.0",
               "turbolinux-7.0", "fedora-1", "fedora-2", "fedora-3",
-              "pld-1.0", "pld-1.1", "pld-1.99",
+              "pld-1.0", "pld-1.1", "pld-1.99", "pld-2.99",
               "conectiva-9", "conectiva-10",
               "slackware-9.1.0", "slackware-10.0.0", "slackware-10.1.0", "slackware-10.2.0",
               "gentoo", "vlos-1.2", "freebsd-5", "freebsd-6", "freebsd-7", "rpath");
@@ -544,6 +544,7 @@ sub gst_installed_daemons_parse_table
      "pld-1.0"      => "redhat-6.2",
      "pld-1.1"      => "redhat-6.2",
      "pld-1.99"     => "redhat-6.2",
+     "pld-2.99"     => "redhat-6.2",
      "fedora-1"     => "redhat-6.2",
      "fedora-2"     => "redhat-6.2",
      "fedora-3"     => "redhat-6.2",

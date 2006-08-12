@@ -52,7 +52,7 @@ $version = "@VERSION@";
               "debian-2.2", "debian-3.0", "debian-sarge",
 
               "suse-7.0", "turbolinux-7.0", "fedora-1", "fedora-2", "fedora-3", "rpath",
-              "pld-1.0", "pld-1.1", "pld-1.99",
+              "pld-1.0", "pld-1.1", "pld-1.99", "pld-2.99",
               "slackware-9.1.0", "slackware-10.0.0", "slackware-10.1.0", "slackware-10.2.0",
               "vine-3.0", "vine-3.1",
               "gentoo", "archlinux", "vlos-1.2", "freebsd-5", "freebsd-6", "freebsd-7", "suse-9.0", "suse-9.1");

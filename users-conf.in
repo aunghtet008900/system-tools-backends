@@ -79,7 +79,7 @@ $version = "@VERSION@";
               "freebsd-4", "freebsd-5", "freebsd-6", "freebsd-7",
               "gentoo", "vlos-1.2",
               "archlinux",
-              "pld-1.0", "pld-1.1", "pld-1.99", "fedora-1", "fedora-2", "fedora-3", "rpath", "vine-3.0", "vine-3.1");
+              "pld-1.0", "pld-1.1", "pld-1.99", "pld-2.99", "fedora-1", "fedora-2", "fedora-3", "rpath", "vine-3.0", "vine-3.1");
 
 $description =<<"end_of_description;";
        Manages system users.
@@ -355,6 +355,7 @@ my $logindefs_dist_map = {
   'pld-1.0'         => $rh_logindefs_defaults,
   'pld-1.1'         => $rh_logindefs_defaults,
   'pld-1.99'        => $rh_logindefs_defaults,
+  'pld-2.99'        => $rh_logindefs_defaults,
   'fedora-1'        => $rh_logindefs_defaults,
   'fedora-2'        => $rh_logindefs_defaults,
   'fedora-3'        => $rh_logindefs_defaults,
