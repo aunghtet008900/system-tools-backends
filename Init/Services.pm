@@ -289,7 +289,7 @@ sub set_sysv_services
 sub get_filerc_runlevels_status
 {
   my ($start_service, $stop_service, $priority) = @_;
-  my (@arr, @ret);
+  my (@arr);
 
   # we start with the runlevels in which the service starts
   if ($start_service !~ /-/) {
@@ -299,9 +299,7 @@ sub get_filerc_runlevels_status
 
     foreach $runlevel (@runlevels)
     {
-      push @arr, { "name"     => $runlevel,
-                   "action"   => "start",
-                   "priority" => $priority};
+      push @arr, [ $runlevel, "start", $priority ];
     }
   }
 
@@ -313,21 +311,17 @@ sub get_filerc_runlevels_status
 
     foreach $runlevel (@runlevels)
     {
-      push @arr, { "name"     => $runlevel,
-                   "action"   => "stop",
-                   "priority" => $priority};
+      push @arr, [ $runlevel, "stop", $priority ];
     }
   }
 
-  push @ret, {"runlevel" => \@arr};
-  return \@ret;
+  return \@arr;
 }
 
 sub get_filerc_service_info
 {
   my ($line, %ret) = @_;
-  my %hash;
-  my @runlevels;
+  my (@runlevels, $role);
 
   if ($line =~ /^([0-9][0-9])[\t ]+([0-9\-S,]+)[\t ]+([0-9\-S,]+)[\t ]+\/etc\/init\.d\/(.*)/)
   {
@@ -336,57 +330,55 @@ sub get_filerc_service_info
     $start_service = $3;
     $script = $4;
 
-    return undef if (&Init::ServicesList::is_forbidden ($script));
+    return if (&Init::ServicesList::is_forbidden ($script));
 
-    $hash{"script"} = $script;
+    $runlevels = &get_filerc_runlevels_status ($start_service, $stop_service, $priority);
+    $role = &Init::ServicesList::get_role ($script);
 
-    $hash{"runlevels"} = &get_filerc_runlevels_status ($start_service, $stop_service, $priority);
-    $hash{"role"} = &Init::ServicesList::get_role ($script);
-
-    return (\%hash);
+    return ($script, $role, $runlevels);
   }
 
-  return undef;
+  return;
 }
 
 sub get_filerc_services
 {
 	my ($script);
-  my (%ret);
-	
+  my ($script, @arr, %hash);
+
   open FILE, "$gst_prefix/etc/runlevel.conf" or return undef;
   while ($line = <FILE>)
   {
-    if ($line !~ /^#.*/)
+    next if ($line =~ /^\#.*/);
+
+    my (@info);
+    my ($start_service, $stop_service);
+
+    @info = &get_filerc_service_info ($line);
+    next if (!scalar (@info));
+
+    $script = $info[0];
+
+    if (!$hash{$script})
     {
-      my (%hash);
-      my ($start_service, $stop_service);
-      $hash = &get_filerc_service_info ($line);
-
-      if ($hash ne undef)
+      $hash{$script} = \@info;
+    }
+    else
+    {
+      # We need to mix the runlevels
+      foreach $runlevel (@{$info[2]})
       {
-        $script = $$hash{"script"};
-
-        if ($ret{$script} eq undef)
-        {
-          $ret{$script} = $hash;
-        }
-        else
-        {
-          my (@runlevels);
-
-          # We need to mix the runlevels
-          @runlevels = $$hash{"runlevels"}[0]{"runlevel"};
-          foreach $runlevel (@runlevels)
-          {
-            push @{$ret{$script}{"runlevels"}[0]{"runlevel"}}, $runlevel;
-          }
-        }
+        push @{$hash{$script}[2]}, $runlevel;
       }
     }
   }
 
-  return \%ret;
+  foreach $key (keys %hash)
+  {
+    push @arr, $hash{$key};
+  }
+
+  return \@arr;
 }
 
 # These are the functions for storing the service settings in file-rc

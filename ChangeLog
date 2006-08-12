@@ -1,3 +1,7 @@
+2006-08-12  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Init/Services.pm: fixes to file-rc services parsing
+
 2006-08-12  Cezary Krzyżanowski  <cezary.krzyzanowski@gmail.com>
 
 	* Utils/Platform.pm: added support for PLD 2.99
