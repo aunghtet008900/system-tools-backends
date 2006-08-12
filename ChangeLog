@@ -1,3 +1,7 @@
+2006-08-12  Cezary KrzyÅ¼anowski  <cezary.krzyzanowski@gmail.com>
+
+	* Utils/Platform.pm: added support for PLD 2.99
+
 2006-08-11  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Init/ServicesList.pm: add postgresql-8.1 to the list. Ubuntu patch
@@ -1294,7 +1298,7 @@
 
         * configure.in: Added 'bs' to ALL_LINGUAS.
 
-2004-08-27  Iñaki Larrañaga  <dooteo@euskalgnu.org>
+2004-08-27  IÃ±aki LarraÃ±aga  <dooteo@euskalgnu.org>
 
 	* configure.in: Added "eu" (Basque) to ALL_LINGUAS.
 
@@ -1311,7 +1315,7 @@
 
 2004-08-21  Kjartan Maraas  <kmaraas@gnome.org>
 
-	* configure.in: Added «nb» to ALL_LINGUAS.
+	* configure.in: Added Â«nbÂ» to ALL_LINGUAS.
 
 2004-08-20  Carlos Garnacho Parro  <carlosg@gnome.org>
 
@@ -1385,27 +1389,27 @@
 	* platform.pl.in: /etc/debian_release in Sarge now contains "3.1".
 	Updated
 
-2004-07-30  Carlos García Campos <elkalmail@yahoo.es>
+2004-07-30  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* file.pl.in: added get_cmd_path_with_stderr and
 	run_pipe_read_with_stderr 
 
-2004-07-29  Carlos García Campos <elkalmail@yahoo.es>
+2004-07-29  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: removed unused variable list_devices in
 	scan_[scsi|ide]_bus. Added device as an optional paramater for
 	scan_[scsi|ide]_bus funtions.
 
-2004-07-28  Carlos García Campos <elkalmail@yahoo.es>
+2004-07-28  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: added disk_info directive to get information about a
 	certain disk. Modularization of xml_print
 
-2004-07-26  Carlos García Campos <elkalmail@yahoo.es>
+2004-07-26  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: added suse-9.1 to the supported distros list
 	
-2004-07-25  Carlos García Campos <elkalmail@yahoo.es>
+2004-07-25  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: look for mount point into fstab, using alias, when a
 	device is not mounted.
@@ -1519,7 +1523,7 @@
 	* service.pl.in, services-conf.in: Added support for SuSE 9.0
 	* service-list.pl.in: added some forbidden services for SuSE 9.0
 
-2004-05-24  Carlos García Campos <elkalmail@yahoo.es>
+2004-05-24  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: added support for device aliases to manage symlinks
 	for a device file. New method to scan buses, added scan_ide_bus and
@@ -1602,7 +1606,7 @@
 	  for FreeBSD, only the PPP stuff is missing, the rest seems quite
 	  stable
 
-2004-05-02  Carlos García Campos <elkalmail@yahoo.es>
+2004-05-02  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: mounts as user who launched the frontend when it's
 	possible. Gets cdrom capabilities using ioctls instead of /proc
@@ -1633,7 +1637,7 @@
 	* service.pl.in: used "forcestatus" to get a service status.
 	  (gst_service_rcng_installed): added
 
-2004-04-22  Carlos García Campos <elkalmail@yahoo.es>
+2004-04-22  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: added bit present to all devices to represent a
 	device listed in fstab but no present in the current system, usually
@@ -1648,7 +1652,7 @@
 
 	* configure.in: Added pl to ALL_LINGUAS.
 
-2004-04-20  Carlos García Campos <elkalmail@yahoo.es>
+2004-04-20  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: declare @tracks variable with "my" to set local scope
 	for it
@@ -1666,7 +1670,7 @@
 	  FreeBSD, support for saving the services config is to come
 	* service-list: added a bunch of forbidden services for FreeBSD
 
-2004-04-18  Carlos García Campos <elkalmail@yahoo.es>
+2004-04-18  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: added get_cdrom_disc_info to get information
 	specific for each cdrom disc type (data, audio and mixed)
@@ -1686,22 +1690,22 @@
 	* disks-conf.in (get_dev_speed) (dev_speed): made it not to block
 	  UI when getting the device speed
 
-2004-04-11  Carlos García Campos <elkalmail@yahoo.es>
+2004-04-11  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: fixed minor bug in mount directive
 
-2004-04-11  Carlos García Campos <elkalmail@yahoo.es>
+2004-04-11  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: added <mounted> and <point> tags for data and mixed
 	cdrom
 
-2004-04-10  Carlos García Campos <elkalmail@yahoo.es>
+2004-04-10  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: sorts devices by "media" to send it sorted to the
 	frontend. In mount directive it sends extra information even if an
 	error have been occurred. 
 
-2004-04-09  Carlos García Campos <elkalmail@yahoo.es>
+2004-04-09  Carlos GarcÃ­a Campos <elkalmail@yahoo.es>
 
 	* disks-conf.in: added a directive for mount / umount actions
 
