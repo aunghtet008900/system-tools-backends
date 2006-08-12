@@ -1,3 +1,35 @@
+System Tools Backends Version 1.9.3, 2006-08-12
+-----------------------------------------------
+
+The System Tools Backends version 1.9.3 "Pit stop for the mind" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), Gentoo, Slackware, FreeBSD, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  - Fix services parsing on Gentoo (garnacho)
+  - Fix services parsing with file-rc (garnacho)
+  - Make platform detection code more generic, create a distro metamap, from now adding a new distro that behaves *exactly* like other is one liner (garnacho)
+  - Various code cleanups and improvements, avoid redundancy with distro maps. (garnacho)
+  - Add support for PLD 2.99 (Cezary Krzyżanowski)
+  - Several modified and unmodified Ubuntu patches:
+    * Add Posgresql-8.1 to services list
+    * Better ISDN detection
+    * set default serial port speed to 115200
+    * daemonize the backend
+    * specify chatscript path to pppd
+
+Thanks to Cezary Krzyżanowski and the Ubuntu folks
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/1.9/
+
+
 System Tools Backends Version 1.9.2, 2006-08-02
 -----------------------------------------------
 

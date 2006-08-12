@@ -1,5 +1,9 @@
 2006-08-12  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Release 1.9.3
+
+2006-08-12  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Init/Services.pm: fixes to file-rc services parsing
 
 2006-08-12  Cezary Krzyżanowski  <cezary.krzyzanowski@gmail.com>
