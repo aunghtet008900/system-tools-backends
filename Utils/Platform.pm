@@ -304,7 +304,7 @@ sub check_file_exists
 {
   my ($file, $distro) = @_;
 
-  return $distro if &Utils::File::exists ($file);
+  return $distro if stat ("$gst_prefix/$file");
   return -1;
 }
 
@@ -320,17 +320,15 @@ sub set_platform
   my ($platform) = @_;
   my ($p);
 
-  foreach $p (keys %$PLATFORM_INFO)
-  {
-    if ($p eq $platform)
-    {
-      $platform = &ensure_distro_map ($platform);
 
-      $Utils::Backend::tool{"platform"} = $gst_dist = $platform;
-      &Utils::Report::do_report ("platform_success", $platform);
-      &Utils::Report::end ();
-      return;
-    }
+  if (&ensure_platform ($platform))
+  {
+    $platform = &ensure_distro_map ($platform);
+
+    $Utils::Backend::tool{"platform"} = $gst_dist = $platform;
+    &Utils::Report::do_report ("platform_success", $platform);
+    &Utils::Report::end ();
+    return;
   }
 
   &set_platform_unsupported ($object);
@@ -349,13 +347,8 @@ sub set_platform_unsupported
 sub ensure_platform
 {
   my ($platform) = @_;
-  my ($p);
 
-  foreach $p (keys %$PLATFORM_INFO)
-  {
-    return $platform if ($p eq $platform);
-  }
-
+  return $platform if ($$PLATFORM_INFO{$platform} ne undef);
   return undef;
 }
 
@@ -400,7 +393,6 @@ sub guess
     $func = shift (@$check);
     $dist = &$func (@$check);
 
-    # FIXME: is necessary ensure_platform?
     if ($dist != -1 && &ensure_platform ($dist))
     {
       $dist = &ensure_distro_map ($dist);

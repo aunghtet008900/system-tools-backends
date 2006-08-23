@@ -1,3 +1,9 @@
+2006-08-23  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Platform.pm (check_file_exists): fix distro detection in the
+	Gentoo case.
+	(set_platform), (ensure_platform): code improvements.
+
 2006-08-12  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 1.9.3
