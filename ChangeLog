@@ -1,3 +1,8 @@
+2006-08-29  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Time/NTP.pm: set the time with ntpdate if available. ATM it will
+	only work if there isn't a NTP server running.
+
 2006-08-23  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Utils/Platform.pm (check_file_exists): fix distro detection in the

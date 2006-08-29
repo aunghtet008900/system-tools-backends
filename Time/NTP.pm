@@ -138,6 +138,20 @@ sub set_ntp_servers
   return &ntp_conf_replace ($ntp_conf, "server", "[ \t]+", @config);
 }
 
+sub apply_ntp_date
+{
+  my ($config) = @_;
+  my ($servers, $server);
+
+  foreach $server (@$config) {
+      $servers .= " $server";
+  }
+
+  # run ntpdate, this will only be effective
+  # when there isn't any NTP server running
+  &Utils::File::run ("ntpdate -b $servers") if ($servers);
+}
+
 sub get
 {
   return &get_ntp_servers ();
@@ -145,6 +159,7 @@ sub get
 
 sub set
 {
+  &apply_ntp_date (@_);
   return &set_ntp_servers (@_);
 }
 
