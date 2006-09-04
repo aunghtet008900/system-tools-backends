@@ -236,16 +236,42 @@ sub add_sysv_link
   &Utils::Report::leave ();
 }
 
+sub run_sysv_initd_script
+{
+  my ($service, $arg) = @_;
+  my ($rc_path, $initd_path);
+  my $str;
+
+  &Utils::Report::enter ();
+  
+  ($rcd_path, $initd_path) = &get_sysv_paths ();
+
+  if (-f "$initd_path/$service")
+  {
+    if (&Utils::File::run ("$initd_path/$service $arg") == 0)
+    {
+      &Utils::Report::do_report ("service_sysv_op_success", $service, $arg);
+      &Utils::Report::leave ();
+      return 0;
+    }
+  }
+  
+  &Utils::Report::do_report ("service_sysv_op_failed", $service, $arg);
+  &Utils::Report::leave ();
+  return -1;
+}
+
 sub set_sysv_service
 {
   my ($service) = @_;
-  my ($script, $priority, $runlevels);
+  my ($script, $priority, $runlevels, $default_runlevel);
   my ($runlevel, $action, %configured_runlevels);
 
   ($rcd_path, $initd_path, $relative_path) = &get_sysv_paths ();
 
   $script = $$service[0];
   $runlevels = $$service[2];
+  $default_runlevel = &get_sysv_default_runlevel ();
 
   foreach $r (@$runlevels)
   {
@@ -259,6 +285,11 @@ sub set_sysv_service
     {
       &remove_sysv_link ($rcd_path, $runlevel, $script);
       &add_sysv_link ($rcd_path, $relative_path, $runlevel, $action, $priority, $script);
+
+      if ($runlevel eq $default_runlevel)
+      {
+        &run_sysv_initd_script ($script, $$r[1]);
+      }
     }
   }
 
@@ -271,6 +302,11 @@ sub set_sysv_service
     if (!exists $configured_runlevels{$runlevel})
     {
       &remove_sysv_link ($rcd_path, $runlevel, $script);
+
+      if ($runlevel eq $default_runlevel)
+      {
+        &run_sysv_initd_script ($script, "stop");
+      }
     }
   }
 }
@@ -394,13 +430,17 @@ sub set_filerc_service
 {
   my ($buff, $initd_path, $service) = @_;
   my (%hash, $priority, $line, $str);
+  my ($script, $default_runlevel, %configured_runlevels);
 
+  $script = $$service[0];
   $runlevels = $$service[2];
+  $default_runlevel = &get_sysv_default_runlevel ();
 
   foreach $i (@$runlevels)
   {
     $priority = 0 + $$i[2];
     $priority = 50 if ($priority == 0); #very rough guess
+    $configured_runlevels {$$i[0]} = 1;
 
     if ($$i[1] eq "start")
     {
@@ -412,6 +452,11 @@ sub set_filerc_service
       $hash{$priority}{"stop"} = [] if (!$hash{$priority}{"stop"});
       push @{$hash{$priority}{"stop"}}, $$i[0];
     }
+
+    if ($$i[0] eq $default_runlevel)
+    {
+      &run_sysv_initd_script ($script, $$i[1]);
+    }
   }
 
   foreach $priority (keys %hash)
@@ -419,9 +464,15 @@ sub set_filerc_service
     $line  = sprintf ("%0.2d", $priority) . "\t";
     $line .= &concat_filerc_runlevels (@{$hash{$priority}{"stop"}}) . "\t";
     $line .= &concat_filerc_runlevels (@{$hash{$priority}{"start"}}) . "\t";
-    $line .= $initd_path . "/" . $$service{"script"} . "\n";
+    $line .= $initd_path . "/" . $script . "\n";
 
     push @$buff, $line;
+  }
+
+  # stop the service if it's not configured
+  if (!$configured_runlevels {$default_runlevel})
+  {
+    &run_sysv_initd_script ($script, "stop");
   }
 }
 
@@ -429,7 +480,7 @@ sub set_filerc_services
 {
   my ($services) = @_;
   my ($buff, $lineno, $line, $file);
-  my ($rcd_path, $initd_path, $relative_path) = &sysv_get_paths ();
+  my ($rcd_path, $initd_path, $relative_path) = &get_sysv_paths ();
 
   $file = "/etc/runlevel.conf";
 
@@ -547,6 +598,29 @@ sub get_bsd_services
   return \%ret;
 }
 
+sub run_bsd_script
+{
+  my ($service, $arg) = @_;
+  my ($chmod) = 0;
+
+  return if (!&Utils::File::exists ($service));
+
+  # if it's not executable then chmod it
+  if (!((stat ($service))[2] & (S_IXUSR || S_IXGRP || S_IXOTH)))
+  {
+    $chmod = 1;
+    &Utils::File::run ("chmod ugo+x $service");
+  }
+  
+  &Utils::File::run ("$service $arg");
+
+  # return it to it's normal state
+  if ($chmod)
+  {
+    &Utils::File::run ("chmod ugo-x $service");
+  }
+}
+
 # This function stores the configuration in a bsd init
 sub set_bsd_services
 {
@@ -564,9 +638,11 @@ sub set_bsd_services
     if ($action eq "start")
     {
       &Utils::File::run ("chmod ugo+x $script");
+      &run_bsd_script ($script, "start");
     }
     else
     {
+      &run_bsd_script ($script, "stop");
       &Utils::File::run ("chmod ugo-x $script");
     }
   }
@@ -731,6 +807,28 @@ sub get_gentoo_services
   return \@arr;
 }
 
+#FIXME: almost equal to the sysv equivalent
+sub run_gentoo_script
+{
+  my ($service, $arg) = @_;
+
+  &Utils::Report::enter ();
+
+  if (&gentoo_service_exists ($service))
+  {
+    if (!&Utils::File::run ("/etc/init.d/$service $arg"))
+    {
+      &Utils::Report::do_report ("service_sysv_op_success", $service, $arg);
+      &Utils::Report::leave ();
+	    return 0;
+	  }
+  }
+
+  &Utils::Report::do_report ("service_sysv_op_failed", $service, $arg);
+  &Utils::Report::leave ();
+  return -1;
+}
+
 sub set_gentoo_service_status
 {
   my ($script, $rl, $action) = @_;
@@ -738,9 +836,11 @@ sub set_gentoo_service_status
   if ($action eq "start")
   {
     &Utils::File::run ("rc-update add $script $rl");
+    &run_gentoo_script ($script, "start");
   }
-  elsif ($action eq "stop")
+  else
   {
+    &run_gentoo_script ($script, "stop");
     &Utils::File::run ("rc-update del $script $rl");
   }
 }
@@ -844,6 +944,24 @@ sub get_rcng_services
   return \%ret;
 }
 
+sub run_rcng_script
+{
+  my ($service, $arg) = @_;
+
+  &Utils::Report::enter ();
+
+  if (!&Utils::File::run ("/etc/rc.d/$service $arg"))
+  {
+    &Utils::File::do_report ("service_sysv_op_success", $service, $arg);
+    &Utils::File::leave ();
+    return 0;
+  }
+
+  &Utils::File::do_report ("service_sysv_op_failed", $service, $arg);
+  &Utils::File::leave ();
+  return -1;
+}
+
 # These functions store the configuration of a rcng init
 sub set_rcng_service_status
 {
@@ -873,6 +991,8 @@ sub set_rcng_service_status
         {
           &Utils::Replace::set_sh_bool ($rcconf, $key, "YES", "NO", $action);
         }
+
+        &run_rcng_script ($service, ($action) ? "forcestart" : "forcestop");
       }
     }
 
@@ -882,11 +1002,13 @@ sub set_rcng_service_status
   {
     if ($action)
     {
-      Utils::File::copy_file ("/usr/local/etc/rc.d/$service.sh.sample",
+      &Utils::File::copy_file ("/usr/local/etc/rc.d/$service.sh.sample",
                               "/usr/local/etc/rc.d/$service.sh");
+      &run_rcng_script ($service, "forcestart");
     }
     else
     {
+      &run_rcng_script ($service, "forcestop");
       Utils::File::remove ("/usr/local/etc/rc.d/$service.sh");
     }
   }
@@ -910,6 +1032,7 @@ sub set_archlinux_service_status
   }
 
   &Utils::Replace::set_sh ($rcconf, "DAEMONS", $daemons);
+  &run_rcng_script ($service, ($active) ? "start" : "stop");
 }
 
 sub set_rcng_services
@@ -1001,21 +1124,29 @@ sub set_suse_services
 {
   my ($services) = @_;
   my ($action, $runlevels, $script, $rllist);
+  my (%configured_runlevels, $default_runlevel);
+
+  $default_runlevel = &get_sysv_default_runlevel ();
 
   foreach $service (@$services)
   {
     $script = $$service[0];
     $runlevels = $$service[2];
     $rllist = "";
+    %configured_runlevels = {};
 
     &Utils::File::run ("insserv -r $script");
 
     foreach $rl (@$runlevels)
     {
+      $configured_runlevels{$$rl[0]} = 1;
+
       if ($$rl[1] eq "start")
       {
         $rllist .= $$rl[0] . ",";
       }
+
+      &run_sysv_initd_script ($script, $$rl[1]);
     }
 
     if ($rllist ne "")
@@ -1023,6 +1154,11 @@ sub set_suse_services
       $rllist =~ s/,$//;
 
       &Utils::File::run ("insserv $script,start=$rllist");
+    }
+
+    if (!$configured_runlevels{$default_runlevel})
+    {
+      &run_sysv_initd_script ($script, $$rl[1]);
     }
   }
 }
@@ -1058,6 +1194,25 @@ sub get_init_type
   {
     return "sysv";
   }
+}
+
+sub run_script
+{
+  my ($service, $arg) = @_;
+  my ($proc, $type);
+  my %map =
+    (
+     "sysv"    => \&run_sysv_initd_script,
+     "file-rc" => \&run_sysv_initd_script,
+     "bsd"     => \&run_bsd_script,
+     "gentoo"  => \&run_gentoo_script,
+     "rcng"    => \&run_rcng_script,
+     "suse"    => \&run_sysv_initd_script,
+    );
+
+  $type = &get_init_type ();
+  $proc = $map {$type};
+  &$proc ($service, $arg);
 }
 
 sub get

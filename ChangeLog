@@ -1,3 +1,13 @@
+2006-09-04  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Services.pm (run_sysv_initd_script) (run_bsd_script)
+	(run_gentoo_script) (run_rcng_script) (run_script): Added back.
+
+	(set_sysv_service) (set_filerc_service) (set_bsd_services)
+	(set_gentoo_service_status) (set_rcng_service_status)
+	(set_archlinux_service_status) (set_suse_services): call the
+	appropiate functions to start/stop a service.
+
 2006-08-29  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Time/NTP.pm: set the time with ntpdate if available. ATM it will
