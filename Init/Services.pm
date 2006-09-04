@@ -26,7 +26,7 @@ package Init::Services;
 
 use Init::ServicesList;
 
-sub get_runlevel_roles
+sub get_runlevels
 {
   my (%dist_map, %runlevels);
   my ($desc, $distro);
@@ -41,40 +41,20 @@ sub get_runlevel_roles
      "redhat-8.0"       => "redhat-6.2",
      "mandrake-9.0"     => "redhat-6.2",
      "conectiva-9"      => "redhat-6.2",
-     "debian-3.0"       => "debian-3.0",
+     "debian-3.0"       => "redhat-6.2",
      "suse-9.0"         => "redhat-6.2",
      "pld-1.0"          => "redhat-6.2",
      "vine-3.0"         => "redhat-6.2",
      "slackware-9.1.0"  => "slackware-9.1.0",
      "gentoo"           => "gentoo",
-     "freebsd-5"        => "freebsd-5",
+     "freebsd-5"        => "slackware-9.1.0",
     );
 
   %runlevels=
     (
-     "redhat-6.2"      => [["0",         "HALT"      ],
-                           ["1",         "RECOVER"   ],
-                           ["2",         "NONE"      ],
-                           ["3",         "TEXT"      ],
-                           ["4",         "NONE"      ],
-                           ["5",         "GRAPHICAL" ],
-                           ["6",         "REBOOT"    ]],
-
-     "debian-3.0"      => [["0",         "HALT"      ],
-                           ["1",         "RECOVER"   ],
-                           ["2",         "NONE"      ],
-                           ["3",         "NONE"      ],
-                           ["4",         "NONE"      ],
-                           ["5",         "NONE"      ],
-                           ["6",         "REBOOT"    ]],
-
-     "gentoo"          => [["boot",      "BOOT"      ],
-                           ["default",   "GRAPHICAL" ],
-                           ["nonetwork", "RECOVER"   ]],
-
-     "freebsd-5"       => [["default",   "GRAPHICAL" ]],
-
-     "slackware-9.1.0" => [["default",   "GRAPHICAL" ]]
+     "redhat-6.2"      => [ "0", "1", "2", "3", "4", "5", "6" ],
+     "gentoo"          => [ "boot", "default", "nonetwork" ],
+     "freebsd-5"       => [ "default" ],
     );
 
   $distro = $dist_map{$Utils::Backend::tool{"platform"}};
@@ -179,14 +159,9 @@ sub get_sysv_service_info
 	return unless (-x $service);
 
 	$script = &get_sysv_service_name ($service);
-		
-	# We have to check out if the service is in the "forbidden" list
-	return if (&Init::ServicesList::is_forbidden ($script));
-
 	$runlevels = &get_sysv_runlevels_status($script);
-  $role = &Init::ServicesList::get_role ($script);
 
-  return ($script, $role, $runlevels);
+  return ($script, $runlevels);
 }
 
 # This function gets an ordered array of the available services from a SysV system
@@ -270,7 +245,7 @@ sub set_sysv_service
   ($rcd_path, $initd_path, $relative_path) = &get_sysv_paths ();
 
   $script = $$service[0];
-  $runlevels = $$service[2];
+  $runlevels = $$service[1];
   $default_runlevel = &get_sysv_default_runlevel ();
 
   foreach $r (@$runlevels)
@@ -366,12 +341,9 @@ sub get_filerc_service_info
     $start_service = $3;
     $script = $4;
 
-    return if (&Init::ServicesList::is_forbidden ($script));
-
     $runlevels = &get_filerc_runlevels_status ($start_service, $stop_service, $priority);
-    $role = &Init::ServicesList::get_role ($script);
 
-    return ($script, $role, $runlevels);
+    return ($script, $runlevels);
   }
 
   return;
@@ -433,7 +405,7 @@ sub set_filerc_service
   my ($script, $default_runlevel, %configured_runlevels);
 
   $script = $$service[0];
-  $runlevels = $$service[2];
+  $runlevels = $$service[1];
   $default_runlevel = &get_sysv_default_runlevel ();
 
   foreach $i (@$runlevels)
@@ -501,6 +473,7 @@ sub set_filerc_services
     $$buff[$i] =~ /.*\/etc\/init\.d\/(.*)/;
 
     # we need to keep the forbidden services and the services that only start in rcS.d
+    # FIXME: need to remove this call to is_forbidden
     if (!&Init::ServicesList::is_forbidden ($1))
     {
       delete $$buff[$i];
@@ -534,8 +507,6 @@ sub get_bsd_service_info
 
   return undef if (! Utils::File::exists ($service));
 
-  return undef if (&Init::ServicesList::is_forbidden ($script));
-
   $hash {"script"} = $service;
 
   # we hardcode the fourth runlevel, it's the graphical one
@@ -553,7 +524,6 @@ sub get_bsd_service_info
 	push @rl, { "runlevel" => \@arr };
   
 	$hash{"runlevels"} = \@rl;
-  $hash{"role"} = &Init::ServicesList::get_role ($script);
   
   return \%hash;
 }
@@ -630,7 +600,7 @@ sub set_bsd_services
 	foreach $service (@$services)
 	{
     $script = $$service[0];
-    $runlevels = $$service[2];
+    $runlevels = $$service[1];
     $runlevel  = $$runlevels[0];
 
     $action = $$runlevel[1];
@@ -781,13 +751,9 @@ sub get_gentoo_service_info
 	my ($script, @actions, @runlevels);
 	my ($role);
 	
-	# We have to check out if the service is in the "forbidden" list
-	return if (&Init::ServicesList::is_forbidden ($service));
-
   $runlevels = &get_gentoo_runlevel_status_by_service ($service);
-  $role = &Init::ServicesList::get_role ($service);
 
-  return ($service, $role, $runlevels);
+  return ($service, $runlevels);
 }
 
 sub get_gentoo_services
@@ -854,7 +820,7 @@ sub set_gentoo_services
   foreach $service (@$services)
   {
     $script = $$service[0];
-    $arr = $$service[2];
+    $arr = $$service[1];
 
     foreach $i (@$arr)
     {
@@ -902,9 +868,6 @@ sub get_rcng_service_info
   my ($script, @actions, @runlevels);
   my (%hash, @arr, @rl);
 
-  # We have to check if the service is in the "forbidden" list
-  return undef if (&Init::ServicesList::is_forbidden ($service));
-
   $hash{"script"} = $service;
 
   if (get_rcng_status_by_service ($service))
@@ -921,7 +884,6 @@ sub get_rcng_service_info
   push @rl,  { "runlevel", \@arr };
 
   $hash {"runlevels"} = \@rl;
-  $hash {"role"} = &Init::ServicesList::get_role ($service);
 
   return \%hash;
 }
@@ -1053,7 +1015,7 @@ sub set_rcng_services
   foreach $service (@$services)
   {
     $script    = $$service[0];
-    $runlevels = $$service[2];
+    $runlevels = $$service[1];
     $runlevel  = $$runlevels[0];
     $action    = ($$runlevel[1] eq "start")? 1 : 0;
 
@@ -1066,9 +1028,6 @@ sub get_suse_service_info ($service)
 {
   my ($service) = @_;
   my (%hash, @arr, @ret);
-                                                                                                                                                             
-  # We have to check if the service is in the "forbidden" list
-  return undef if (&Init::ServicesList::is_forbidden ($service));
                                                                                                                                                              
   $hash{"script"} = $service;
 
@@ -1092,7 +1051,6 @@ sub get_suse_service_info ($service)
   {
     push @ret, { "runlevel" => \@arr };
     $hash{"runlevels"} = \@ret;
-    $hash{"role"} = &Init::ServicesList::get_role ($service);
   }
 
   return \%hash;
@@ -1131,7 +1089,7 @@ sub set_suse_services
   foreach $service (@$services)
   {
     $script = $$service[0];
-    $runlevels = $$service[2];
+    $runlevels = $$service[1];
     $rllist = "";
     %configured_runlevels = {};
 
