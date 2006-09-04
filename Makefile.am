@@ -2,7 +2,7 @@ if INTERNAL_NET_DBUS
 net_dbus_SUBDIRS = Net-DBus
 endif
 
-SUBDIRS = m4macros files Init Network Shares Time Users Utils $(net_dbus_SUBDIRS)
+SUBDIRS = files Init Network Shares Time Users Utils $(net_dbus_SUBDIRS)
 
 modulesdir = $(scriptsdir)
 modules_DATA =	\

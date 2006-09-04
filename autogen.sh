@@ -60,8 +60,8 @@ fi
 
 libtoolize --copy --force
 
-echo $ACLOCAL $ACLOCAL_FLAGS -I m4macros
-$ACLOCAL $ACLOCAL_FLAGS -I m4macros
+echo $ACLOCAL $ACLOCAL_FLAGS
+$ACLOCAL $ACLOCAL_FLAGS
 
 ## optionally feature autoheader
 (autoheader --version)  < /dev/null > /dev/null 2>&1 && autoheader

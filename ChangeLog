@@ -1,5 +1,9 @@
 2006-09-04  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Release 1.9.4
+
+2006-09-04  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Init/Services.pm: do not provide services/runlevels roles. if 
 	the users of s-t-b want this will need to have their own heuristic.
 	* ServicesConfig.pm: do not export services/runlevels roles in the

@@ -1,3 +1,27 @@
+System Tools Backends Version 1.9.4, 2006-09-04
+-----------------------------------------------
+
+The System Tools Backends version 1.9.4 "Never was" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), Gentoo, Slackware, FreeBSD, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  - Fix distro detection for gentoo (garnacho)
+  - Make NTPConfig try to set the time with ntpdate (garnacho)
+  - make it again to start/stop init.d scripts when a service is added/removed from the current runlevel (garnacho)
+  - Do not export heuristics such as service/runlevel role (garnacho)
+  - various code improvements
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/1.9/
+
+
 System Tools Backends Version 1.9.3, 2006-08-12
 -----------------------------------------------
 

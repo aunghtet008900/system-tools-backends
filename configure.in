@@ -2,7 +2,7 @@ AC_PREREQ(2.52)
 dnl ==============================================================
 dnl Process this file with autoconf to produce a configure script.
 dnl ==============================================================
-AC_INIT(system-tools-backends,1.9.3)
+AC_INIT(system-tools-backends,1.9.4)
 AC_CONFIG_AUX_DIR(.)
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
@@ -95,7 +95,6 @@ AM_CONDITIONAL(INTERNAL_NET_DBUS, test x$internalnetdbus = xyes)
 
 AC_OUTPUT([
 Makefile
-m4macros/Makefile
 system-tools-backends-2.0.pc
 files/Makefile
 Init/Makefile
