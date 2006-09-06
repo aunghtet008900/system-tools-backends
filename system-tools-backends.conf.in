@@ -11,29 +11,13 @@
     <deny send_destination="org.freedesktop.SystemToolsBackends"/>
   </policy>
 
-  <!-- This will not work if pam_console support is not enabled -->
-  <policy at_console="true">
-    <allow send_interface="org.freedesktop.SystemToolsBackends"/>
-    <allow send_destination="org.freedesktop.SystemToolsBackends"/>
-  </policy>
-
   <policy user="0">
     <allow send_interface="org.freedesktop.SystemToolsBackends"/>
     <allow send_destination="org.freedesktop.SystemToolsBackends"/>
   </policy>
 
-  <!--
   <policy user="@STB_GROUP@">
     <allow send_interface="org.freedesktop.SystemToolsBackends"/>
     <allow send_destination="org.freedesktop.SystemToolsBackends"/>
   </policy>
-  -->
-
-  <!-- use this at the moment, dbus 
-       crashes if the group doesn't exist -->
-  <policy context="default">
-    <allow send_interface="org.freedesktop.SystemToolsBackends"/>
-    <allow send_destination="org.freedesktop.SystemToolsBackends"/>
-  </policy>
-
 </busconfig>

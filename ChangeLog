@@ -1,3 +1,9 @@
+2006-09-06  Carlos Garnacho  <carlosg@gnome.org>
+
+	* system-tools-backends.conf.in: drop at_console, looks a bit scary
+	wrt modifying system configuration, also uncomment group matching, 
+	as latest DBus no longer crashes if the group doesn't exist.
+
 2006-09-04  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 1.9.4
