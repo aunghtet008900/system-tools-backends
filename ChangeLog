@@ -1,5 +1,9 @@
 2006-09-08  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Release 1.9.5.1
+
+2006-09-08  Carlos Garnacho  <carlosg@gnome.org>
+
 	* system-tools-backends.conf.in: s/user/group/ in the @STB_GROUP@
 	policy, you fool.
 
