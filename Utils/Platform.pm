@@ -27,6 +27,7 @@ package Utils::Platform;
 use Utils::XML;
 use Utils::Parse;
 use Utils::Backend;
+use Utils::File;
 
 use base qw(Net::DBus::Object);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX . ".Platform");
@@ -407,6 +408,31 @@ sub guess
   &Utils::Report::end ();
 }
 
+sub get_cached_platform
+{
+  my ($file, $platform);
+
+  $file = &Utils::File::get_base_path() . "/detected-platform";
+  $platform = &Utils::Parse::get_first_line ($file);
+
+  if (&ensure_platform ($platform))
+  {
+    $Utils::Backend::tool{"platform"} = $gst_dist = $platform;
+    &Utils::Report::do_report ("platform_success", $platform);
+    return 1;
+  }
+
+  return 0;
+}
+
+sub cache_platform
+{
+  my ($file, $platform);
+
+  $file = &Utils::File::get_base_path() . "/detected-platform";
+  &Utils::Replace::set_first_line ($file, $gst_dist);
+}
+
 sub new
 {
   my $class   = shift;
@@ -415,7 +441,12 @@ sub new
 
   bless $self, $class;
   &get_system ();
-  &guess ($self) if !$Utils::Backend::tool{"platform"};
+
+  if (!&get_cached_platform ())
+  {
+    &guess ($self) if !$Utils::Backend::tool{"platform"};
+    &cache_platform ();
+  }
 
   return $self;
 }
