@@ -16,7 +16,7 @@
     <allow send_destination="org.freedesktop.SystemToolsBackends"/>
   </policy>
 
-  <policy user="@STB_GROUP@">
+  <policy group="@STB_GROUP@">
     <allow send_interface="org.freedesktop.SystemToolsBackends"/>
     <allow send_destination="org.freedesktop.SystemToolsBackends"/>
   </policy>
