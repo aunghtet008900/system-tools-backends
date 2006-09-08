@@ -824,19 +824,21 @@ sub get_from_ini
   my ($file, $section, $var) = @_;
   my ($fd, $res, $line);
   my $found_section_flag = 0;
+  my $escaped_section;
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("parse_ini", $var, $file, $section);
   $fd = &Utils::File::open_read_from_names ($file);
   &Utils::Report::leave ();
   $res = undef;
+  $escaped_section = &escape ($section);
   
   while (($line = &ini_line_read ($fd)) != -1)
   {
     $_ = $$line;
     next if (/^$/);
 
-    if (/\[$section\]/i)
+    if (/\[$escaped_section\]/i)
     {
       $found_section_flag = 1;
       next;

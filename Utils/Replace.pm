@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 #-*- Mode: perl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 
 # replace.pl: Common in-line replacing stuff for the ximian-setup-tools backends.
@@ -539,6 +538,7 @@ sub set_ini
   my ($file, $section, $var, $value) = @_;
   my ($buff, $i, $found_flag, $ret);
   my ($pre_space, $post_comment, $sec_save);
+  my ($escaped_section);
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("replace_ini", $var, $section, $file);
@@ -547,6 +547,7 @@ sub set_ini
 
   &Utils::File::join_buffer_lines ($buff);
   $found_flag = 0;
+  $escaped_section = Utils::Parse::escape ($section);
   
   foreach $i (@$buff)
   {
@@ -558,9 +559,9 @@ sub set_ini
     
     if ($i ne "")
     {
-      if ($i =~ /\[$section\]/i)
+      if ($i =~ /\[$escaped_section\]/i)
       {
-        $i =~ s/(\[$section\][ \t]*)//i;
+        $i =~ s/(\[$escaped_section\][ \t]*)//i;
         $sec_save = $1;
         $found_flag = 1;
       }
@@ -572,7 +573,7 @@ sub set_ini
           $i = "$var = $value\n$i" if ($value ne "");
           $found_flag = 2;
         }
-        
+
         if ($i =~ /^$var[ \t]*=/i)
         {
           if ($value ne "")
@@ -613,11 +614,13 @@ sub remove_ini_section
   my ($file, $section) = @_;
   my ($buff, $i, $found_flag, $ret);
   my ($pre_space, $post_comment, $sec_save);
+  my ($escaped_section);
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("replace_del_ini_sect", $section, $file);
 
   $buff = &Utils::File::load_buffer ($file);
+  $escaped_section = &Utils::Parse::escape ($section);
 
   &Utils::File::join_buffer_lines ($buff);
   $found_flag = 0;
@@ -632,9 +635,9 @@ sub remove_ini_section
     
     if ($i ne "")
     {
-      if ($i =~ /\[$section\]/i)
+      if ($i =~ /\[$escaped_section\]/i)
       {
-        $i =~ s/(\[$section\][ \t]*)//i;
+        $i =~ s/(\[$escaped_section\][ \t]*)//i;
         $found_flag = 1;
       }
       elsif ($found_flag && $i =~ /\[.+\]/i)
