@@ -70,5 +70,5 @@ my $hosts_config    = HostsConfig->new     ($service);
 my $ifaces_config   = IfacesConfig->new    ($service);
 my $services_config = ServicesConfig->new  ($service);
 
-Net::DBus::Reactor->main->add_timeout (50, Net::DBus::Callback->new(method => \&Utils::Monitor::do_monitor_files));
+Utils::Monitor::init_file_monitor ();
 Net::DBus::Reactor->main->run ();

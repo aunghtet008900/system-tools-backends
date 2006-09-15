@@ -89,4 +89,11 @@ sub monitor_files
   }
 }
 
+sub init_file_monitor
+{
+  return if (!$has_gamin);
+
+  Net::DBus::Reactor->main->add_timeout (500, Net::DBus::Callback->new(method => \&Utils::Monitor::do_monitor_files));
+}
+
 1;
