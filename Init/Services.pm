@@ -24,6 +24,9 @@
 
 package Init::Services;
 
+my $SERVICE_START = 0;
+my $SERVICE_STOP  = 1;
+
 use Init::ServicesList;
 
 sub get_runlevels
@@ -135,11 +138,11 @@ sub get_sysv_runlevels_status
 
     if ($action eq "S")
 		{
-      push @arr, [ $runlevel, "start", $priority ];
+      push @arr, [ $runlevel, $SERVICE_START, $priority ];
     }
 		elsif ($action eq "K")
 		{
-      push @arr, [ $runlevel, "stop", $priority ];
+      push @arr, [ $runlevel, $SERVICE_STOP, $priority ];
 		}
 	}
 	
@@ -251,7 +254,7 @@ sub set_sysv_service
   foreach $r (@$runlevels)
   {
     $runlevel = $$r[0];
-    $action   = ($$r[1] eq "start") ? "S" : "K";
+    $action   = ($$r[1] == $SERVICE_START) ? "S" : "K";
     $priority = sprintf ("%0.2d", $$r[2]);
 
     $configured_runlevels{$runlevel} = 1;
@@ -263,7 +266,7 @@ sub set_sysv_service
 
       if ($runlevel eq $default_runlevel)
       {
-        &run_sysv_initd_script ($script, $$r[1]);
+        &run_sysv_initd_script ($script, ($$r[1] == $SERVICE_START) ? "start" : "stop");
       }
     }
   }
@@ -310,7 +313,7 @@ sub get_filerc_runlevels_status
 
     foreach $runlevel (@runlevels)
     {
-      push @arr, [ $runlevel, "start", $priority ];
+      push @arr, [ $runlevel, $SERVICE_START, $priority ];
     }
   }
 
@@ -322,7 +325,7 @@ sub get_filerc_runlevels_status
 
     foreach $runlevel (@runlevels)
     {
-      push @arr, [ $runlevel, "stop", $priority ];
+      push @arr, [ $runlevel, $SERVICE_STOP, $priority ];
     }
   }
 
@@ -414,28 +417,28 @@ sub set_filerc_service
     $priority = 50 if ($priority == 0); #very rough guess
     $configured_runlevels {$$i[0]} = 1;
 
-    if ($$i[1] eq "start")
+    if ($$i[1] == $SERVICE_START)
     {
-      $hash{$priority}{"start"} = [] if (!$hash{$priority}{"start"});
-      push @{$hash{$priority}{"start"}}, $$i[0];
+      $hash{$priority}{$SERVICE_START} = [] if (!$hash{$priority}{$SERVICE_START});
+      push @{$hash{$priority}{$SERVICE_START}}, $$i[0];
     }
     else
     {
-      $hash{$priority}{"stop"} = [] if (!$hash{$priority}{"stop"});
-      push @{$hash{$priority}{"stop"}}, $$i[0];
+      $hash{$priority}{$SERVICE_STOP} = [] if (!$hash{$priority}{$SERVICE_STOP});
+      push @{$hash{$priority}{$SERVICE_STOP}}, $$i[0];
     }
 
     if ($$i[0] eq $default_runlevel)
     {
-      &run_sysv_initd_script ($script, $$i[1]);
+      &run_sysv_initd_script ($script, ($$i[1] == $SERVICE_START) ? "start" : "stop");
     }
   }
 
   foreach $priority (keys %hash)
   {
     $line  = sprintf ("%0.2d", $priority) . "\t";
-    $line .= &concat_filerc_runlevels (@{$hash{$priority}{"stop"}}) . "\t";
-    $line .= &concat_filerc_runlevels (@{$hash{$priority}{"start"}}) . "\t";
+    $line .= &concat_filerc_runlevels (@{$hash{$priority}{$SERVICE_STOP}}) . "\t";
+    $line .= &concat_filerc_runlevels (@{$hash{$priority}{$SERVICE_START}}) . "\t";
     $line .= $initd_path . "/" . $script . "\n";
 
     push @$buff, $line;
@@ -541,11 +544,11 @@ sub get_bsd_service_info
   # hardcode the fourth runlevel, it's the graphical one
   if ( -x $service)
   {
-    push @runlevels, [ "4", "start", 0 ];
+    push @runlevels, [ "4", $SERVICE_START, 0 ];
   }
   else
   {
-    push @runlevels, [ "4", "stop", 0 ];
+    push @runlevels, [ "4", $SERVICE_STOP, 0 ];
   }
 
   # FIXME: $service contains full path, would
@@ -628,7 +631,7 @@ sub set_bsd_services
 
     $action = $$runlevel[1];
 
-    if ($action eq "start")
+    if ($action == $SERVICE_START)
     {
       &Utils::File::run ("chmod ugo+x $script");
       &run_bsd_script ($script, "start");
@@ -757,11 +760,11 @@ sub get_gentoo_runlevel_status_by_service
   {
     if (defined $start_runlevels{$runlevel})
     {
-      push @arr, [ $runlevel, "start", 0 ];
+      push @arr, [ $runlevel, $SERVICE_START, 0 ];
     }
     else
     {
-      push @arr, [ $runlevel, "stop", 0 ];
+      push @arr, [ $runlevel, $SERVICE_STOP, 0 ];
     }
   }
 
@@ -822,7 +825,7 @@ sub set_gentoo_service_status
 {
   my ($script, $rl, $action) = @_;
 
-  if ($action eq "start")
+  if ($action == $SERVICE_START)
   {
     &Utils::File::run ("rc-update add $script $rl");
     &run_gentoo_script ($script, "start");
@@ -892,11 +895,11 @@ sub get_rcng_service_info
 
   if (get_rcng_status_by_service ($script))
   {
-    push @runlevels, [ "default", "start", 0 ];
+    push @runlevels, [ "default", $SERVICE_START, 0 ];
   }
   else
   {
-    push @runlevels, [ "default", "stop", 0 ];
+    push @runlevels, [ "default", $SERVICE_STOP, 0 ];
   }
 
   return ($script, $runlevels);
@@ -1030,7 +1033,7 @@ sub set_rcng_services
     $script    = $$service[0];
     $runlevels = $$service[1];
     $runlevel  = $$runlevels[0];
-    $action    = ($$runlevel[1] eq "start")? 1 : 0;
+    $action    = ($$runlevel[1] == $SERVICE_START)? 1 : 0;
 
     &$func ($script, $action);
   }
@@ -1048,12 +1051,12 @@ sub get_suse_service_info ($service)
     $link =~ /rc([0-6])\.d\/S[0-9][0-9].*/;
     $runlevel = $1;
 
-    push @runlevels, [ $runlevel, "start", 0 ];
+    push @runlevels, [ $runlevel, $SERVICE_START, 0 ];
   }
 
   foreach $link (<$rcd_path/boot.d/S[0-9][0-9]$service>)
   {
-    push @runlevels, [ "B", "start", 0 ];
+    push @runlevels, [ "B", $SERVICE_START, 0 ];
   }
 
   return ($service, $runlevels);
@@ -1101,12 +1104,12 @@ sub set_suse_services
     {
       $configured_runlevels{$$rl[0]} = 1;
 
-      if ($$rl[1] eq "start")
+      if ($$rl[1] == $SERVICE_START)
       {
         $rllist .= $$rl[0] . ",";
       }
 
-      &run_sysv_initd_script ($script, $$rl[1]);
+      &run_sysv_initd_script ($script, ($$rl[1] == $SERVICE_START) ? "start" : "stop");
     }
 
     if ($rllist ne "")

@@ -46,10 +46,10 @@ sub new
 dbus_method ("get", [],
              [[ "array", "string" ],
               "string",
-              [ "array", [ "struct", "string", [ "array", [ "struct", "string", "string", "int32" ]]]]]);
+              [ "array", [ "struct", "string", [ "array", [ "struct", "string", "int32", "int32" ]]]]]);
 dbus_method ("set", [[ "array", "string" ],
                      "string",
-                     [ "array", [ "struct", "string", [ "array", [ "struct", "string", "string", "int32" ]]]]], []);
+                     [ "array", [ "struct", "string", [ "array", [ "struct", "string", "int32", "int32" ]]]]], []);
 dbus_signal ("changed", []);
 
 sub get
