@@ -1,5 +1,10 @@
 2006-09-15  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Init/Services.pm: code improvements to the BSD, RCng and suse init
+	types code.
+
+2006-09-15  Carlos Garnacho  <carlosg@gnome.org>
+
 	* SystemToolsBackends.pl.in, Utils/Monitor.pm: only initialize the
 	file monitor if Sys::Gamin is found.
 

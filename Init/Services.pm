@@ -494,45 +494,10 @@ sub set_filerc_services
 }
 
 # this functions get a list of the services that run on a bsd init
-sub get_bsd_service_info
+sub get_bsd_scripts_list
 {
-  my ($service) = @_;
-  my ($script);
-  my (%hash);
-	my (@arr, @rl);
-
-  $script = $service;
-  $script =~ s/^.*\///;
-  $script =~ s/^rc\.//;
-
-  return undef if (! Utils::File::exists ($service));
-
-  $hash {"script"} = $service;
-
-  # we hardcode the fourth runlevel, it's the graphical one
-  if ( -x $service)
-  {
-    push @arr, { "name"   => 4,
-                 "action" => "start" };
-  }
-  else
-  {
-    push @arr, { "name"   => 4,
-                 "action" => "stop" };
-  }
-
-	push @rl, { "runlevel" => \@arr };
-  
-	$hash{"runlevels"} = \@rl;
-  
-  return \%hash;
-}
-
-sub get_bsd_services
-{
-  my (%ret);
   my ($files) = [ "rc.M", "rc.inet2", "rc.4" ];
-  my ($file);
+  my ($file, $i, @scripts);
 
   foreach $i (@$files)
   {
@@ -550,22 +515,59 @@ sub get_bsd_services
 
       if ($line =~ /^if[ \t]+\[[ \t]+\-x[ \t]([0-9a-zA-Z\/\.\-_]+) .*\]/)
       {
-        my (%hash);
         $service = $1;
 
-        $hash = &get_bsd_service_info ($service);
-
-        if ($hash ne undef)
-        {
-          $ret{$service} = $hash;
-        }
+        push @scripts, $service;
       }
     }
 
     Utils::File::close_file ($fd);
   }
 
-  return \%ret;
+  return \@scripts;
+}
+
+sub get_bsd_service_info
+{
+  my ($service) = @_;
+  my ($script, @runlevels);
+
+  $script = $service;
+  $script =~ s/^.*\///;
+  $script =~ s/^rc\.//;
+
+  return undef if (! Utils::File::exists ($service));
+
+  # hardcode the fourth runlevel, it's the graphical one
+  if ( -x $service)
+  {
+    push @runlevels, [ "4", "start", 0 ];
+  }
+  else
+  {
+    push @runlevels, [ "4", "stop", 0 ];
+  }
+
+  # FIXME: $service contains full path, would
+  # be nice to just show the $script name
+  return ($service, $runlevels);
+}
+
+sub get_bsd_services
+{
+  my (@arr, @scripts, $script);
+
+  $scripts = &get_bsd_scripts_list ();
+
+  foreach $script (@scripts)
+  {
+    my (@info);
+
+    @info = &get_bsd_service_info ($script);
+    push @arr, \@info if (scalar (@info));
+  }
+
+  return \@arr;
 }
 
 sub run_bsd_script
@@ -592,16 +594,37 @@ sub run_bsd_script
 }
 
 # This function stores the configuration in a bsd init
+sub get_bsd_service_path
+{
+  my ($script) = @_;
+  my (@scripts, $elem, $i);
+
+  $scripts = &get_bsd_scripts_list ();
+
+  foreach $i (@scripts)
+  {
+    $elem = $i;
+    $elem =~ s/^.*\///;
+    $elem =~ s/^rc\.//;
+
+    return $i if ($elem eq $script);
+  }
+
+  return undef;
+}
+
 sub set_bsd_services
 {
   my ($services) = @_;
-  my ($script, $runlevels);
+  my ($script, $runlevels, @scripts);
 
-	foreach $service (@$services)
-	{
-    $script = $$service[0];
+  foreach $service (@$services)
+  {
+    $script = &get_bsd_service_path ($$service[0]);
     $runlevels = $$service[1];
     $runlevel  = $$runlevels[0];
+
+    continue if ($script eq undef);
 
     $action = $$runlevel[1];
 
@@ -864,46 +887,36 @@ sub get_rcng_status_by_service
 
 sub get_rcng_service_info
 {
-  my ($service) = @_;
-  my ($script, @actions, @runlevels);
-  my (%hash, @arr, @rl);
+  my ($script) = @_;
+  my (@runlevels);
 
-  $hash{"script"} = $service;
-
-  if (get_rcng_status_by_service ($service))
+  if (get_rcng_status_by_service ($script))
   {
-    push @arr, { "name"   => "default",
-                 "action" => "start" };
+    push @runlevels, [ "default", "start", 0 ];
   }
   else
   {
-    push @arr, { "name"   => "default",
-                 "action" => "stop" };
+    push @runlevels, [ "default", "stop", 0 ];
   }
 
-  push @rl,  { "runlevel", \@arr };
-
-  $hash {"runlevels"} = \@rl;
-
-  return \%hash;
+  return ($script, $runlevels);
 }
 
 sub get_rcng_services
 {
   my ($service);
-  my (%ret);
+  my (@arr);
 
   foreach $service (<$gst_prefix/etc/rc.d/*>)
   {
-    my (%hash);
+    my (@info);
 
     $service =~ s/.*\///;
-    $hash = &get_rcng_service_info ($service);
-
-    $ret{$service} = $hash if ($hash ne undef);
+    @info = &get_rcng_service_info ($service);
+    push @arr, \@info if (scalar (@info));
   }
 
-  return \%ret;
+  return \@arr;
 }
 
 sub run_rcng_script
@@ -1027,54 +1040,43 @@ sub set_rcng_services
 sub get_suse_service_info ($service)
 {
   my ($service) = @_;
-  my (%hash, @arr, @ret);
+  my (@runlevels, $link, $runlevel);
                                                                                                                                                              
-  $hash{"script"} = $service;
-
   foreach $link (<$rcd_path/rc[0-9S].d/S[0-9][0-9]$service>)
   {
     $link =~ s/$rcd_path\///;
     $link =~ /rc([0-6])\.d\/S[0-9][0-9].*/;
     $runlevel = $1;
 
-    push @arr, { "name"   => $runlevel,
-                 "action" => "start" };
+    push @runlevels, [ $runlevel, "start", 0 ];
   }
 
   foreach $link (<$rcd_path/boot.d/S[0-9][0-9]$service>)
   {
-    push @arr, {"name"   => "B",
-                "action" => "start" };
+    push @runlevels, [ "B", "start", 0 ];
   }
 
-  if (scalar @arr > 0)
-  {
-    push @ret, { "runlevel" => \@arr };
-    $hash{"runlevels"} = \@ret;
-  }
-
-  return \%hash;
+  return ($service, $runlevels);
 }
 
 sub get_suse_services
 {
-  my ($service, %ret);
+  my ($service, @arr);
 
   ($rcd_path, $initd_path) = &get_sysv_paths ();
 
   foreach $service (<$gst_prefix/etc/init.d/*>)
   {
-    my (%hash);
+    my (@info);
 
     next if (-d $service || ! -x $service);
 
     $service =~ s/.*\///;
-    $hash = &get_suse_service_info ($service);
-
-    $ret{$service} = $hash if ($hash ne undef);
+    @info = &get_suse_service_info ($service);
+    push @arr, \@info  if (scalar (@info));
   }
 
-  return \%ret;
+  return \@arr;
 }
 
 # This function stores the configuration in suse init
