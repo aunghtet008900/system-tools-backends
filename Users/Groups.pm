@@ -25,10 +25,10 @@
 package Users::Groups;
 
 # enum like for verbose group array positions
-my $LOGIN  = 0;
-my $PASSWD = 1;
-my $GID    = 2;
-my $USERS  = 3;
+my $LOGIN  = 1;
+my $PASSWD = 2;
+my $GID    = 3;
+my $USERS  = 4;
 
 # quite generic data
 $group_names = "/etc/group";
@@ -166,10 +166,9 @@ sub change_group
 sub get
 {
   my ($ifh, @groups, $group_last_modified);
-  my (@line, $copy, @a);
+  my (@line, $copy, @a, $counter);
 
-  # Find the file.
-
+  $counter = 1;
   $ifh = &Utils::File::open_read_from_names($group_names);
   return unless ($ifh);
 
@@ -182,13 +181,14 @@ sub get
 
     # FreeBSD allows comments in the group file. */
     next if &Utils::Util::ignore_line ($_);
-    $_ = &Utils::XML::unquote ($_);
 
     @line = split ':', $_, -1;
+    unshift @line, $counter;
     @a = split ',', pop @line;
     push @line, [@a];
     $copy = [@line];
     push (@groups, $copy);
+    $counter++;
   }
 
   &Utils::File::close_file ($ifh);
@@ -219,14 +219,14 @@ sub set
 
     foreach $i (@$config) 
     {
-      $groups{$$i[$LOGIN]} |= 1;
-      $config_hash{$$i[$LOGIN]} = $i;
+      $groups{$$i[0]} |= 1;
+      $config_hash{$$i[0]} = $i;
 	  }	
 	
     foreach $i (@$old_config)
     {
-	    $groups{$$i[$LOGIN]} |= 2;
-      $old_config_hash{$$i[$LOGIN]} = $i;
+	    $groups{$$i[0]} |= 2;
+      $old_config_hash{$$i[0]} = $i;
     }
 
     # Delete all groups that only appeared in the old configuration

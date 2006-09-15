@@ -1,5 +1,14 @@
 2006-09-15  Carlos Garnacho  <carlosg@gnome.org>
 
+	* UsersConfig.pm, GroupsConfig.pm, Users/Users.pm, Users/Groups.pm:
+	add an independent identification number to users and groups, this 
+	number should not be modified in the other communication side (GID 
+	and UID can be changed) and new users/groups should have different ID
+	numbers (ideally counting from the current max ID number). Fixes the
+	case described in GNOME bug #342293.
+
+2006-09-15  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Init/Services.pm: code improvements to the BSD, RCng and suse init
 	types code.
 

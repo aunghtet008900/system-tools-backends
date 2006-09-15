@@ -73,13 +73,14 @@ $cmd_chfn     = &Utils::File::locate_tool ("chfn");
 $cmd_pw       = &Utils::File::locate_tool ("pw");
 
 # enum like for verbose group array positions
-my $LOGIN   = 0;
-my $PASSWD  = 1;
-my $UID     = 2;
-my $GID     = 3;
-my $COMMENT = 4;
-my $HOME    = 5;
-my $SHELL   = 6;
+my $ID      = 0;
+my $LOGIN   = 1;
+my $PASSWD  = 2;
+my $UID     = 3;
+my $GID     = 4;
+my $COMMENT = 5;
+my $HOME    = 6;
+my $SHELL   = 7;
 
 %login_defs_prop_map = ();
 %profiles_prop_map = ();
@@ -373,9 +374,10 @@ sub get_logindefs
 sub get
 {
   my ($ifh, @users, %users_hash);
-  my (@line, @users);
+  my (@line, @users, $counter);
 
   # Find the passwd file.
+  $counter = 1;
   $ifh = &Utils::File::open_read_from_names(@passwd_names);
   return unless ($ifh);
 
@@ -386,6 +388,8 @@ sub get
     next if &Utils::Util::ignore_line ($_);
 
     @line  = split ':', $_, -1;
+    unshift @line, $counter;
+    $counter++;
 
     $login = $line[$LOGIN];
     @comment = split ',', $line[$COMMENT], 5;
