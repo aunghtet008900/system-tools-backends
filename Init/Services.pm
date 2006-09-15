@@ -624,7 +624,7 @@ sub set_bsd_services
     $runlevels = $$service[1];
     $runlevel  = $$runlevels[0];
 
-    continue if ($script eq undef);
+    next if ($script eq undef);
 
     $action = $$runlevel[1];
 
