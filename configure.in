@@ -53,9 +53,12 @@ AC_ARG_WITH(net_dbus, [  --with-net-dbus=<dir>   where Net::DBus perl library is
 
 if ! test -z "$with_net_dbus" ; then
     netdbusdir="$with_net_dbus"
-    AC_SUBST(netdbusdir)
+else
+dnl hack to avoid an empty path in netdbusdir
+    netdbusdir=$scriptsdir
 fi
 
+AC_SUBST(netdbusdir)
 
 dnl system-tools-backends admin group
 AC_ARG_WITH(stb_group,[  --with-stb-group=<grp>  Group for system-tools-backends (stb-admin)])
