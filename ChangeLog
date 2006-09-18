@@ -1,3 +1,8 @@
+2006-09-18  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Monitor.pm: tell the main loop to select() on the FAM file
+	descriptor to avoid using timeouts.
+
 2006-09-17  Carlos Garnacho  <carlosg@gnome.org>
 
 	* configure.in: avoid empty $netdbusdir to make SystemToolsBackends.pl
