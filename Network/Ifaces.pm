@@ -2363,6 +2363,7 @@ sub get_interface_replace_table
        IFCFG  => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
+       TYPE   => "#type#",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2396,16 +2397,16 @@ sub get_interface_replace_table
 #      [ "serial_escapechars", \&Utils::Replace::set_sh_bool, IFCFG, ESCAPECHARS ],
 #      [ "serial_hwctl",       \&Utils::Replace::set_sh_bool, IFCFG, HARDFLOWCTL ],
       # wvdial settings
-      [ "phone_number",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
-      [ "update_dns",         \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
-      [ "login",              \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
-      [ "password",           \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
-      [ "serial_port",        \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
-      [ "serial_speed",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
-      [ "set_default_gw",     \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
-      [ "persist",            \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-      [ "dial_command",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
-      [ "external_line",      \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+      [ "phone_number",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
+      [ "update_dns",         \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
+      [ "login",              \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
+      [ "password",           \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
+      [ "serial_port",        \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
+      [ "serial_speed",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
+      [ "set_default_gw",     \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
+      [ "persist",            \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+      [ "dial_command",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
+      [ "external_line",      \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
      ]
    },
 
@@ -2420,6 +2421,7 @@ sub get_interface_replace_table
                  "/etc/sysconfig/networking/devices/ifcfg-#iface#"],
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
+       TYPE   => "#type#",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2456,16 +2458,16 @@ sub get_interface_replace_table
 #      [ "serial_escapechars", \&Utils::Replace::set_sh_bool, IFCFG, ESCAPECHARS ],
 #      [ "serial_hwctl",       \&Utils::Replace::set_sh_bool, IFCFG, HARDFLOWCTL ],
       # wvdial settings
-      [ "phone_number",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
-      [ "update_dns",         \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
-      [ "login",              \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
-      [ "password",           \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
-      [ "serial_port",        \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
-      [ "serial_speed",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
-      [ "set_default_gw",     \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
-      [ "persist",            \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-      [ "dial_command",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
-      [ "external_line",      \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+      [ "phone_number",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
+      [ "update_dns",         \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
+      [ "login",              \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
+      [ "password",           \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
+      [ "serial_port",        \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
+      [ "serial_speed",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
+      [ "set_default_gw",     \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
+      [ "persist",            \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+      [ "dial_command",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
+      [ "external_line",      \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
      ]
    },
    
@@ -2480,6 +2482,7 @@ sub get_interface_replace_table
                  "/etc/sysconfig/networking/devices/ifcfg-#iface#"],
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
+       TYPE   => "#type#",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2516,16 +2519,16 @@ sub get_interface_replace_table
 #      [ "serial_escapechars", \&Utils::Replace::set_sh_bool, IFCFG, ESCAPECHARS ],
 #      [ "serial_hwctl",       \&Utils::Replace::set_sh_bool, IFCFG, HARDFLOWCTL ],
       # wvdial settings
-      [ "phone_number",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
-      [ "update_dns",         \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
-      [ "login",              \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
-      [ "password",           \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
-      [ "serial_port",        \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
-      [ "serial_speed",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
-      [ "set_default_gw",     \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
-      [ "persist",            \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-      [ "dial_command",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
-      [ "external_line",      \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+      [ "phone_number",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
+      [ "update_dns",         \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
+      [ "login",              \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
+      [ "password",           \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
+      [ "serial_port",        \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
+      [ "serial_speed",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
+      [ "set_default_gw",     \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
+      [ "persist",            \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+      [ "dial_command",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
+      [ "external_line",      \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
      ]
    },
    
@@ -2538,6 +2541,7 @@ sub get_interface_replace_table
        IFCFG  => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
+       TYPE   => "#type#",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2575,16 +2579,16 @@ sub get_interface_replace_table
 #      [ "serial_hwctl",       \&Utils::Replace::set_sh_bool, IFCFG, HARDFLOWCTL ],
 
       # wvdial settings
-      [ "phone_number",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
-      [ "update_dns",         \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
-      [ "login",              \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
-      [ "password",           \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
-      [ "serial_port",        \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
-      [ "serial_speed",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
-      [ "set_default_gw",     \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
-      [ "persist",            \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-      [ "dial_command",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
-      [ "external_line",      \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+      [ "phone_number",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
+      [ "update_dns",         \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
+      [ "login",              \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
+      [ "password",           \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
+      [ "serial_port",        \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
+      [ "serial_speed",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
+      [ "set_default_gw",     \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
+      [ "persist",            \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+      [ "dial_command",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
+      [ "external_line",      \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
      ]
    },
 
@@ -2597,6 +2601,7 @@ sub get_interface_replace_table
        IFCFG  => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
+       TYPE   => "#type#",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2633,16 +2638,16 @@ sub get_interface_replace_table
 #      [ "serial_escapechars", \&Utils::Replace::set_sh_bool, IFCFG, ESCAPECHARS ],
 #      [ "serial_hwctl",       \&Utils::Replace::set_sh_bool, IFCFG, HARDFLOWCTL ],
       # wvdial settings
-      [ "phone_number",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
-      [ "update_dns",         \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
-      [ "login",              \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
-      [ "password",           \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
-      [ "serial_port",        \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
-      [ "serial_speed",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
-      [ "set_default_gw",     \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
-      [ "persist",            \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-      [ "dial_command",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
-      [ "external_line",      \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+      [ "phone_number",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
+      [ "update_dns",         \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
+      [ "login",              \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
+      [ "password",           \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
+      [ "serial_port",        \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
+      [ "serial_speed",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
+      [ "set_default_gw",     \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
+      [ "persist",            \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+      [ "dial_command",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
+      [ "external_line",      \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
      ]
    },
 
@@ -2655,6 +2660,7 @@ sub get_interface_replace_table
        IFCFG  => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
+       TYPE   => "#type#",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2691,16 +2697,16 @@ sub get_interface_replace_table
 #      [ "serial_escapechars", \&Utils::Replace::set_sh_bool, IFCFG, ESCAPECHARS ],
 #      [ "serial_hwctl",       \&Utils::Replace::set_sh_bool, IFCFG, HARDFLOWCTL ],
       # wvdial settings
-      [ "phone_number",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
-      [ "update_dns",         \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
-      [ "login",              \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
-      [ "password",           \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
-      [ "serial_port",        \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
-      [ "serial_speed",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
-      [ "set_default_gw",     \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
-      [ "persist",            \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
-      [ "dial_command",       \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
-      [ "external_line",      \&check_type, ["%dev%", "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
+      [ "phone_number",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Phone" ]],
+      [ "update_dns",         \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto DNS" ]],
+      [ "login",              \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Username" ]],
+      [ "password",           \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Password" ]],
+      [ "serial_port",        \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Modem" ]],
+      [ "serial_speed",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Baud" ]],
+      [ "set_default_gw",     \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Check Def Route" ]],
+      [ "persist",            \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Auto Reconnect" ]],
+      [ "dial_command",       \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Command" ]],
+      [ "external_line",      \&check_type, [ TYPE, "modem", \&Utils::Replace::set_ini, WVDIAL, "Dialer %section%", "Dial Prefix" ]],
      ]
    },
 
@@ -2712,6 +2718,7 @@ sub get_interface_replace_table
      {
        INTERFACES  => "/etc/network/interfaces",
        IFACE       => "#iface#",
+       TYPE        => "#type#",
        CHAT        => "/etc/chatscripts/%section%",
        PPP_OPTIONS => "/etc/ppp/peers/%section%",
        PAP         => "/etc/ppp/pap-secrets",
@@ -2736,29 +2743,29 @@ sub get_interface_replace_table
       [ "section",            \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "provider" ],
       [ "remote_address",     \&set_debian_remote_address, [INTERFACES, IFACE]],
       # Modem stuff
-      [ "section",            \&check_type, [IFACE, "modem", \&Utils::Replace::set_ppp_options_connect, PPP_OPTIONS ]],
-      [ "phone_number",       \&check_type, [IFACE, "modem", \&create_pppscript, CHAT ]],
-      [ "phone_number",       \&check_type, [IFACE, "isdn", \&create_isdn_options, PPP_OPTIONS ]],
-      [ "update_dns",         \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "usepeerdns" ]],
-      [ "noauth",             \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "noauth" ]],
-      [ "set_default_gw",     \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "defaultroute" ]],
-      [ "persist",            \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "persist" ]],
-      [ "serial_port",        \&check_type, [IFACE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
-      [ "serial_speed",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
-      [ "login",              \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^user (.*)", "user \"%login%\"" ]],
-      [ "password",           \&check_type, [IFACE, "(modem|isdn)", \&set_pap_passwd, PAP, "%login%" ]],
-      [ "password",           \&check_type, [IFACE, "(modem|isdn)", \&set_pap_passwd, CHAP, "%login%" ]],
-      [ "dial_command",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_chat, CHAT, "(atd[tp])[0-9w, -]+" ]],
-      [ "phone_number",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([0-9w]+)" ]],
-      [ "external_line",      \&check_type, [IFACE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([0-9w, -]+)", "%external_line%W%phone_number%" ]],
-      [ "phone_number",       \&check_type, [IFACE, "isdn", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^number (.*)", "number %phone_number%" ]],
-      [ "external_line",      \&check_type, [IFACE, "isdn", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^number (.*)", "number %external_line%W%phone_number%" ]],
-      [ "volume",             \&check_type, [IFACE, "modem", \&set_modem_volume, CHAT ]],
-#      [ "serial_escapechars", \&check_type, [IFACE, "modem", \&Utils::Replace::join_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
-#      [ "debug",              \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "debug" ]],
-#      [ "serial_hwctl",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "crtscts" ]],
-#      [ "mtu",                \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::join_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
-#      [ "mru",                \&check_type, [IFACE, "(modem|isdn)", \&Utils::Replace::join_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
+      [ "section",            \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_connect, PPP_OPTIONS ]],
+      [ "phone_number",       \&check_type, [TYPE, "modem", \&create_pppscript, CHAT ]],
+      [ "phone_number",       \&check_type, [TYPE, "isdn", \&create_isdn_options, PPP_OPTIONS ]],
+      [ "update_dns",         \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "usepeerdns" ]],
+      [ "noauth",             \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "noauth" ]],
+      [ "set_default_gw",     \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "defaultroute" ]],
+      [ "persist",            \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "persist" ]],
+      [ "serial_port",        \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
+      [ "serial_speed",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
+      [ "login",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^user (.*)", "user \"%login%\"" ]],
+      [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&set_pap_passwd, PAP, "%login%" ]],
+      [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&set_pap_passwd, CHAP, "%login%" ]],
+      [ "dial_command",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "(atd[tp])[0-9w, -]+" ]],
+      [ "phone_number",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([0-9w]+)" ]],
+      [ "external_line",      \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([0-9w, -]+)", "%external_line%W%phone_number%" ]],
+      [ "phone_number",       \&check_type, [TYPE, "isdn", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^number (.*)", "number %phone_number%" ]],
+      [ "external_line",      \&check_type, [TYPE, "isdn", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^number (.*)", "number %external_line%W%phone_number%" ]],
+      [ "volume",             \&check_type, [TYPE, "modem", \&set_modem_volume, CHAT ]],
+#      [ "serial_escapechars", \&check_type, [TYPE, "modem", \&Utils::Replace::join_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
+#      [ "debug",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "debug" ]],
+#      [ "serial_hwctl",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "crtscts" ]],
+#      [ "mtu",                \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::join_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
+#      [ "mru",                \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::join_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
      ]
    },
 
@@ -2772,6 +2779,7 @@ sub get_interface_replace_table
        PROVIDERS   => "/etc/sysconfig/network/providers/%section%",
        ROUTE_CONF  => "/etc/sysconfig/network/routes",
        IFACE       => "#iface#",
+       TYPE        => "#type#",
        PPP_OPTIONS => "/etc/ppp/options"
      },
      table =>
@@ -2815,6 +2823,7 @@ sub get_interface_replace_table
        IFCFG  => "/etc/sysconfig/interfaces/ifcfg-#iface#",
        CHAT   => "/etc/sysconfig/interfaces/data/chat-#iface#",
        IFACE  => "#iface#",
+       TYPE   => "#type#",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2860,6 +2869,7 @@ sub get_interface_replace_table
        RC_INET      => "/etc/rc.d/rc.inet1",
        RC_LOCAL     => "/etc/rc.d/rc.local",
        IFACE        => "#iface#",
+       TYPE         => "#type#",
        WIRELESS     => "/etc/pcmcia/wireless.opts",
        PPP_OPTIONS  => "/etc/ppp/options",
        PAP          => "/etc/ppp/pap-secrets",
@@ -2876,27 +2886,27 @@ sub get_interface_replace_table
       [ "key",                \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, KEY   ],
       [ "key_type",           \&set_wep_key_full, [ \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, KEY, "%key%" ]],
       # Modem stuff
-      [ "phone_number",       \&check_type, [IFACE, "modem", \&create_pppscript, CHAT ]],
-      [ "phone_number",       \&check_type, [IFACE, "modem", \&create_pppgo ]],
-      [ "update_dns",         \&check_type, [IFACE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "usepeerdns" ]],
-      [ "noauth",             \&check_type, [IFACE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "noauth" ]],
-      [ "set_default_gw",     \&check_type, [IFACE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "defaultroute" ]],
-      [ "debug",              \&check_type, [IFACE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "debug" ]],
-      [ "persist",            \&check_type, [IFACE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "persist" ]],
-      [ "serial_hwctl",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "crtscts" ]],
-      [ "mtu",                \&check_type, [IFACE, "modem", \&Utils::Replace::join_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
-      [ "mru",                \&check_type, [IFACE, "modem", \&Utils::Replace::join_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
-      [ "serial_port",        \&check_type, [IFACE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
-      [ "serial_speed",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
-      [ "login",              \&check_type, [IFACE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^name \"(.*)\"", "name \"%login%\"" ]],
-      [ "serial_escapechars", \&check_type, [IFACE, "modem", \&Utils::Replace::join_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
-      [ "password",           \&check_type, [IFACE, "modem", \&set_pap_passwd, PAP, "%login%" ]],
-      [ "password",           \&check_type, [IFACE, "modem", \&set_pap_passwd, CHAP, "%login%" ]],
-      [ "dial_command",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_chat, CHAT, "(atd[tp])[0-9w, -]+" ]],
-      [ "phone_number",       \&check_type, [IFACE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([0-9w]+)" ]],
-      [ "external_line",      \&check_type, [IFACE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([0-9w, -]+)", "%external_line%W%phone_number%" ]],
-      [ "volume",             \&check_type, [IFACE, "modem", \&set_modem_volume, CHAT ]],
-      #[ "ppp_options",        \&check_type, [IFACE, "modem", \&gst_network_set_ppp_options_unsup, PPP_OPTIONS ]],
+      [ "phone_number",       \&check_type, [TYPE, "modem", \&create_pppscript, CHAT ]],
+      [ "phone_number",       \&check_type, [TYPE, "modem", \&create_pppgo ]],
+      [ "update_dns",         \&check_type, [TYPE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "usepeerdns" ]],
+      [ "noauth",             \&check_type, [TYPE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "noauth" ]],
+      [ "set_default_gw",     \&check_type, [TYPE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "defaultroute" ]],
+      [ "debug",              \&check_type, [TYPE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "debug" ]],
+      [ "persist",            \&check_type, [TYPE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "persist" ]],
+      [ "serial_hwctl",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "crtscts" ]],
+      [ "mtu",                \&check_type, [TYPE, "modem", \&Utils::Replace::join_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
+      [ "mru",                \&check_type, [TYPE, "modem", \&Utils::Replace::join_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
+      [ "serial_port",        \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
+      [ "serial_speed",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
+      [ "login",              \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^name \"(.*)\"", "name \"%login%\"" ]],
+      [ "serial_escapechars", \&check_type, [TYPE, "modem", \&Utils::Replace::join_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
+      [ "password",           \&check_type, [TYPE, "modem", \&set_pap_passwd, PAP, "%login%" ]],
+      [ "password",           \&check_type, [TYPE, "modem", \&set_pap_passwd, CHAP, "%login%" ]],
+      [ "dial_command",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "(atd[tp])[0-9w, -]+" ]],
+      [ "phone_number",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([0-9w]+)" ]],
+      [ "external_line",      \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([0-9w, -]+)", "%external_line%W%phone_number%" ]],
+      [ "volume",             \&check_type, [TYPE, "modem", \&set_modem_volume, CHAT ]],
+      #[ "ppp_options",        \&check_type, [TYPE, "modem", \&gst_network_set_ppp_options_unsup, PPP_OPTIONS ]],
      ]
    },
 
@@ -2910,6 +2920,7 @@ sub get_interface_replace_table
        PPPNET       => "/etc/conf.d/net.#iface#",
        INIT         => "net.#iface#",
        IFACE        => "#iface#",
+       TYPE         => "#type#",
        WIRELESS     => "/etc/conf.d/wireless",
      },
      table =>
@@ -2926,8 +2937,8 @@ sub get_interface_replace_table
       [ "key",                \&Utils::Replace::set_sh,           WIRELESS, "key_%essid%" ],
       [ "key_type",           \&set_wep_key_type,                 [ \&Utils::Replace::set_sh, WIRELESS, "key_%essid%", "%key%" ]],
       # modem stuff
-      [ "dev",                \&check_type, [ IFACE, "modem", \&Utils::Replace::set_sh, PPPNET, PEER ]],
-      [ "update_dns",         \&check_type, [ IFACE, "modem", \&Utils::Replace::set_sh_bool, PPPNET, PEERDNS ]],
+      [ "dev",                \&check_type, [ TYPE, "modem", \&Utils::Replace::set_sh, PPPNET, PEER ]],
+      [ "update_dns",         \&check_type, [ TYPE, "modem", \&Utils::Replace::set_sh_bool, PPPNET, PEERDNS ]],
       [ "mtu",                \&Utils::Replace::set_sh,                       PPPNET, MTU ],
       [ "mru",                \&Utils::Replace::set_sh,                       PPPNET, MRU ],
       [ "serial_port",        \&Utils::Replace::set_sh,                       PPPNET, MODEMPORT ],
@@ -2956,6 +2967,7 @@ sub get_interface_replace_table
         STARTIF => "/etc/start_if.#iface#",
         PPPCONF => "/etc/ppp/ppp.conf",
         IFACE   => "#iface#",
+        TYPE    => "#type#",
       },
       table =>
       [
@@ -3115,12 +3127,14 @@ sub set_interface_config
 
   foreach $i (keys (%fn))
   {
-    $ {$dist_attrib{"fn"}}{$i} = &Utils::Parse::expand ($fn{$i}, "iface", $dev);
+    $ {$dist_attrib{"fn"}}{$i} = &Utils::Parse::expand ($fn{$i},
+                                                        "iface", $dev,
+                                                        "type",  &get_interface_type ($dev));
   }
 
   $res = &Utils::Replace::set_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
                                   $values_hash, $old_hash);
-  
+
   # if success saving the settings for the interface, set up immediatly.
   &$proc ($values_hash, $old_hash, $$values_hash{"enabled"}, 0) if !$res;
 
@@ -3293,7 +3307,7 @@ sub set
   foreach $iface (@$modem)
   {
     $dial_command = ($$iface[7] == 0) ? "ATDT" : "ATDP";
-    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
+    $hash{$$iface[0]} = { "dev" => $$iface[0], "section" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
                           "phone_number" => $$iface[3], "external_line" => $$iface[4],
                           "serial_port" => $$iface[5], "volume" => $$iface[6],
                           "dial_command" => $dial_command,
@@ -3306,7 +3320,7 @@ sub set
 
   foreach $iface (@$isdn)
   {
-    $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
+    $hash{$$iface[0]} = { "dev" => $$iface[0], "section" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
                           "phone_number" => $$iface[3], "external_line" => $$iface[4],
                           "login" => $$iface[5], "password" => $$iface[6],
                           "set_default_gw" => $$iface[7], "update_dns"=> $$iface[8],

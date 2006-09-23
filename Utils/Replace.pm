@@ -76,7 +76,7 @@ sub run_entry
   }
   
   # OK, the given entry didn't have any array refs in it...
-  
+
   return -1 if (!&Utils::Parse::replace_hash_values ($ncp, $values_hash));
   push (@$ncp, $$values_hash{$key}) unless $key eq "_always_";
   $res = -1 if &$proc (@$ncp);
@@ -101,7 +101,7 @@ sub set_from_table
   my ($i, @cp, @files, $res);
 
   $$fn{"OLD_HASH"} = $old_hash;
-  
+
   foreach $i (@$table)
   {
     @cp = @$i;
@@ -117,7 +117,7 @@ sub set_from_table
     }
     elsif ((!exists $$values_hash{$key}) && (exists $$old_hash{$key}))
     {
-      # we need to remove all the instances of the known variables that doesn't exist in the XML
+      # we need to remove all the instances of the known variables that doesn't exist in the data structure
       $res = &run_entry ($values_hash, $key, $proc, \@cp, undef);
     }
   }
