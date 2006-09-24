@@ -64,19 +64,8 @@ sub set_utc_time
   my ($time) = @_;
   my ($res, $xscreensaver_owners);
 
-  &Utils::Report::enter ();
-
-  # FIXME: restore this, take into account other screensavers
-  # Kill screensaver, so it doesn't confuse the users.
-#  $xscreensaver_owners = &gst_service_proc_get_owners ("xscreensaver");
-#  &gst_service_proc_stop_all  ("xscreensaver");
-
   $res = &change_timedate ($time);
 
-  # Restart screensaver.
-#  &gst_service_proc_start_all ("xscreensaver -no-splash", $xscreensaver_owners);
-
-  &Utils::Report::leave ();
   return -1 if $res;
   return 0;
 }

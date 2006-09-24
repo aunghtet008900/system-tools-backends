@@ -1,3 +1,7 @@
+2006-09-25  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Time/TimeDate.pm: remove some obsolete code.
+
 2006-09-23  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Network/Ifaces.pm: pass always the correct parameters to
