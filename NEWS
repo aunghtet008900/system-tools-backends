@@ -1,3 +1,30 @@
+System Tools Backends Version 1.9.6, 2006-09-28
+-------------------------------------------------
+
+The System Tools Backends version 1.9.6 "Get in the character" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), Gentoo, Slackware, FreeBSD, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  - Do not repeat multiple SMB share entries when the name has a $ symbol (GNOME bug #325495, garnacho)
+  - Avoid timeouts during file monitoring (garnacho)
+  - Code improvements to BSD, RCng and SuSE services init code (garnacho)
+  - Add an UID/GID independent ID number in UsersConfig and GroupsConfig to avoid confusions when adding/deleting groups (GNOME bug #342293, garnacho)
+  - DBus struct improvements in ServicesConfig (garnacho)
+  - Avoid "use lib" warning during s-t-b initialization (garnacho)
+  - Fix a possible bug when saving modem interfaces configuration (garnacho)
+  - Code cleanups (garnacho)
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/1.9/
+
+
 System Tools Backends Version 1.9.5.1, 2006-09-08
 -------------------------------------------------
 

@@ -1,5 +1,9 @@
 2006-09-28  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Release 1.9.6
+
+2006-09-28  Carlos Garnacho  <carlosg@gnome.org>
+
 	* SharesList.pm, Shares/Exports.pm: removed old and unused code.
 
 2006-09-25  Carlos Garnacho  <carlosg@gnome.org>
