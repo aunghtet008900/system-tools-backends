@@ -563,9 +563,9 @@ sub unescape
 sub escape
 {
   my ($value) = @_;
-  
-  $value =~ s/([\"\`\$\\])/\\$1/g;
-  $value = "\"$value\"" if ($value =~ /[ \t\'&|*?\[\]\{\}\{\}<>]/);
+
+  $value =~ s/([\ \"\`\$\\])/\\$1/g;
+  #$value = "\"$value\"" if ($value =~ /[ \t\'&|*?\[\]\{\}\{\}<>]/);
 
   return $value;
 }
@@ -832,7 +832,7 @@ sub get_from_ini
   &Utils::Report::leave ();
   $res = undef;
   $escaped_section = &escape ($section);
-  
+
   while (($line = &ini_line_read ($fd)) != -1)
   {
     $_ = $$line;

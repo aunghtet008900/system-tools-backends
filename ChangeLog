@@ -1,3 +1,7 @@
+2006-10-02  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Parse.pm (escape): fix slight problem when $value has spaces.
+
 2006-09-28  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 1.9.6
