@@ -37,27 +37,46 @@ sub get_files
   return $shells_file;
 }
 
+sub push_shell
+{
+  my ($shells, $shell) = @_;
+  push @$shells, $shell if (stat ($shell));
+}
+
 sub get
 {
-  my ($ifh, @shells);
+  my ($ifh, @shells, $shell);
 
   # Init @shells, I think every *nix has /bin/false.
-  if (stat ("/bin/false"))
-  {
-    push @shells, "/bin/false";
-  }
-  
-  $ifh = &Utils::File::open_read_from_names($shells_file);
-  return unless $ifh;
+  &push_shell (\@shells, "/bin/false");
 
-  while (<$ifh>)
+  if ($Utils::Backend::tool{"system"} eq "SunOS")
   {
-    next if &Utils::Util::ignore_line ($_);
-    chomp;
-    push @shells, $_ if (stat ($_));
-  }
+    #SunOS doesn't have anything like /etc/shells
+    my $possible_shells =
+      [ "/bin/bash", "/bin/csh", "/bin/jsh", "/bin/ksh", "/bin/pfcsh", "/bin/pfksh", "/bin/pfsh", "/bin/sh",
+        "/bin/tcsh", "/bin/zsh", "/sbin/jsh", "/sbin/jsh", "/sbin/pfsh", "/sbin/sh", "/usr/bin/bash",
+        "/usr/bin/csh", "/usr/bin/jsh", "/usr/bin/ksh", "/usr/bin/pfcsh", "/usr/bin/pfksh", "/usr/bin/pfsh",
+        "/usr/bin/sh", "/usr/bin/tcsh", "/usr/bin/zsh", "/usr/xpg4/bin/sh" ];
 
-  &Utils::File::close_file ($ifh);
+    foreach $shell (@$possible_shells)
+    {
+      &push_shell (\@shells, $shell);
+    }
+  }
+  else
+  {
+    $ifh = &Utils::File::open_read_from_names($shells_file);
+
+    while (<$ifh>)
+    {
+      next if &Utils::Util::ignore_line ($_);
+      chomp;
+      &push_shell (\@shells, $_);
+    }
+
+    &Utils::File::close_file ($ifh);
+  }
 
   return \@shells;
 }
@@ -66,6 +85,9 @@ sub set
 {
   my ($shells) = @_;
   my ($buff, $line, $nline);
+
+  #SunOS doesn't have /etc/shells
+  return if ($Utils::Backend::tool{"system"} eq "SunOS");
 
   $buff = &Utils::File::load_buffer ($shells_file);
   return unless $buff;

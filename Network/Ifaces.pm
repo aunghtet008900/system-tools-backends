@@ -26,6 +26,7 @@
 package Network::Ifaces;
 
 use Utils::Util;
+use Utils::Parse;
 use Init::Services;
 
 # FIXME: this function isn't IPv6-aware
@@ -219,14 +220,15 @@ sub get_interface_type
   return $types_cache{$dev};
 }
 
-sub get_freebsd_interfaces_info
+sub get_sunos_freebsd_interfaces_info
 {
+  my ($command) = @_;
   my ($dev, %ifaces, $fd);
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("network_iface_active_get");
 
-  $fd = &Utils::File::run_pipe_read ("ifconfig");
+  $fd = &Utils::File::run_pipe_read ($command);
   return {} if $fd eq undef;
   
   while (<$fd>)
@@ -252,6 +254,16 @@ sub get_freebsd_interfaces_info
   &Utils::File::close_file ($fd);
   &Utils::Report::leave ();
   return %ifaces;
+}
+
+sub get_freebsd_interfaces_info
+{
+  return &get_sunos_freebsd_interfaces_info ("ifconfig");
+}
+
+sub get_sunos_interfaces_info
+{
+  return &get_sunos_freebsd_interfaces_info ("ifconfig -a");
 }
 
 sub get_linux_interfaces_info
@@ -296,6 +308,7 @@ sub get_interfaces_info
 
   return &get_linux_interfaces_info if ($Utils::Backend::tool{"system"} eq "Linux");
   return &get_freebsd_interfaces_info if ($Utils::Backend::tool{"system"} eq "FreeBSD");
+  return &get_sunos_interfaces_info if ($Utils::Backend::tool{"system"} eq "SunOS");
   return undef;
 }
 
@@ -483,6 +496,27 @@ sub set_freebsd_bootproto
 
   return &Utils::Replace::set_sh ($file, "ifconfig_$dev", "dhcp") if ($value ne "none");
   return &Utils::Replace::set_sh ($file, "ifconfig_$dev", "");
+}
+
+sub get_sunos_bootproto
+{
+  my ($dhcp_file, $dev) = @_;
+  return (&Utils::File::exists ($dhcp_file)) ? "dhcp" : "none";
+}
+
+sub set_sunos_bootproto
+{
+  my ($dhcp_file, $file, $iface, $value) = @_;
+
+  if ($value eq "dhcp")
+  {
+    &Utils::File::save_buffer ("", $file);
+    &Utils::File::run ("touch $dhcp_file");
+  }
+  else
+  {
+    &Utils::File::remove ($dhcp_file);
+  }
 }
 
 # Functions to get the system interfaces, these are distro dependent
@@ -998,6 +1032,255 @@ sub set_slackware_auto
   }
 }
 
+sub get_sunos_auto
+{
+  my ($file, $iface) = @_;
+  return &Utils::File::exists ($file);
+}
+
+sub lookup_host
+{
+  my ($file) = @_;
+  my ($arr, $h);
+
+  $arr = &Network::Hosts::get_hosts ();
+
+  foreach $h (@$arr)
+  {
+    my ($ip, $aliases) = @$h;
+    my ($alias);
+
+    foreach $alias (@$aliases)
+    {
+      return $ip if ($alias eq $host)
+    }
+  }
+}
+
+sub lookup_ip
+{
+  my ($ip) = @_;
+  my ($hosts);
+
+  $hosts = &Utils::Parse::split_hash ("/etc/hosts", "[ \t]+", "[ \t]+");
+  return @{$$hosts{$ip}}[0] if (exists $$hosts{$ip});
+
+  if ($Utils::Backend::tool {"system"} eq "SunOS")
+  {
+    $hosts = &Utils::Parse::split_hash ("/etc/inet/ipnodes", "[ \t]+", "[ \t]+");
+    return @{$$hosts{$ip}}[0] if (exists $$hosts{$ip});
+  }
+}
+
+sub get_sunos_hostname_iface_value
+{
+  my ($file, $re) = @_;
+  my (@buff, $i);
+
+  $buff = &Utils::File::load_buffer ($file);
+  &Utils::File::join_buffer_lines ($buff);
+  $i = 0;
+
+  while ($$buff[$i])
+  {
+    return $1 if ($$buff[$i] =~ "$re");
+    $i++;
+  }
+}
+
+sub get_sunos_address
+{
+  my ($file, $dev) = @_;
+  my ($address);
+
+  $address = &get_sunos_hostname_iface_value ($file, "^\s*([0-9.]+)\s*");
+  return $address if ($address);
+
+  $address = &get_sunos_hostname_iface_value ($file, "^\s*([0-9a-zA-Z-_]+)\s*");
+  return &lookup_host ($address);
+}
+
+sub set_sunos_address
+{
+  my ($file, $dev, $addr) = @_;
+  my ($buf, $host);
+
+  if (&Utils::File::exists ($file))
+  {
+    $buf = &Utils::File::read_joined_lines ($file);
+    $host = &lookup_ip ($addr);
+
+    if ($buf =~ /^(\s*[0-9\.]+)\s+/ ||
+        $buf =~ /^(\s*[0-9a-zA-Z\-_]+)\s/)
+    {
+      $buf =~ s/$1/$addr/;
+      &Utils::File::save_buffer ($buf, $file);
+      return;
+    }
+  }
+
+  # save address from scratch
+  &Utils::File::save_buffer ($addr, $file);
+}
+
+sub get_sunos_netmask
+{
+  my ($file, $dev, $use_dhcp) = @_;
+  my ($buf);
+
+  $buf = &Utils::File::read_joined_lines ($file);
+
+  if ($buf =~ /\s+netmask\s+([0-9.]+)\s*/)
+  {
+    return $1;
+  }
+
+  return "255.0.0.0" if ($use_dhcp ne "dhcp");
+}
+
+sub set_sunos_netmask
+{
+  my ($file, $masks_file, $dev, $addr, $mask) = @_;
+  my ($buff, $i, $network, $found);
+
+  # modify /etc/netmasks
+  $network = &Utils::Util::ip_calc_network ($addr, $mask);
+  $buff = &Utils::File::load_buffer ($masks_file);
+  $found = 0;
+  $i = 0;
+
+  while ($$buff[$i])
+  {
+    if ($$buff[$i] =~ /\s*$network\s+.+/)
+    {
+      $$buff[$i] = "$network\t$mask";
+      $found = 1;
+    }
+
+    $i++;
+  }
+
+  push @$buff, "$network\t$mask" if (!$found);
+  &Utils::File::save_buffer ($buff, $masks_file);
+
+  # modify hostname.$dev
+  $buff = &Utils::File::read_joined_lines ($file);
+
+  if ($buff =~ /\s*(netmask [0-9\.]+)/)
+  {
+    $buff =~ s/$1/netmask $mask/;
+  }
+  else
+  {
+    $buff .= " netmask $mask";
+  }
+
+  &Utils::File::save_buffer ($buff, $file);
+}
+
+sub get_sunos_gateway
+{
+  my ($file, $dev) = @_;
+  my ($line);
+
+  my $line = &Utils::Parse::get_first_line ($file);
+
+  if ($line =~ /^\s*([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)\s*/)
+  {
+    return $1;
+  }
+  elsif ($buf =~ /^\s*([0-9a-zA-Z-_]+)\s*/)
+  {
+    return &lookup_host ($1);
+  }
+}
+
+sub set_sunos_gateway
+{
+  my ($file, $dev, $gateway) = @_;
+  &Utils::File::save_buffer ("$gateway\n", $file);
+}
+
+sub get_sunos_wireless
+{
+  my ($dev, $opt) = @_;
+  my ($fd, $essid, $key_type);
+  
+  $fd = &Utils::File::run_pipe_read ("wificonfig -i $dev");
+  return if (!$fd);
+
+  while (<$fd>)
+  {
+    if (/$opt:\s+(.*)/)
+    {
+      return $1;
+    }
+  }
+
+  &Utils::File::close_file ($fd);
+  return;
+}
+
+sub set_sunos_wireless
+{
+  my ($dev, $opt, $essid, $value) = @_;
+  my ($profile);
+
+  my $profile = &get_sunos_profile_from_essid ($essid);
+
+  if ($opt eq "essid")
+  {
+    &Utils::File::run ("wificonfig setprofileparam $profile essid='$value'");
+  }
+  elsif ($opt eq "key_type")
+  {
+    $value = "wep" if ($value ne "none");
+    &Utils::File::run ("wificonfig setprofileparam $profile encryption=$value");
+  }
+  elsif ($opt eq "key")
+  {
+    &Utils::File::run ("wificonfig setprofileparam $profile wepkey1=$value");
+    &Utils::File::run ("wificonfig setprofileparam $profile wepkeyindex=1");
+  }
+}
+
+sub get_sunos_real_wep_key
+{
+  my ($secret, $profile, $index) = @_;
+
+  $index--; 
+  $index = 0 if ($index < 0);
+
+  my @wificonfig_profiles = &Utils::Parse::get_ini_sections ($secret);
+  return undef unless (grep (/^$profile$/, @wificonfig_profiles));
+
+  return &Utils::Parse::get_ini ($secret, $profile, "wepkey$index");
+}
+
+sub get_sunos_profile_from_essid
+{
+  my ($essid) = @_;
+  my ($profilename);
+
+  $profilename = $essid;
+  $profilename =~ s/\W/_/g;
+
+  $profilename = "gst-default" unless ( $profilename );
+  return $profilename
+}
+
+sub get_sunos_wireless_key
+{
+  my ($secret, $dev) = @_;
+  my ($essid, $index, $profile);
+
+  $essid = &get_sunos_wireless ($dev, "essid");
+  $index = &get_sunos_wireless ($dev, "wepkeyindex");
+  $profile = &get_sunos_profile_from_essid ($essid);
+  
+  return &get_sunos_real_wep_key ($secret, $profile, $index);
+}
+
 sub get_freebsd_auto
 {
   my ($file, $defaults_file, $iface) = @_;
@@ -1268,6 +1551,27 @@ sub activate_freebsd_interface
   }
 }
 
+sub activate_sunos_interface
+{
+  my ($hash, $old_hash, $enabled, $force) =@_;
+  my ($dev) = $$hash{"dev"};
+
+  if ($force || &interface_changed ($hash, $old_hash))
+  {
+    if ($enabled)
+    {
+      &Utils::File::run ("svcadm restart svc:/network/physical"); # Restart physical network interfaces 
+      &Utils::File::run ("svcadm restart svc:/network/service"); # Restart name services
+    }
+    else 
+    {
+      #&Utils::File::run ("ifconfig $dev unplumb");
+      &Utils::File::run ("svcadm restart svc:/network/physical"); # Restart physical network interfaces 
+      &Utils::File::run ("svcadm restart svc:/network/service"); # Restart name services
+    }
+  }
+}
+
 sub remove_pap_entry
 {
   my ($file, $login) = @_;
@@ -1465,6 +1769,16 @@ sub delete_freebsd_interface
   
   &Utils::Replace::set_sh  ("/etc/rc.conf", "ifconfig_$dev", "");
   &Utils::File::remove ($startif);
+}
+
+sub delete_sunos_interface
+{
+  my ($old_hash) = @_;
+  my ($dev);
+
+  $dev = $$old_hash{"dev"};
+  &Utils::File::remove ("/etc/hostname.$dev");
+  &Utils::File::remove ("/etc/dhcp.$dev");
 }
 
 # FIXME: should move to external file!!!
@@ -1680,6 +1994,7 @@ sub get_interface_dist
     "slackware-9.1.0" => "slackware-9.1.0",
     "gentoo"          => "gentoo",
     "freebsd-5"       => "freebsd-5",
+    "solaris-2.11"    => "solaris-2.11",
    );
 
   return $dist_map{$Utils::Backend::tool{"platform"}};
@@ -2341,6 +2656,56 @@ sub get_interface_parse_table
         [ "persist",        \&get_freebsd_ppp_persist,        [ STARTIF, IFACE ]],
        ]
      },
+
+     "solaris-2.11" =>
+     {
+       fn =>
+       {
+         INTERFACE   => "/etc/hostname.#iface#",
+         DHCP_FILE   => "/etc/dhcp.#iface#",
+         SECRET      => "/etc/inet/secret/wifiwepkey",
+         DEFAULTROUTER => "/etc/defaultrouter",
+         IFACE       => "#iface#",
+         TYPE        => "#type#",
+         CHAT        => "/etc/chatscripts/%section%",
+         PPP_OPTIONS => "/etc/ppp/peers/%section%",
+         PAP         => "/etc/ppp/pap-secrets",
+         CHAP        => "/etc/ppp/chap-secrets",
+     },
+     table =>
+     [
+      [ "dev",                \&Utils::Parse::get_trivial, IFACE ],
+      [ "bootproto",          \&get_sunos_bootproto, [ DHCP_FILE, IFACE ]],
+      [ "auto",               \&get_sunos_auto,    [INTERFACE, IFACE]],
+      [ "address",            \&get_sunos_address, [INTERFACE, IFACE]],
+      [ "netmask",            \&get_sunos_netmask, [INTERFACE, IFACE], "%bootproto%" ],
+      [ "gateway",            \&get_sunos_gateway, DEFAULTROUTER, IFACE ],
+      # FIXME: no broadcast nor network
+      [ "essid",              \&get_sunos_wireless, [IFACE, "essid" ]],
+      [ "key_type",           \&get_sunos_wireless, [IFACE, "encryption" ]],
+      [ "key",                \&get_sunos_wireless_key, [SECRET, IFACE ]],
+      [ "update_dns",         \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
+      [ "noauth",             \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
+      [ "mtu",                \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
+      [ "mru",                \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
+      [ "serial_port",        \&check_type, [TYPE, "modem", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
+      [ "serial_speed",       \&check_type, [TYPE, "modem", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
+      [ "login",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^user \"?([^\"]*)\"?" ]],
+      [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&get_pap_passwd, PAP, "%login%" ]],
+      [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&get_pap_passwd, CHAP, "%login%" ]],
+      [ "set_default_gw",     \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "defaultroute" ]],
+      [ "debug",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "debug" ]],
+      [ "persist",            \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "persist" ]],
+      [ "serial_escapechars", \&check_type, [TYPE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
+      [ "serial_hwctl",       \&check_type, [TYPE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "crtscts" ]],
+      [ "external_line",      \&check_type, [TYPE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "atd[^0-9]([0-9*#]*)[wW]" ]],
+      [ "external_line",      \&check_type, [TYPE, "isdn", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^number[ \t]+(.+)[wW]" ]],
+      [ "phone_number",       \&check_type, [TYPE, "isdn", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^number.*[wW \t](.*)" ]],
+      [ "phone_number",       \&check_type, [TYPE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "atd.*[ptwW]([0-9, -]+)" ]],
+      [ "dial_command",       \&check_type, [TYPE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "(atd[tp])[0-9, -w]+" ]],
+      [ "volume",             \&check_type, [TYPE, "modem", \&get_modem_volume, CHAT ]],
+     ]
+     },
 	  );
   
   my $dist = &get_interface_dist ();
@@ -2995,7 +3360,58 @@ sub get_interface_replace_table
        [ "dial_command",   \&set_pppconf_dial_command, [ PPPCONF, STARTIF, IFACE ]],
        [ "volume",         \&set_pppconf_volume,       [ PPPCONF, STARTIF, IFACE ]],
       ]
-    }
+    },
+
+    "solaris-2.11" =>
+    {
+      iface_set    => \&activate_sunos_interface,
+      iface_delete => \&delete_sunos_interface,
+      fn =>
+      {
+        INTERFACE   => "/etc/hostname.#iface#",
+        DHCP_FILE   => "/etc/dhcp.#iface#",
+        MASKS_FILE  => "/etc/netmasks",
+        IFACE       => "#iface#",
+        TYPE        => "#type#",
+        DEFAULTROUTER => "/etc/defaultrouter",
+        CHAT        => "/etc/chatscripts/%section%",
+        PPP_OPTIONS => "/etc/ppp/peers/%section%",
+        PAP         => "/etc/ppp/pap-secrets",
+        CHAP        => "/etc/ppp/chap-secrets",
+      },
+      table =>
+      [
+       [ "address",            \&set_sunos_address,  [ INTERFACE, IFACE ]],
+       [ "netmask",            \&set_sunos_netmask,  [ INTERFACE, MASKS_FILE, IFACE ], "%address%" ],
+       [ "gateway",            \&set_sunos_gateway,  [DEFAULTROUTER, IFACE]],
+       [ "bootproto",          \&set_sunos_bootproto, [ DHCP_FILE, INTERFACE, IFACE ]],
+       #FIXME: there seems to be no way of setting an interface as noauto without removing the config file
+       #[ "auto",               \&set_sunos_auto, [IFACE]],
+       [ "essid",              \&set_sunos_wireless, [IFACE], "essid" ],
+       [ "key",                \&set_sunos_wireless, [IFACE], "key" ],
+       [ "key_type",           \&set_sunos_wireless, [IFACE], "key_type" ],
+       # Modem stuff
+       [ "section",            \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_connect,  PPP_OPTIONS ]],
+       [ "phone_number",       \&check_type, [TYPE, "modem", \&create_pppscript, CHAT ]],
+       [ "phone_number",       \&check_type, [TYPE, "isdn", \&create_isdn_options, PPP_OPTIONS ]],
+       [ "update_dns",         \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "usepeerdns" ]],
+       [ "noauth",             \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "noauth" ]],
+       [ "set_default_gw",     \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "defaultroute" ]],
+       [ "debug",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "debug" ]],
+       [ "persist",            \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "persist" ]],
+       [ "serial_port",        \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
+       [ "serial_speed",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
+       [ "login",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^user (.*)", "user \"%login%\"" ]],
+       [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&set_pap_passwd, PAP, "%login%" ]],
+       [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&set_pap_passwd, CHAP, "%login%" ]],
+       [ "dial_command",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "(atd[tp])[0-9w, -]+" ]],
+       [ "phone_number",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([0-9w]+)" ]],
+       [ "external_line",      \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([0-9w, -]+)", "%external_line%W%phone_number%" ]],
+       [ "phone_number",       \&check_type, [TYPE, "isdn", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^number (.*)", "number %phone_number%" ]],
+       [ "external_line",      \&check_type, [TYPE, "isdn", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^number (.*)", "number %external_line%W%phone_number%" ]],
+       [ "volume",             \&check_type, [TYPE, "modem", \&set_modem_volume, CHAT ]],
+      ]
+    },
   );
   
   my $dist = &get_interface_dist ();

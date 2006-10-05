@@ -24,7 +24,7 @@ use Utils::Parse;
 
 sub get_distro_nfs_file
 {
-  # This is quite generic
+  return "/etc/dfs/dfstab" if ($Utils::Backend::tool{"system"} eq "SunOS");
   return "/etc/exports";
 }
 
@@ -67,22 +67,130 @@ sub get_share_info
   return \@share_info;
 }
 
+sub get_share_info_sunos
+{
+  my ($str) = @_;
+  my (@options, $opt, @values, @share_info);
+
+  @options = split (/\s*,\s*/, $str);
+
+  foreach $opt (@options)
+  {
+    my ($option, $value);
+
+    @values = split /\s*=\s*/, $opt;
+    $option = $values[0];
+    $value = $values[1];
+
+    # only support "rw" and "ro" at the moment
+    if ($option eq "rw" || $option eq "ro")
+    {
+      my ($rw, $client);
+      $rw = ($option eq "rw") ? 1 : 0;
+
+      if (!$value)
+      {
+        push @share_info, [ $rw, "0.0.0.0/0" ];
+      }
+      else
+      {
+        my @clients;
+
+        # get the clients list
+        @clients = split (/:/, $value);
+
+        foreach $client (@clients)
+        {
+          push @share_info, [ $client, $rw ];
+        }
+      }
+    }
+  }
+
+  return \@share_info;
+}
+
+sub get_client_opts_sunos
+{
+  my ($clients) = @_;
+  my (@rw_clients, @ro_clients, $client, $str, $i);
+
+  foreach $i (@$clients)
+  {
+    #FIXME: broken logic?
+    if (!$$i[1])
+    {
+      push @rw_clients, $$i[0];
+    }
+    else
+    {
+      push @ro_clients, $$i[0];
+    }
+  }
+
+  # get rw clients
+  if (scalar (@rw_clients))
+  {
+    $str .= "rw=" . join (":", @rw_clients);
+  }
+
+  # get ro clients
+  if (scalar (@ro_clients))
+  {
+    $str .= ",ro=" . join (":", @ro_clients);
+  }
+
+  return $str;
+}
+
 sub get_export_line
 {
   my ($share) = @_;
-  my ($str);
+  my ($str, $i);
 
-  $str = sprintf ("%-15s ", $$share[0]);
-
-  foreach $i (@{$$share[1]})
+  if ($Utils::Backend::tool{"system"} eq "SunOS")
   {
-    $str .= $$i[0];
-    $str .= "(rw)" if (!$$i[1]);
-    $str .= " ";
+    $str  = "share -F nfs";
+    $str .= " -o " . &get_client_opts_sunos ($$share[1]);
+    $str .= " " . $$share[0];
+  }
+  else
+  {
+    $str = sprintf ("%-15s ", $$share[0]);
+
+    foreach $i (@{$$share[1]})
+    {
+      $str .= $$i[0];
+      #FIXME: broken logic?
+      $str .= "(rw)" if (!$$i[1]);
+      $str .= " ";
+    }
+
+    $str .= "\n";
   }
 
-  $str .= "\n";
   return $str;
+}
+
+sub share_line_matches
+{
+  my ($share, $line) = @_;
+
+  return 0 if (&Utils::Util::ignore_line ($line));
+  chomp $line;
+
+  if ($Utils::Backend::tool{"system"} eq "SunOS")
+  {
+    return 0 if ($line !~ /\-F\s+nfs/);
+    return 1 if ($line =~ /$$share[0]$/);
+  }
+  else
+  {
+    my @arr;
+
+    @arr = split /[ \t]+/, $$buff[$i];
+    return 1 if ($arr[0] eq $$share[0]);
+  }
 }
 
 sub add_entry
@@ -102,14 +210,14 @@ sub delete_entry
   my ($buff, $i, $line, @arr);
 
   $buff = &Utils::File::load_buffer ($file);
+  &Utils::File::join_buffer_lines ($buff);
   $i = 0;
 
   while ($$buff[$i])
   {
-    if (!&Utils::Util::ignore_line ($$buff[$i]))
+    if (&share_line_matches ($share, $$buff[$i]))
     {
-      @arr = split /[ \t]+/, $$buff[$i];
-      delete $$buff[$i] if ($arr[0] eq $$share[0]);
+      delete $$buff[$i];
     }
 
     $i++;
@@ -125,14 +233,14 @@ sub change_entry
   my ($buff, $i, $line, @arr);
 
   $buff = &Utils::File::load_buffer ($file);
+  &Utils::File::join_buffer_lines ($buff);
   $i = 0;
 
   while ($$buff[$i])
   {
-    if (!&Utils::Util::ignore_line ($$buff[$i]))
+    if (&share_line_matches ($old_share, $$buff[$i]))
     {
-      @arr = split /[ \t]+/, $$buff[$i];
-      $$buff[$i] = &get_export_line ($share) if ($arr[0] eq $$old_share[0]);
+      $$buff[$i] = &get_export_line ($share);
     }
 
     $i++;
@@ -142,22 +250,78 @@ sub change_entry
   &Utils::File::save_buffer  ($buff, $file);
 }
 
+sub get_dfstab_shares
+{
+  my ($file, $type) = @_;
+  my ($buff, $line, @arr);
+
+  # dfstab example:
+  #
+  #       share [-F fstype] [-o fs_options ] [-d description] [pathname [resourcename]]
+  #       .e.g,
+  #       share  -F nfs  -o rw=engineering  -d "home dirs"  /export/home2
+
+  $buff = &Utils::File::load_buffer ($file);
+  &Utils::File::join_buffer_lines ($buff);
+  return [] if (!$buff);
+
+  foreach $line (@$buff)
+  {
+    chomp $line;
+      
+    if ($line =~ /^\s*\S*share\s+(.*)/)
+    {
+      my $share;
+      my $line = $1;
+
+      if ($line =~ /\s-F\s+(\S+)/) { $share->{'type'} = $1; }
+      else { $share->{'type'} = "nfs"; }
+
+      # skip undesired shares
+      next if ($share->{'type'} ne $type);
+
+      if ($line =~ /\s+(\/\S+)/ || $line =~ /\s+(\/)/ || $line eq "/") { $share->{'dir'} = $1; }
+      if ($line =~ /-o\s+"([^\"]+)"/ || $line =~ /-o\s+(\S+)/) { $share->{'opts'} = $1; }
+      #if ($line =~ /-d\s+\"([^\"]+)\"/ || $line =~ /-d\s+(\S+)/) { $share->{'desc'} = $1; }
+
+      push @arr, $share;
+    }
+  }
+  
+  return \@arr;
+}
+
 sub get
 {
-  my ($nfs_exports_name);
+  my ($nfs_file);
   my (@sections, @table, $entries);
-  my $point, $share_info;
+  my ($point, $share_info);
 
-  $nfs_exports_name = &get_distro_nfs_file ();
+  $nfs_file = &get_distro_nfs_file ();
 
-  $entries = &Utils::Parse::split_hash_with_continuation ($nfs_exports_name, "[ \t]+", "[ \t]+");
-
-  foreach $point (keys %$entries)
+  if ($Utils::Backend::tool{"system"} eq "SunOS")
   {
-    my $clients = $$entries{$point};
+    my $shares = &get_dfstab_shares ($nfs_file, "nfs");
 
-    $share_info = &get_share_info ($clients);
-    push @table, [ $point, $share_info ];
+    foreach $share (@$shares)
+    {
+      $point = $share->{'dir'};
+
+      $share_info = &get_share_info_sunos ($share->{'opts'});
+      push @table, [ $point, $share_info ];
+    }
+  }
+  else
+  {
+    $entries = &Utils::Parse::split_hash_with_continuation ($nfs_file, "[ \t]+", "[ \t]+");
+
+    foreach $point (keys %$entries)
+    {
+      my $clients = $$entries{$point};
+
+      $share_info = &get_share_info ($clients);
+      push @table, [ $point, $share_info ];
+    }
   }
 
   return \@table;
@@ -206,6 +370,12 @@ sub set
       # These entries have been modified
       &change_entry ($old_config_hash{$i}, $config_hash{$i}, $nfs_exports_name);
     }
+  }
+
+  if ($Utils::Backend::tool{"system"} eq "SunOS")
+  {
+    &Utils::File::run ("unshareall -F nfs");
+    &Utils::File::run ("shareall -F nfs");
   }
 }
 

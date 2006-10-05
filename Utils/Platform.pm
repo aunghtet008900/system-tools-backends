@@ -99,7 +99,9 @@ my $PLATFORM_INFO = {
   "fedora-3"        => [ "Fedora Core", "3", "Heidelberg" ],
   "fedora-4"        => [ "Fedora Core", "4", "Stentz" ],
   "rpath"           => [ "rPath Linux" ],
-  "ark"             => [ "Ark Linux" ]
+  "ark"             => [ "Ark Linux" ],
+  "solaris-2.11"    => [ "Solaris / OpenSolaris", "2.11", "Nevada" ],
+  "nexenta-1.0"     => [ "Nexenta GNU/Solaris", "1.0", "Ellate" ],
 };
 
 sub ensure_distro_map
@@ -144,7 +146,8 @@ sub ensure_distro_map
      "ubuntu-6.06"      => "debian-3.0",
      "ubuntu-6.10"      => "debian-3.0",
      "vine-3.1"         => "vine-3.0",
-     "vlos-1.2"         => "gentoo"
+     "vlos-1.2"         => "gentoo",
+     "nexenta-1.0"      => "solaris-2.11",
      );
 
   return $metamap{$distro} if ($metamap{$distro});
@@ -153,11 +156,17 @@ sub ensure_distro_map
   
 sub check_lsb
 {
-  my ($ver, $dist);
+  my ($ver, $dist, %distmap);
+
+  %distmap = {
+    "gnu_solaris" => "nexenta"
+  };
 
   $dist = lc (&Utils::Parse::get_sh ("/etc/lsb-release", "DISTRIB_ID"));
   $ver = lc (&Utils::Parse::get_sh ("/etc/lsb-release", "DISTRIB_RELEASE"));
-  
+
+  $dist = $$distmap{$dist} if exists $$distmap{$dist};
+
   return -1 if ($dist eq "") || ($ver eq "");
   return "$dist-$ver";
 }
@@ -254,24 +263,12 @@ sub check_solaris
 {
   my ($fd, $dist);
 
-  #
-  # The file /etc/release is present for solaris-2.6
-  # solaris 2.5 does not have the file.  Solaris-7.0 and 8.0 have not
-  # been checked
-  #
-  # uname output
-  # Solaris 2.5: 5.5(.1)
-  # Solaris 2.6: 5.6
-  # Solaris 7:   unknown, assume 7.0
-  # Solaris 8:   unknown, assume 8.0
-  #
   $fd = &Utils::File::run_pipe_read ("uname -r");
   return -1 if $fd eq undef;
   chomp ($dist = <$fd>);
   &Utils::File::close_file ($fd);
 
-  if ($dist =~ /^5\.(\d)/) { return "solaris-2.$1" }
-  else { if ($dist =~ /^([78])\.\d/) { return "solaris-$1.0" } }
+  if ($dist =~ /^5\.(\d+)/) { return "solaris-2.$1" }
   return -1;
 }
 

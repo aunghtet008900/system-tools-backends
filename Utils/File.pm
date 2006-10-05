@@ -747,6 +747,19 @@ sub join_buffer_lines
   }
 }
 
+sub read_joined_lines
+{
+  my ($file) = @_;
+  my ($buffer);
+
+  $buffer = &load_buffer ($file);
+  &join_buffer_lines ($buffer);
+
+  $$buffer[0] =~ s/\n//;
+  $$buffer[0] =~ s/\\//;
+
+  return $$buffer[0];
+}
 
 # --- Command-line utilities --- #
 

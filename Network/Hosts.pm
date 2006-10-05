@@ -53,6 +53,7 @@ sub get_fqdn_dist
     "slackware-9.1.0" => "suse-9.0",
     "gentoo"          => "gentoo",
     "freebsd-5"       => "freebsd-5",
+    "solaris-2.11"    => "solaris-2.11",
 	  );
 
   return $dist_map{$Utils::Backend::tool{"platform"}};
@@ -148,6 +149,20 @@ sub get_fqdn_parse_table
        table =>
        [
         [ "hostname", \&Utils::Parse::get_sh_re, RC_CONF, hostname, "^([^\.]*)\." ],
+        [ "domain", \&Utils::Parse::split_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
+       ]
+     },
+
+     "solaris-2.11" =>
+     {
+       fn =>
+       {
+         NODENAME    => "/etc/nodename",
+         RESOLV_CONF => "/etc/resolv.conf",
+       },
+       table =>
+       [
+        [ "hostname", \&Utils::Parse::get_first_line, NODENAME ],
         [ "domain", \&Utils::Parse::split_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
        ]
      },
@@ -260,6 +275,20 @@ sub get_fqdn_replace_table
         [ "domain", \&Utils::Replace::join_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
        ]
      },
+
+     "solaris-2.11" =>
+     {
+       fn =>
+       {
+         NODENAME    => "/etc/nodename",
+         RESOLV_CONF => "/etc/resolv.conf",
+       },
+       table =>
+       [
+        [ "hostname", \&Utils::Replace::set_first_line, NODENAME ],
+        [ "domain", \&Utils::Replace::join_first_str, RESOLV_CONF, "domain", "[ \t]+" ],
+       ]
+     },
    );
 
   my $dist = &get_fqdn_dist ();
@@ -326,18 +355,34 @@ sub get_fqdn
   return ($$hash {"hostname"}, $$hash{"domain"});
 }
 
-sub get_hosts
+sub parse_hosts_files
 {
-  my ($statichosts, @arr);
+  my ($file) = @_;
+  my (@arr, %hash, $statichosts, $i);
 
-  $statichosts = &Utils::Parse::split_hash ("/etc/hosts", "[ \t]+", "[ \t]+");
-
-  foreach $i (sort keys %$statichosts)
+  while (@_)
   {
-    push @arr, [$i, $$statichosts{$i}];
+    $statichosts = &Utils::Parse::split_hash (@_[0], "[ \t]+", "[ \t]+");
+    shift @_;
+
+    foreach $i (keys %$statichosts)
+    {
+      $hash{$i} = $$statichosts{$i};
+    }
+  }
+
+  foreach $i (sort keys %hash)
+  {
+    push @arr, [$i, $hash{$i}];
   }
 
   return \@arr;
+}
+
+sub get_hosts
+{
+  return &parse_hosts_files ("/etc/hosts", "/etc/inet/ipnodes") if ($Utils::Backend::tool{"system"} eq "SunOS");
+  return &parse_hosts_files ("/etc/hosts");
 }
 
 sub get_dns
@@ -405,7 +450,22 @@ sub set_hosts
     $hash{$$i[0]} = $$i[1];
   }
 
-  &Utils::Replace::join_hash ("/etc/hosts", "[ \t]+", "[ \t]+", \%hash);
+  if ($Utils::Backend::tool {"system"} eq "SunOS")
+  {
+    &Utils::Replace::join_hash ("/etc/inet/ipnodes", "[ \t]+", "[ \t]+", \%hash);
+
+    # save only IPv4 entries in /etc/hosts
+    foreach $i (keys %hash)
+    {
+      delete $hash{$i} if ($i =~ /[a-fA-F:]/);
+    }
+
+    &Utils::Replace::join_hash ("/etc/hosts", "[ \t]+", "[ \t]+", \%hash);
+  }
+  else
+  {
+    &Utils::Replace::join_hash ("/etc/hosts", "[ \t]+", "[ \t]+", \%hash);
+  }
 }
 
 sub set_dns

@@ -47,7 +47,8 @@ sub change_timedate
 
   my $system_table = {
     "Linux"   => "date -u %02d%02d%02d%02d%04d.%02d",
-    "FreeBSD" => "date -u -f %%m%%d%%H%%M%%Y.%%S  %02d%02d%02d%02d%04d.%02d"
+    "FreeBSD" => "date -u -f %%m%%d%%H%%M%%Y.%%S  %02d%02d%02d%02d%04d.%02d",
+    "SunOS"   => "date -u %02d%02d%02d%02d%04d.%02d",
   };
 
   $command = sprintf ($$system_table {$Utils::Backend::tool{"system"}},
@@ -62,7 +63,7 @@ sub change_timedate
 sub set_utc_time
 {
   my ($time) = @_;
-  my ($res, $xscreensaver_owners);
+  my ($res);
 
   $res = &change_timedate ($time);
 
@@ -72,7 +73,7 @@ sub set_utc_time
 
 sub time_sync_hw_from_sys
 {
-  &Utils::File::run ("hwclock --systohc");
+  &Utils::File::run ("hwclock --systohc") if ($$tool{"system"} eq "Linux");
   return 0;
 }
 
@@ -116,8 +117,8 @@ sub get_timezone
     $zone = "";
   }
   
-  return $zone;
   close (TZLIST);
+  return $zone;
 }
 
 sub set_timezone
@@ -163,6 +164,7 @@ sub get_dist
    "pld-1.0"         => "redhat-6.2",
    "vine-3.0"        => "redhat-6.2",
    "freebsd-5"       => "redhat-6.2",
+   "solaris-2.11"    => "solaris-2.11",
    );
 
   return $dist_map{$Utils::Backend::tool{"platform"}};
@@ -212,6 +214,20 @@ sub conf_get_parse_table
      [
       [ "local_time",   \&get_utc_time ],
       [ "timezone",     \&Utils::Parse::get_sh, RC_LOCAL, TIMEZONE ],
+     ]
+   },
+
+   "solaris-2.11" =>
+   {
+     fn =>
+     {
+       NTP_CONF  => "/etc/inet/ntp.conf",
+       INIT_FILE => "/etc/default/init"
+     },
+     table =>
+     [
+      [ "local_time", \&get_utc_time ],
+      [ "timezone",   \&Utils::Parse::get_sh, INIT_FILE, TZ ],
      ]
    },
   );
@@ -268,6 +284,22 @@ sub conf_get_replace_table
      table =>
      [
       [ "timezone",    \&Utils::Replace::set_sh, RC_LOCAL, TIMEZONE ],
+      [ "timezone",    \&set_timezone, [LOCAL_TIME, ZONEINFO] ],
+      [ "local_time",  \&set_utc_time ],
+     ]
+   },
+
+   "solaris-2.11" =>
+   {
+     fn =>
+     {
+       ZONEINFO   => "/usr/share/lib/zoneinfo",
+       LOCAL_TIME => "/etc/localtime",
+       INIT_FILE  => "/etc/default/init"
+     },
+     table =>
+     [
+      [ "timezone",    \&Utils::Replace::set_sh, INIT_FILE, TZ ],
       [ "timezone",    \&set_timezone, [LOCAL_TIME, ZONEINFO] ],
       [ "local_time",  \&set_utc_time ],
      ]

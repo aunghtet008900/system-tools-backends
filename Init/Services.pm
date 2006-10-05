@@ -51,6 +51,7 @@ sub get_runlevels
      "slackware-9.1.0"  => "slackware-9.1.0",
      "gentoo"           => "gentoo",
      "freebsd-5"        => "slackware-9.1.0",
+     "solaris-2.11"     => "freebsd-5",
     );
 
   %runlevels=
@@ -80,7 +81,7 @@ sub get_default_runlevel
 {
   my $type = &get_init_type ();
 
-  return "default" if ($type eq "gentoo" || $type eq "rcng" || $type eq "bsd");
+  return "default" if ($type eq "gentoo" || $type eq "rcng" || $type eq "bsd" || $type eq "smf");
   return &get_sysv_default_runlevel ();
 }
 
@@ -103,6 +104,7 @@ sub get_sysv_paths
      "pld-1.0"        => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
      "vine-3.0"       => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
      "ark"            => ["$gst_prefix/etc/rc.d", "$gst_prefix/etc/rc.d/init.d", "../init.d"],
+     "solaris-2.11"   => ["$gst_prefix/etc",      "$gst_prefix/etc/init.d",      "../init.d"],
      );
   my $res;
 
@@ -524,7 +526,7 @@ sub get_bsd_scripts_list
       }
     }
 
-    Utils::File::close_file ($fd);
+    &Utils::File::close_file ($fd);
   }
 
   return \@scripts;
@@ -883,7 +885,7 @@ sub get_rcng_status_by_service
       }
     }
 
-    Utils::File::close_file ($fd);
+    &Utils::File::close_file ($fd);
     return $active;
   }
 }
@@ -1126,6 +1128,158 @@ sub set_suse_services
   }
 }
 
+# functions to get/set services info in smf
+sub smf_service_exists
+{
+  my($service) = @_;
+  my($services) = &get_smf_services_list ();
+
+  foreach $i (@$services)
+  {
+    return 1 if ($i =~ /$service/);
+  }
+
+  return 0;
+}
+
+sub run_smf_svcadm
+{
+  my ($service, $arg) = @_;
+  my ($option);
+
+  my %op =
+    ("stop" => "disable",
+     "start" => "enable"
+    );
+
+  if (&smf_service_exists ($service))
+  {
+    if (!&Utils::File::run ("svcadm $op{$arg} $service"))
+    {
+      &Utils::Report::do_report ("service_sysv_op_success", $service, $arg);
+      &Utils::Report::leave ();
+      return 0;
+    }
+  }
+
+  &Utils::Report::do_report ("service_sysv_op_failed", $service, $arg);
+  &Utils::Report::leave ();
+  return -1;
+}
+
+sub get_smf_runlevel_status_by_service
+{
+  my ($service, $status) = @_;
+  my (@arr);
+
+  if ($status)
+  {
+    push @arr, [ "default", $SERVICE_START, 0 ];
+  }
+  else
+  {
+    push @arr, [ "default", $SERVICE_STOP, 0 ];
+  }
+
+  return \@arr;
+}
+
+sub get_smf_service_info
+{
+  my ($service) = @_;
+  my ($fd, @runlevels);
+  my $status = 0;
+
+  $fd = &Utils::File::run_pipe_read ("svcs -l $service");
+
+  while (<$fd>)
+  {
+    $status = 1 if (/^state.*online/);
+  }
+
+  &Utils::File::close_file ($fd);
+
+  $runlevels = &get_smf_runlevel_status_by_service ($service, $status);
+  $service =~ m/.*\/(.*)$/;
+
+  return ($service, $runlevels);
+}
+
+sub get_smf_services_list
+{
+  my ($fd, @list);
+
+  $fd = &Utils::File::run_pipe_read ("svcs -H -a");
+
+  while (<$fd>)
+  {
+    next if (/svc:\/milestone/);
+
+    if (/^.*\s*.*\s*svc:\/(.*):.*/)
+    {
+      push @list, $1;
+    }
+  }
+
+  &Utils::File::close_file ($fd);
+  return \@list;
+}
+
+sub get_smf_services
+{
+  my ($service, @arr);
+  my ($service_list) = &get_smf_services_list ();
+
+  foreach $service (@$service_list)
+  {
+    my (@info);
+
+    @info = &get_smf_service_info ($service);
+    push @arr, \@info if scalar (@info);
+  }
+
+  return \@arr;
+}
+
+sub set_smf_service_status
+{
+  my ($service, $rl, $active) = @_;
+  my ($info);
+
+  $info = &get_smf_service_info ($service);
+
+  #return if service has not changed
+  return if ($active == @{@$info[0]}[1]);
+
+  if ($active == $SERVICE_START)
+  {
+    &Utils::File::run ("svcadm enable -s $service");
+  }
+  else
+  {
+    &Utils::File::run ("svcadm disable -s $service");
+  }
+}
+
+sub set_smf_services
+{
+  my ($services) = @_;
+  my ($action, $rl, $script, $arr);
+
+  foreach $service (@$services)
+  {
+    $script = $$service[0];
+    $arr = $$service[1];
+
+    foreach $i (@$arr)
+    {
+      $action = $$i[1];
+      $rl = $$i[0];
+      &set_smf_service_status ($script, $rl, $action);
+    }
+  }
+}
+
 # generic functions to get the available services
 sub get_init_type
 {
@@ -1153,6 +1307,10 @@ sub get_init_type
   {
     return "suse";
   }
+  elsif ($gst_dist =~ /solaris/)
+  {
+    return "smf";
+  }
   else
   {
     return "sysv";
@@ -1171,6 +1329,7 @@ sub run_script
      "gentoo"  => \&run_gentoo_script,
      "rcng"    => \&run_rcng_script,
      "suse"    => \&run_sysv_initd_script,
+     "smf"     => \&run_smf_svcadm,
     );
 
   $type = &get_init_type ();
@@ -1188,6 +1347,7 @@ sub get
   return &get_gentoo_services () if ($type eq "gentoo");
   return &get_rcng_services ()   if ($type eq "rcng");
   return &get_suse_services ()   if ($type eq "suse");
+  return &get_smf_services ()    if ($type eq "smf");
 
   return undef;
 }
@@ -1204,6 +1364,7 @@ sub set
   &set_gentoo_services ($services) if ($type eq "gentoo");
   &set_rcng_services   ($services) if ($type eq "rcng");
   &set_suse_services   ($services) if ($type eq "suse");
+  &set_smf_services    ($services) if ($type eq "smf");
 }
 
 1;

@@ -41,6 +41,7 @@ $cmd_groupmod = &Utils::File::locate_tool ("groupmod");
 $cmd_delgroup = &Utils::File::locate_tool ("delgroup");
 $cmd_addgroup = &Utils::File::locate_tool ("addgroup");
 
+$cmd_usermod  = &Utils::File::locate_tool ("usermod");
 $cmd_gpasswd  = &Utils::File::locate_tool ("gpasswd");	
 $cmd_pw       = &Utils::File::locate_tool ("pw");
 
@@ -56,6 +57,70 @@ sub del_group
   {
     $command  = ($cmd_delgroup) ? $cmd_delgroup : $cmd_groupdel;
     $command .= " \'" . $$group[$LOGIN] . "\'";
+  }
+
+  &Utils::File::run ($command);
+}
+
+# This is only for Linux and SunOS,
+# pw groupadd manages this in FreeBSD
+sub add_user_to_group
+{
+  my ($group, $user) = @_;
+  my ($command);
+
+  if ($Utils::Backend::tool{"system"} eq "SunOS")
+  {
+    my ($groups, @arr);
+
+    $groups = &Utils::File::run_backtick ("groups $user");
+    $groups =~ s/.*://;
+    chomp ($groups);
+
+    @arr = split (/ /, $groups);
+    push @arr, $group;
+    $groups = join (',', @arr);
+    $groups =~ s/^,//;
+    $groups =~ s/,$//;
+
+    $command = "$cmd_usermod -G $groups $user";
+  }
+  else
+  {
+    $command = "$cmd_gpasswd -a \'" . $user . "\' " . $group;
+  }
+
+  &Utils::File::run ($command);
+}
+
+# This is only for Linux and SunOS,
+# pw groupdel manages this in FreeBSD
+sub delete_user_from_group
+{
+  my ($group, $user) = @_;
+  my ($command);
+
+  if ($Utils::Backend::tool{"system"} eq "SunOS")
+  {
+    my ($groups, @arr);
+
+    $groups = &Utils::File::run_backtick ("groups $user");
+    $groups =~ s/.*://;
+    chomp ($groups);
+
+    # delete the user
+    $groups =~ s/[ \t]+$group//;
+
+    @arr = split (/ /, $groups);
+    $groups = join (',', @arr);
+    $groups =~ s/^,//;
+    $groups =~ s/,$//;
+    
+    $command = "$cmd_usermod -G $groups $user";
+  }
+  else
+  {
+    $command = "$cmd_gpasswd -d \'" . $user . "\' \'" . $group . "\'";
   }
 
   &Utils::File::run ($command);
@@ -95,10 +160,7 @@ sub add_group
 
     foreach $user (sort @$u)
     {
-      $command = "$cmd_gpasswd -a \'" . $user .
-          "\' " . $$group[$LOGIN];
-
-      &Utils::File::run ($command);
+      &add_user_to_group ($$group[$LOGIN], $user);
     }
   }
 }
@@ -144,19 +206,13 @@ sub change_group
         {
           # users with state 2 are those that only appeared
           # in the old group configuration, so we must delete them
-          $command = "$cmd_gpasswd -d \'" . $user . "\' \'" . 
-              $$new_group[$LOGIN] . "\'";
-
-          &Utils::File::run ($command);
+          &delete_user_from_group ($$new_group [$LOGIN], $user);
         }
-        else
+        elsif ($state == 1)
         {
           # users with state 1 are those who were added
           # to the new group configuration
-          $command = "$cmd_gpasswd -a \'" . $user . "\' \'" . 
-              $$new_group[$LOGIN] . "\'";
-
-          &Utils::File::run ($command);
+          &add_user_to_group ($$new_group[$LOGIN], $user);
         }
       }
     }

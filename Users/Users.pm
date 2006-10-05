@@ -207,6 +207,7 @@ sub get_profiles_prop_array
   }
 }
 
+#FIXME: do not hardcode GIDs like that
 my $rh_logindefs_defaults = {
   'shell'    => '/bin/bash',
   'group'    => -1,
@@ -242,6 +243,7 @@ my $logindefs_dist_map = {
   'slackware-9.1.0' => $gentoo_logindefs_defaults,
   'freebsd-5'       => $freebsd_logindefs_defaults,
   'suse-9.0'        => $gentoo_logindefs_defaults,
+  'solaris-2.11'    => $gentoo_logindefs_defaults,
 };
 
 
@@ -397,7 +399,7 @@ sub get
     # we need to make sure that there are 5 elements
     push @comment, "" while (scalar (@comment) < 5);
     $line[$COMMENT] = [@comment];
-    
+
     $users_hash{$login} = [@line];
   }
 
@@ -416,6 +418,9 @@ sub get
       @line = split ':', $_, -1;
       $login = shift @line;
       $passwd = shift @line;
+
+      # do not add data if the user isn't present
+      next if (!exists $users_hash{$login});
 
       $users_hash{$login}[$PASSWD] = $passwd;
 
@@ -474,44 +479,52 @@ sub change_user_chfn
 {
   my ($login, $old_comment, $comment) = @_;
   my ($fname, $office, $office_phone, $home_phone);
-  my ($command);
+  my ($command, $str);
 
   return if !$login;
 
   # Compare old and new data
   return if (Utils::Util::struct_eq ($old_comment, $comment));
+  $str = join (",", @$comment);
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    my ($str);
-
-    $str = join (",", @$comment);
     $command = "$cmd_pw usermod -n " . $login . " -c \'" . $str . "\'";
   }
   else
   {
-    ($fname, $office, $office_phone, $home_phone) = @$comment;
-
-    $command = "$cmd_chfn" .
-        " -f \'" . $fname . "\'" .
-        " -h \'" . $home_phone . "\'";
-
-    if ($Utils::Backend::tool{"platform"} =~ /^debian/ ||
-        $Utils::Backend::tool{"platform"} =~ /^archlinux/)
-    {
-      $command .= " -r \'" . $office . "\'" .
-          " -w \'" . $office_phone . "\'";
-    }
-    else
-    {
-      $command .= " -o \'" . $office . "\'" .
-          " -p \'" . $office_phone . "\'";
-    }
-
-    $command .= " $login";
+    $command = "$cmd_usermod -c \'" . $str . "\' " . $login;
   }
 
   &Utils::File::run ($command);
+}
+
+# modifies /etc/shadow directly, not good practice,
+# but better than passing clean passwords around
+sub modify_shadow_password
+{
+  my ($login, $password) = @_;
+  my ($buffer, $i, @arr);
+
+  $buffer = &Utils::File::load_buffer (@shadow_names);
+  return if (!$buffer);
+  $i = 0;
+
+  while ($$buffer[$i])
+  {
+    @arr = split ':', $$buffer[$i], -1;
+
+    if ($arr[0] eq $login)
+    {
+      $arr[1] = $password;
+      $$buffer[$i] = join (':', @arr) . "\n";
+      last;
+    }
+
+    $i++;
+  }
+
+  &Utils::File::save_buffer ($buffer, @shadow_names);
 }
 
 sub add_user
@@ -541,6 +554,22 @@ sub add_user
     $pwdpipe = &Utils::File::run_pipe_write ($command);
     print $pwdpipe $$user[$PASSWD];
     &Utils::File::close_file ($pwdpipe);
+  }
+  elsif ($Utils::Backend::tool{"system"} eq "SunOS")
+  {
+    $home_parents = $$user[$HOME];
+    $home_parents =~ s/\/+[^\/]+\/*$//;
+    &Utils::File::run ("$tool_mkdir -p $home_parents");
+
+    $command = "$cmd_useradd" .
+        " -d \'" . $$user[$HOME]  . "\'" .
+        " -g \'" . $$user[$GID]   . "\'" .
+        " -s \'" . $$user[$SHELL] . "\'" .
+        " -u \'" . $$user[$UID]   . "\'" .
+        " \'"    . $$user[$LOGIN] . "\'";
+
+    &Utils::File::run ($command);
+    &modify_shadow_password ($$user[$LOGIN], $$user[$PASSWD]);
   }
   else
   {
@@ -605,6 +634,19 @@ sub change_user
     $pwdpipe = &Utils::File::run_pipe_write ($command);
     print $pwdpipe $$new_user[$PASSWD];
     &Utils::File::close_file ($pwdpipe);
+  }
+  elsif ($Utils::Backend::tool{"system"} eq "SunOS")
+  {
+    $command = "$cmd_usermod" .
+        " -d \'" . $$new_user[$HOME]   . "\'" .
+        " -g \'" . $$new_user[$GID]    . "\'" .
+        " -l \'" . $$new_user[$LOGIN]  . "\'" .
+        " -s \'" . $$new_user[$SHELL]  . "\'" .
+        " -u \'" . $$new_user[$UID]    . "\'" .
+        " \'" . $$old_user[$LOGIN] . "\'";
+
+    &Utils::File::run ($command);
+    &modify_shadow_password ($$new_user[$LOGIN], $$new_user[$PASSWD]);
   }
   else
   {
@@ -675,7 +717,7 @@ sub set
     {
       $users{$$i[0]} |= 1;
       $config_hash{$$i[0]} = $i;
-	  }	
+    }
 	
     foreach $i (@$old_config)
     {
@@ -703,7 +745,7 @@ sub set
       {
         &change_user ($old_config_hash{$i}, $config_hash{$i});
       }
-	  }
+    }
   }
 }
 

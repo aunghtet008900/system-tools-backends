@@ -41,12 +41,14 @@ sub get_config_file ()
     "pld-1.0"         => "pld-1.0",
     "vine-3.0"        => "redhat-6.2",
     "freebsd-5"       => "redhat-6.2",
+    "solaris-2.11"    => "solaris-2.11",
   );
 
   my %dist_table =
   (
-    "redhat-6.2" => "/etc/ntp.conf",
-    "pld-1.0"    => "/etc/ntp/ntp.conf"
+    "redhat-6.2"   => "/etc/ntp.conf",
+    "pld-1.0"      => "/etc/ntp/ntp.conf",
+    "solaris-2.11" => "/etc/inet/ntp.conf",
   );
 
   my $dist = $dist_map{$Utils::Backend::tool{"platform"}};

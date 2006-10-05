@@ -1,3 +1,18 @@
+2006-10-05  Carlos Garnacho  <carlosg@gnome.org>
+
+	Ported to 1.9.x a huge and incredible patch by Darren Kenny  
+	<Darren.Kenny@Sun.COM> and Erast Benson  <erast@gnusolaris.com> 
+	to make s-t-b recognize and configure SunOS based systems.
+
+	* Utils/Platform.pm: recognize OpenSolaris and Nexenta properly.
+	* Utils/File.pm (read_joined_lines): added.
+	* Users/Shells.pm, Users.pm, Groups.pm: add SunOS case paths.
+	* Time/NTP.pm, TimeDate.pm: ditto.
+	* Shares/NFS.pm: parse/modify dfstab in the SunOS case
+	* Network/Hosts.pm, Ifaces.pm: add code to deal with SunOS network
+	configuration.
+	* Init/Services.pm: deal with SMF init system.
+
 2006-10-02  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Utils/Parse.pm (escape): fix slight problem when $value has spaces.
