@@ -3633,14 +3633,14 @@ sub get
       push @$ethernet, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                          &bootproto_to_code ($iface),
                          $$iface{"address"}, $$iface{"netmask"},
-                         $$iface{"network"}, $$iface{"broadcast"} ];
+                         $$iface{"network"}, $$iface{"broadcast"}, $$iface{"gateway"} ];
     }
     elsif ($type eq "wireless")
     {
       push @$wireless, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                          &bootproto_to_code ($iface),
                          $$iface{"address"}, $$iface{"netmask"},
-                         $$iface{"network"}, $$iface{"broadcast"},
+                         $$iface{"network"}, $$iface{"broadcast"}, $$iface{"gateway"},
                          $$iface{"essid"},
                          ($$iface{"key_type"} eq "ascii") ? 0 : 1,
                          $$iface{"key"} ];
@@ -3650,7 +3650,7 @@ sub get
       push @$irlan, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                       &bootproto_to_code ($iface),
                       $$iface{"address"}, $$iface{"netmask"},
-                      $$iface{"network"}, $$iface{"broadcast"} ];
+                      $$iface{"network"}, $$iface{"broadcast"}, $$iface{"gateway"} ];
     }
     elsif ($type eq "plip")
     {
@@ -3692,7 +3692,7 @@ sub set
 
     $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
                           "bootproto" => $bootproto,
-                          "address" => $$iface[4], "netmask" => $$iface[5] };
+                          "address" => $$iface[4], "netmask" => $$iface[5], "gateway" => $$iface[8] };
   }
 
   foreach $iface (@$wireless)
@@ -3702,7 +3702,7 @@ sub set
 
     $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
                           "bootproto" => $bootproto,
-                          "address" => $$iface[4], "netmask" => $$iface[5],
+                          "address" => $$iface[4], "netmask" => $$iface[5], "gateway" => $$iface[8],
                           "essid" => $$iface[8], "key_type" => $key_type, "key" => $$iface[10] };
   }
 
@@ -3711,7 +3711,7 @@ sub set
     $bootproto = ($$iface[3] == 2) ? "dhcp" : "none";
     $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
                           "bootproto" => $bootproto,
-                          "address" => $$iface[4], "netmask" => $$iface[5] };
+                          "address" => $$iface[4], "netmask" => $$iface[5], "gateway" => $$iface[8] };
   }
 
   foreach $iface (@$plip)
