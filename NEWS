@@ -1,3 +1,25 @@
+System Tools Backends Version 1.9.7, 2006-09-28
+-------------------------------------------------
+
+The System Tools Backends version 1.9.7 "Make the flames get higher" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), Gentoo, Slackware, FreeBSD, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  - Fix SMBConfig not recognizing share names with spaces in it (garnacho)
+  - SunOS (OpenSolaris and Nexenta) support for all modules (Darren Kenny, Erast Benson, garnacho -just porting-)
+  - Get/set gateway settings properly in static interfaces (garnacho)
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/1.9/
+
+
 System Tools Backends Version 1.9.6, 2006-09-28
 -------------------------------------------------
 
