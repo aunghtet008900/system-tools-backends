@@ -1,3 +1,7 @@
+2006-10-09  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Network/Ifaces.pm: don't corrupt wireless essid and key.
+
 2006-10-06  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 1.9.7

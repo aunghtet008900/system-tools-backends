@@ -3698,12 +3698,12 @@ sub set
   foreach $iface (@$wireless)
   {
     $bootproto = ($$iface[3] == 2) ? "dhcp" : "none";
-    $key_type = ($$iface[9] == 1) ? "hexadecimal" : "ascii";
+    $key_type = ($$iface[10] == 1) ? "hexadecimal" : "ascii";
 
     $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
                           "bootproto" => $bootproto,
                           "address" => $$iface[4], "netmask" => $$iface[5], "gateway" => $$iface[8],
-                          "essid" => $$iface[8], "key_type" => $key_type, "key" => $$iface[10] };
+                          "essid" => $$iface[9], "key_type" => $key_type, "key" => $$iface[11] };
   }
 
   foreach $iface (@$irlan)
