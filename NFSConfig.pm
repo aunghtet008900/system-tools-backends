@@ -63,4 +63,9 @@ sub set
   &Shares::NFS::set (@config);
 }
 
+my $bus = &Utils::Backend::get_bus ();
+my $service = $bus->export_service ($Utils::Backend::DBUS_PREFIX . ".$OBJECT_NAME");
+my $platforms_list  = Utils::Platform->new ($service);
+my $config = NFSConfig->new ($service);
+
 1;

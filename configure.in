@@ -8,6 +8,9 @@ AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AC_PROG_LIBTOOL
 
+DBUS_REQUIRED=0.35
+GLIB_REQUIRED=2.4.0
+
 dnl get prefix in $prefix, yes, this sucks
 if test "x$prefix" = "xNONE"; then
    prefix=$ac_default_prefix;
@@ -93,6 +96,20 @@ if test -z "$PERL_PATH"; then
    AC_MSG_ERROR([perl not found, required for SystemToolsBackends])
 fi
 
+dnl check for DBus
+PKG_CHECK_MODULES([DBUS], [dbus-1 >= $DBUS_REQUIRED])
+AC_SUBST([DBUS_CFLAGS])
+AC_SUBST([DBUS_LIBS])
+
+dnl check for the dispatcher deps
+PKG_CHECK_MODULES(DISPATCHER, [
+			   dbus-glib-1 >= $DBUS_REQUIRED
+			   glib-2.0    >= $GLIB_REQUIRED
+			   ])
+DISPATCHER_CFLAGS="-DDBUS_API_SUBJECT_TO_CHANGE $DISPATCHER_CFLAGS"
+AC_SUBST(DISPATCHER_LIBS)
+AC_SUBST(DISPATCHER_CFLAGS)
+
 dnl check for Net::DBus
 AC_MSG_CHECKING([for Net::DBus])
 if `$PERL_PATH -e "use lib '$netdbusdir'; require Net::DBus" 2>/dev/null`; then
@@ -100,14 +117,8 @@ if `$PERL_PATH -e "use lib '$netdbusdir'; require Net::DBus" 2>/dev/null`; then
    internalnetdbus=no
 else
    AC_MSG_RESULT([missing, going for internal copy])
-   DBUS_REQUIRED=0.35
-   PKG_CHECK_MODULES([DBUS],[dbus-1 >= $DBUS_REQUIRED])
-   AC_SUBST([DBUS_CFLAGS])
-   AC_SUBST([DBUS_LIBS])
-
    netdbusdir="${modulesdir}/lib/perl"
    AC_SUBST(netdbusdir)
-
    internalnetdbus=yes
 fi
 
@@ -116,6 +127,7 @@ AM_CONDITIONAL(INTERNAL_NET_DBUS, test x$internalnetdbus = xyes)
 AC_OUTPUT([
 Makefile
 system-tools-backends-2.0.pc
+dispatcher/Makefile
 files/Makefile
 Init/Makefile
 Network/Makefile
