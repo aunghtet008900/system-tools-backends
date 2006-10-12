@@ -3,6 +3,12 @@
 #include <glib-object.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-lowlevel.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define DBUS_INTERFACE_STB "org.freedesktop.SystemToolsBackends"
 
@@ -107,6 +113,34 @@ dispatcher_filter_func (DBusConnection *connection,
   return DBUS_HANDLER_RESULT_HANDLED;
 }
 
+static void
+daemonize (void)
+{
+  int dev_null_fd, pidfile_fd;
+  gchar *str;
+
+  if (!getenv ("STB_NO_DAEMON"))
+    {
+      dev_null_fd = open ("/dev/null", O_RDWR);
+
+      dup2 (dev_null_fd, 0);
+      dup2 (dev_null_fd, 1);
+      dup2 (dev_null_fd, 2);
+
+      if (fork () != 0)
+	exit (0);
+
+      setsid ();
+
+      if ((pidfile_fd = open ("/var/run/system-tools-backends.pid", O_WRONLY)) != -1)
+	{
+	  str = g_strdup_printf ("%d", getpid ());
+	  write (pidfile_fd, str, strlen (str));
+	  g_free (str);
+	}
+    }
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -116,6 +150,8 @@ main (int argc, char *argv[])
 
   g_type_init ();
   dbus_error_init (&error);
+
+  daemonize ();
 
   connection = dbus_bus_get (DBUS_BUS_SYSTEM, &error);
   session_connection = dbus_bus_get (DBUS_BUS_SESSION, &error);
