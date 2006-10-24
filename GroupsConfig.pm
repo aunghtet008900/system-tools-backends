@@ -22,36 +22,36 @@
 
 package GroupsConfig;
 
-use base qw(Net::DBus::Object);
+use base qw(StbObject);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
-use Utils::Backend;
 use Users::Groups;
 use Users::Users;
 
 my $OBJECT_NAME = "GroupsConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
+my $format = [[ "array", [ "struct", "uint32", "string", "string", "int32", [ "array", "string" ]]], "int32", "int32" ];
 
 sub new
 {
-  my $class   = shift;
-  my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
+  my $class = shift;
+  my $self  = $class->SUPER::new ($OBJECT_PATH, $OBJECT_NAME);
 
   bless $self, $class;
 
-  Utils::Monitor::monitor_files (&Users::Groups::get_files (),
-                                 $self, $OBJECT_NAME, "changed");
+#  Utils::Monitor::monitor_files (&Users::Groups::get_files (),
+#                                 $self, $OBJECT_NAME, "changed");
   return $self;
 }
 
-dbus_method ("get", [], [[ "array", [ "struct", "uint32", "string", "string", "int32", [ "array", "string" ]]], "int32", "int32" ]);
-dbus_method ("set", [[ "array", [ "struct", "uint32", "string", "string", "int32", [ "array", "string" ]]], "int32", "int32" ], []);
-dbus_signal ("changed", []);
+dbus_method ("get", [], $format);
+dbus_method ("set", $format, []);
+#dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
   my $groups, $logindefs;
+  $self->SUPER::reset_counter ();
 
   $groups = Users::Groups::get ();
   $logindefs = &Users::Users::get_logindefs ();
@@ -62,13 +62,11 @@ sub get
 sub set
 {
   my ($self, $config) = @_;
+  $self->SUPER::reset_counter ();
 
   Users::Groups::set ($config);
 }
 
-my $bus = &Utils::Backend::get_bus ();
-my $service = $bus->export_service ($Utils::Backend::DBUS_PREFIX . ".$OBJECT_NAME");
-my $platforms_list  = Utils::Platform->new ($service);
-my $config = GroupsConfig->new ($service);
+my $config = GroupsConfig->new ();
 
 1;

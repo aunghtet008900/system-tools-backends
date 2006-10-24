@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.SystemToolsBackends.TimeConfig
+Exec=@scriptsdir@/SystemToolsBackends.pl -m TimeConfig
+

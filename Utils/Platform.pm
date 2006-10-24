@@ -24,21 +24,10 @@
 
 package Utils::Platform;
 
-use Utils::XML;
 use Utils::Parse;
 use Utils::Backend;
 use Utils::File;
-
-use base qw(Net::DBus::Object);
-use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX . ".Platform");
-
-my $OBJECT_NAME = "Platform";
-my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
-
-dbus_method ("getPlatformList", [], [[ "array", [ "struct", "string", "string", "string", "string" ]]]);
-dbus_method ("getPlatform", [], [ "string" ]);
-dbus_method ("setPlatform", [ "string" ], []);
-dbus_signal ("noPlatformDetected", []);
+use Utils::Replace;
 
 # --- System guessing --- #
 
@@ -103,6 +92,11 @@ my $PLATFORM_INFO = {
   "solaris-2.11"    => [ "Solaris / OpenSolaris", "2.11", "Nevada" ],
   "nexenta-1.0"     => [ "Nexenta GNU/Solaris", "1.0", "Ellate" ],
 };
+
+sub get_platform_info
+{
+  return $PLATFORM_INFO;
+}
 
 sub ensure_distro_map
 {
@@ -318,7 +312,6 @@ sub set_platform
   my ($platform) = @_;
   my ($p);
 
-
   if (&ensure_platform ($platform))
   {
     $platform = &ensure_distro_map ($platform);
@@ -430,13 +423,8 @@ sub cache_platform
   &Utils::Replace::set_first_line ($file, $gst_dist);
 }
 
-sub new
+sub init
 {
-  my $class   = shift;
-  my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
-
-  bless $self, $class;
   &get_system ();
 
   if (!&get_cached_platform ())
@@ -444,35 +432,6 @@ sub new
     &guess ($self) if !$Utils::Backend::tool{"platform"};
     &cache_platform ();
   }
-
-  return $self;
 }
 
-sub getPlatformList
-{
-  my ($self) = @_;
-  my ($arr, $key);
-
-  foreach $key (keys %$PLATFORM_INFO)
-  {
-      push @$arr, [ $$PLATFORM_INFO{$key}[0],
-                    $$PLATFORM_INFO{$key}[1],
-                    $$PLATFORM_INFO{$key}[2],
-                    $key ];
-  }
-
-  return $arr;
-}
-
-sub getPlatform
-{
-  return $Utils::Backend::tool{"platform"};
-}
-
-# A directive handler that sets the currently selected platform.
-sub setPlatform
-{
-  my ($self, $platform) = @_;
-
-  &set_platform ($platform);
-}
+1;

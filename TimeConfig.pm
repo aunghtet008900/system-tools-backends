@@ -22,19 +22,18 @@
 
 package TimeConfig;
 
-use base qw(Net::DBus::Object);
+use base qw(StbObject);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
-use Utils::Backend;
 use Time::TimeDate;
 
 my $OBJECT_NAME = "TimeConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
+my $format = [ "int32", "int32", "int32", "int32", "int32", "int32", "string" ];
 
 sub new
 {
   my $class   = shift;
-  my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
+  my $self    = $class->SUPER::new ($OBJECT_PATH, $OBJECT_NAME);
 
   bless $self, $class;
 
@@ -44,14 +43,15 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [], [ "int32", "int32", "int32", "int32", "int32", "int32", "string" ]);
-dbus_method ("set", [ "int32", "int32", "int32", "int32", "int32", "int32", "string" ], []);
-dbus_signal ("changed", []);
+dbus_method ("get", [], $format);
+dbus_method ("set", $format, []);
+#dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
   my $config;
+  $self->SUPER::reset_counter ();
 
   return Time::TimeDate::get ();
 }
@@ -59,13 +59,11 @@ sub get
 sub set
 {
   my ($self, @config) = @_;
+  $self->SUPER::reset_counter ();
 
   Time::TimeDate::set (@config);
 }
 
-my $bus = &Utils::Backend::get_bus ();
-my $service = $bus->export_service ($Utils::Backend::DBUS_PREFIX . ".$OBJECT_NAME");
-my $platforms_list  = Utils::Platform->new ($service);
-my $config = TimeConfig->new ($service);
+my $config = TimeConfig->new ();
 
 1;

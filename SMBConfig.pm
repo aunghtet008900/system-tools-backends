@@ -22,35 +22,35 @@
 
 package SMBConfig;
 
-use base qw(Net::DBus::Object);
+use base qw(StbObject);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Shares::SMB;
 
 my $OBJECT_NAME = "SMBConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
+my $format = [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]],
+              "string", "string", "int32", "string" ];
 
 sub new
 {
   my $class   = shift;
-  my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
+  my $self    = $class->SUPER::new ($OBJECT_PATH, $OBJECT_NAME);
 
   bless $self, $class;
 
-  Utils::Monitor::monitor_files (&Shares::SMB::get_distro_smb_file (),
-                                 $self, $OBJECT_NAME, "changed");
+#  Utils::Monitor::monitor_files (&Shares::SMB::get_distro_smb_file (),
+#                                 $self, $OBJECT_NAME, "changed");
   return $self;
 }
 
-dbus_method ("get", [], [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]],
-                         "string", "string", "int32", "string" ]);
-dbus_method ("set", [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]],
-                     "string", "string", "int32", "string" ], []);
-dbus_signal ("changed", []);
+dbus_method ("get", [], $format);
+dbus_method ("set", $format, []);
+#dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
+  $self->SUPER::reset_counter ();
 
   return &Shares::SMB::get ();
 }
@@ -58,13 +58,11 @@ sub get
 sub set
 {
   my ($self, @config) = @_;
+  $self->SUPER::reset_counter ();
 
   &Shares::SMB::set (@config);
 }
 
-my $bus = &Utils::Backend::get_bus ();
-my $service = $bus->export_service ($Utils::Backend::DBUS_PREFIX . ".$OBJECT_NAME");
-my $platforms_list  = Utils::Platform->new ($service);
-my $config = SMBConfig->new ($service);
+my $config = SMBConfig->new ();
 
 1;

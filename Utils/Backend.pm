@@ -222,8 +222,7 @@ sub set_prefix
 sub set_dist
 {
   my ($tool, $dist) = @_;
-
-  &Utils::Platform::set_platform ($dist);
+  &set_with_param ($tool, "platform", $dist);
 }
 
 sub is_backend
@@ -238,6 +237,19 @@ sub is_backend
   }
 
   return 0;
+}
+
+sub ensure_platform
+{
+  if (!$$tool{"platform"})
+  {
+    my $bus = Net::DBus->system;
+    my $service = $bus->get_service("org.freedesktop.SystemToolsBackends");
+    my $obj = $service->get_object ("/org/freedesktop/SystemToolsBackends/Platform");
+    my $platform = $obj->getPlatform ();
+
+    &set_dist (\%tool, $platform) if ($platform);
+  }
 }
 
 sub init
@@ -284,13 +296,10 @@ sub init
     }
   }
 
-  if (!$tool{"no-shutdown"})
-  {
-    &initialize_timer ($tool);
-  }
-
   # Set up subsystems.
   &Utils::Report::begin ();
+  &Utils::Platform::get_system ();
+  &initialize_timer (\%tool);
 
   return \%tool;
 }
@@ -315,11 +324,14 @@ sub initialize_timer
 {
   my ($tool) = @_;
 
-  # remove previous timer
-  Net::DBus::Reactor->main->remove_timeout ($$tool{"timer"}) if ($$tool {"timer"});
+  if (!$$tool{"no-shutdown"})
+  {
+    # remove previous timer
+    Net::DBus::Reactor->main->remove_timeout ($$tool{"timer"}) if ($$tool {"timer"});
 
-  #wait three minutes until shutdown
-  $$tool{"timer"} = Net::DBus::Reactor->main->add_timeout (180000, Net::DBus::Callback->new(method => \&shutdown));
+    #wait three minutes until shutdown
+    $$tool{"timer"} = Net::DBus::Reactor->main->add_timeout (180000, Net::DBus::Callback->new(method => \&shutdown));
+  }
 }
 
 1;

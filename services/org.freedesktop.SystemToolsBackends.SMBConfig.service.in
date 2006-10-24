@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.SystemToolsBackends.SMBConfig
+Exec=@scriptsdir@/SystemToolsBackends.pl -m SMBConfig
+

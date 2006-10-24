@@ -1,3 +1,31 @@
+2006-10-24  Carlos Garnacho  <carlosg@gnome.org>
+
+	Continued work on the dispatcher, I think it's now feature complete
+	enough to work.
+
+	* StbObject.pm: base object for s-t-b services, does all
+	initialization and common stuff.
+
+	* GroupsConfig.pm, HostsConfig.pm, IfacesConfig.pm, NFSConfig.pm,
+	NTPConfig.pm, SMBConfig.pm, ServicesConfig.pm, TimeConfig.pm,
+	UsersConfig.pm: inherit from StbObject, keep message format in a 
+	variable to avoid duplicates.
+
+	* Utils/Platform.pm: move DBus code to Platform.pm.
+	* Platform.pm: added, new DBus object.
+
+	* Utils/Backend.pm: ensure system and platform.
+
+	* Init/Services.pm: code improvements for archlinux
+
+	* dispatcher/dispatcher.c: Add license, make it raise it's own private
+	session bus to spawn configuration modules, cache platform and return
+	it when asked, create a copy of the message to pass around (seems to
+	be necessary by design)
+
+	* services/*: added, used to raise configuration modules.
+	* configure.in, Makefile.am: added services directory stuff.
+
 2006-10-13  Carlos Garnacho  <carlosg@gnome.org>
 
 	* dispatcher/dispatcher.c (daemonize): added, function to make the 

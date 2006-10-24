@@ -866,7 +866,7 @@ sub get_rcng_status_by_service
   my ($fd, $line, $active);
 
   # This is the only difference between rcNG and archlinux
-  if ($gst_dist eq "archlinux")
+  if ($Utils::Backend::tool{"platform"} eq "archlinux")
   {
       return &Utils::File::exists ("/var/run/daemons/$service");
   }
@@ -1021,7 +1021,7 @@ sub set_rcng_services
   my ($action, $runlevels, $script, $func);
 
   # archlinux stores services differently
-  if ($gst_dist eq "archlinux")
+  if ($Utils::Backend::tool{"platform"} eq "archlinux")
   {
     $func = \&set_archlinux_service_status;
   }
