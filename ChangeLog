@@ -1,5 +1,9 @@
 2006-10-24  Carlos Garnacho  <carlosg@gnome.org>
 
+	* dispatcher/dispatcher.c: exit() on SIGTERM.
+
+2006-10-24  Carlos Garnacho  <carlosg@gnome.org>
+
 	Continued work on the dispatcher, I think it's now feature complete
 	enough to work.
 

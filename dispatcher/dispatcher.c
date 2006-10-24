@@ -265,6 +265,8 @@ on_sigterm (gint signal)
       g_source_remove (watch_id);
       kill (bus_pid, SIGTERM);
     }
+
+  exit (0);
 }
 
 int
