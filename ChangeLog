@@ -1,3 +1,7 @@
+2006-10-31  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Shares/NFS.pm (share_line_matches): fix != SunOS case.
+
 2006-10-26  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 1.9.90

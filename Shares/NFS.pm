@@ -188,7 +188,7 @@ sub share_line_matches
   {
     my @arr;
 
-    @arr = split /[ \t]+/, $$buff[$i];
+    @arr = split /[ \t]+/, $line;
     return 1 if ($arr[0] eq $$share[0]);
   }
 }
