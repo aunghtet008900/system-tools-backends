@@ -2,6 +2,8 @@
 
 	* Shares/NFS.pm (get_share_client_info): logic was wrong when
 	retrieving whether the share is rw/ro, invert it.
+	* Network/Ifaces.pm (get_interface_parse_table): allow [*#] in phone
+	numbers.
 
 2006-10-31  Carlos Garnacho  <carlosg@gnome.org>
 
