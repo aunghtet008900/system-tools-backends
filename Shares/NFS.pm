@@ -51,7 +51,7 @@ sub get_share_client_info
     }
   }
 
-  return [ $pattern, $rw ];
+  return [ $pattern, !$rw ];
 }
 
 sub get_share_info

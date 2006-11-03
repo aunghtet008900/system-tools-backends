@@ -1,3 +1,8 @@
+2006-11-03  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Shares/NFS.pm (get_share_client_info): logic was wrong when
+	retrieving whether the share is rw/ro, invert it.
+
 2006-10-31  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Shares/NFS.pm (share_line_matches): fix != SunOS case.
