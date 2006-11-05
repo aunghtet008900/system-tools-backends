@@ -1,3 +1,25 @@
+System Tools Backends Version 1.9.91, 2006-11-05
+-------------------------------------------------
+
+The System Tools Backends version 1.9.91 "Playing with the little green men" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), Gentoo, Slackware, FreeBSD, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  - Fix NFS shares deleting under Linux/FreeBSD (garnacho)
+  - Retrieve correctly rw/ro data in NFS shares (garnacho)
+  - Accept properly [*#] in modem phone numbers (garnacho)
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/1.9/
+
+
 System Tools Backends Version 1.9.90, 2006-10-26
 -------------------------------------------------
 
