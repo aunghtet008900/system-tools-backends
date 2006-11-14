@@ -85,6 +85,15 @@ sub get_timezone
   my $size_search;
   my $size_test;
 
+  # First check whether it's a link, if it is, it's pretty straighforward
+  $zone = readlink ($local_time_file);
+
+  if ($zone && $zone =~ /^$zoneinfo_dir/)
+  {
+    $zone =~ s/^$zoneinfo_dir\/+//;
+    return $zone;
+  }
+
   *TZLIST = &Utils::File::open_read_from_names($zoneinfo_dir . "/zone.tab");
   if (not *TZLIST) { return; }
 
@@ -135,7 +144,7 @@ sub set_timezone
     unlink $localtime;  # Important, since it might be a symlink.
     
     &Utils::Report::enter ();
-    $res = copy ($tz, $localtime);
+    $res = symlink ($tz, $localtime);
     &Utils::Report::leave ();
     return -1 unless $res;
     return 0;
