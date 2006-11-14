@@ -68,9 +68,10 @@ sub do_get_cmd_path
   $tool_path = &locate_tool ($tool_name);
   return -1 if ($tool_path eq "");
 
-
   $command = "$tool_path @argline";
-  $command =~ s/\"/\\\"/g;
+  # Do not escape args, it's reasonable
+  # to assume they're already escaped
+  #$command =~ s/\"/\\\"/g;
 
   return $command;
 }

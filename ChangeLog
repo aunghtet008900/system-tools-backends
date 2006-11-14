@@ -1,5 +1,10 @@
 2006-11-14  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Utils/File.pm: do not double escape quotes, commands are already
+	escaped where necessary. Fixes GNOME bug #343999.
+
+2006-11-14  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Time/TimeDate.pm (get_timezone) (set_timezone): be prepared to
 	handle symlinks to the zoneinfo file, also save it as a link by
 	default. Fixes GNOME bug #354661.
