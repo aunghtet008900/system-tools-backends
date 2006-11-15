@@ -1,5 +1,9 @@
 2006-11-15  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Makefile.am: include test-backends in EXTRA_DIST, it's nice to have.
+
+2006-11-15  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Network/Ifaces.pm (get_interface_parse_table):
 	* Utils/Replace.pm (set_chat): Improve phone number parsing regexes
 	* Utils/Replace.pm (set_from_table): do not process empty values in

@@ -25,6 +25,7 @@ EXTRA_DIST = \
 	system-tools-backends-2.0.pc.in \
 	system-tools-backends.conf.in \
 	org.freedesktop.SystemToolsBackends.service.in \
+	test-backends \
 	$(modules_DATA) \
 	README \
 	AUTHORS \
