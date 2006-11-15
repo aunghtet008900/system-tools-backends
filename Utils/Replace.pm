@@ -111,6 +111,9 @@ sub set_from_table
     @files = &Utils::Parse::replace_files (shift (@cp), $fn);
     unshift @cp, @files if (scalar @files) > 0;
 
+    # treat empty values as undef
+    delete $$values_hash{$key} if ($$values_hash{$key} eq "");
+
     if ((exists $$values_hash{$key}) or ($key eq "_always_"))
     {
       $res = &run_entry ($values_hash, $key, $proc, \@cp, $$values_hash{$key});
@@ -490,12 +493,13 @@ sub set_chat
 	   $found = $1;
 	   $quoted = 0;
 	 }
-	 
+
 	 # If it looks like what we're looking for,
 	 # substitute what is in parens with value.
 	 if ($found =~ /$re/i)
 	 {
 	   $substr = $1;
+	   $substr =~ s/\*/\\\*/g;
 	   $found =~ s/$substr/$value/i;
 
 	   if ($quoted == 1)

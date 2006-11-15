@@ -1,3 +1,10 @@
+2006-11-15  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Network/Ifaces.pm (get_interface_parse_table):
+	* Utils/Replace.pm (set_chat): Improve phone number parsing regexes
+	* Utils/Replace.pm (set_from_table): do not process empty values in
+	the configuration as if they weren't empty.
+
 2006-11-14  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Utils/File.pm: do not double escape quotes, commands are already
