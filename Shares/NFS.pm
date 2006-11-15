@@ -46,7 +46,7 @@ sub get_share_client_info
 
     for $option (@options)
     {
-      $rw = ($option eq "rw") ? 1 : 0;
+      $rw = 1 if ($option eq "rw");
       # Add supported NFS export options here. Some might have to be split on '='.
     }
   }
