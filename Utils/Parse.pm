@@ -737,6 +737,8 @@ sub get_from_chatfile
     chomp;
     while ($_ ne "")
     {
+      s/^\s*//;
+
       # If it uses quotes. FIXME: Assuming they surround the whole string.
       if (/^\'/)
       {
@@ -745,7 +747,7 @@ sub get_from_chatfile
       }
       else
       {
-        s/([^ \t]*) ?//;
+        s/(\S*)\s?//;
         $found = $1;
       }
       

@@ -1,5 +1,11 @@
 2006-11-15  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Utils/Parse.pm (get_from_chatfile):
+	* Utils/Replace.pm (set_chat): Fix infinite loop if the chatscript
+	contains tabs. Fixes GNOME Bug #343193 (Kris Shannon)
+
+2006-11-15  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Makefile.am: include test-backends in EXTRA_DIST, it's nice to have.
 
 2006-11-15  Carlos Garnacho  <carlosg@gnome.org>

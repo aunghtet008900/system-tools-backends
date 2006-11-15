@@ -480,6 +480,8 @@ sub set_chat
 
     while ($i ne "")
     {
+	 $i =~ s/^\s*//;
+
 	 # If it uses quotes. FIXME: Assuming they surround the whole string.
 	 if ($i =~ /^\'/)
 	 {
