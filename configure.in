@@ -40,6 +40,10 @@ SYSCONFDIR_TMP="${sysconfdir}"
 AC_EXPAND(sysconfdir,"NONE",EXPANDED_SYSCONFDIR)
 AC_SUBST(EXPANDED_SYSCONFDIR)
 
+LOCALSTATEDIR_TMP="${localsatedir}"
+AC_EXPAND(localstatedir, "NONE", localstatedir)
+AC_SUBST(localstatedir)
+
 dnl scriptsdir & filesdir
 scriptsdir="${EXPANDED_DATADIR}/system-tools-backends-2.0/scripts"
 filesdir="${EXPANDED_DATADIR}/system-tools-backends-2.0/files"

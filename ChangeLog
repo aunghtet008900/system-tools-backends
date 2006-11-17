@@ -1,3 +1,9 @@
+2006-11-17  Carlos Garnacho  <carlosg@gnome.org>
+
+	* configure.in: expand localstatedir
+	* SystemToolsBackends.pl.in, Utils/Backend.pm: use localstatedir
+	passed by configure to write pidfile.
+
 2006-11-15  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Shares/NFS.pm (get_share_client_info): Do not reset $rw if it finds

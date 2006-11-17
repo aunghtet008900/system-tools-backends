@@ -28,6 +28,7 @@ use Utils::XML;
 
 our $DBUS_PREFIX = "org.freedesktop.SystemToolsBackends";
 our $DBUS_PATH   = "/org/freedesktop/SystemToolsBackends";
+our $localstatedir;
 our $tool;
 
 eval "use Locale::gettext";
@@ -317,7 +318,7 @@ sub daemonize
   setsid                     or die "Can't start a new session: $!";
 
   # write pid file
-  open (PIDFILE, ">/var/run/system-tools-backends.pid") or die "Can't open pidfile";
+  open (PIDFILE, ">$main::localstatedir/run/system-tools-backends.pid");
   print PIDFILE $$;
   close (PIDFILE);
 }
