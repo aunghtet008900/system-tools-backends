@@ -102,7 +102,7 @@ my $PLATFORM_INFO = {
   "ark"             => [ "Ark Linux" ],
   "solaris-2.11"    => [ "Solaris / OpenSolaris", "2.11", "Nevada" ],
   "nexenta-1.0"     => [ "Nexenta GNU/Solaris", "1.0", "Ellate" ],
-  "yellowdog-4.1"   => [ "Yellow Dog Linux", "4.2", "Sagitta" ],
+  "yellowdog-4.1"   => [ "Yellow Dog Linux", "4.1", "Sagitta" ],
 };
 
 sub ensure_distro_map
