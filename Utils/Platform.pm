@@ -102,6 +102,7 @@ my $PLATFORM_INFO = {
   "ark"             => [ "Ark Linux" ],
   "solaris-2.11"    => [ "Solaris / OpenSolaris", "2.11", "Nevada" ],
   "nexenta-1.0"     => [ "Nexenta GNU/Solaris", "1.0", "Ellate" ],
+  "yellowdog-4.1"   => [ "Yellow Dog Linux", "4.2", "Sagitta" ],
 };
 
 sub ensure_distro_map
@@ -137,6 +138,7 @@ sub ensure_distro_map
      "pld-2.99"         => "pld-1.0",
      "redhat-9"         => "redhat-8.0",
      "rpath"            => "redhat-7.2",
+     "yellowdog-4.1"    => "redhat-7.2",
      "slackware-10.0.0" => "slackware-9.1.0",
      "slackware-10.1.0" => "slackware-9.1.0",
      "slackware-10.2.0" => "slackware-9.1.0",
@@ -379,6 +381,7 @@ sub guess
                   [ \&check_file_exists, "/etc/arch-release", "archlinux" ],
                   [ \&check_ark ],
                   [ \&check_yoper ],
+                  [ \&check_distro_file, "/etc/yellowdog-release", "yellowdog", "^Yellow Dog Linux release (\S+)" ],
                  ],
     "FreeBSD" => [[ \&check_freebsd ]],
     "SunOS"   => [[ \&check_solaris ]]

@@ -1,3 +1,7 @@
+2006-11-20  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Platform.pm: added Yellow Dog, it behaves like FC
+
 2006-11-17  Carlos Garnacho  <carlosg@gnome.org>
 
 	* configure.in: expand localstatedir
