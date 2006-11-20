@@ -53,7 +53,7 @@ sub expand
     $strarr = [ @$strarr ];
     foreach $i (@$strarr)
     {
-      $i = &expand ($i, $substr, $value);
+      $i = &expand ($i, @args);
     }
 
     return $strarr;

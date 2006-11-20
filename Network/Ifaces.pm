@@ -2062,7 +2062,6 @@ sub get_interface_parse_table
 
      "redhat-7.2" =>
      {
-       ifaces_get => \&get_existing_rh72_ifaces,
        fn =>
        {
          IFCFG => ["/etc/sysconfig/networking/profiles/default/ifcfg-#iface#",

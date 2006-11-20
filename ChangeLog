@@ -1,5 +1,17 @@
 2006-11-20  Carlos Garnacho  <carlosg@gnome.org>
 
+	These changes make it work again for RH derivatives, plenty of thanks
+	to Joseph E. Sacco  <joseph_sacco@comcast.net> for providing his YDL
+	configuration for testing.
+
+	* Network/Ifaces.pm (get_interface_parse_table): do not use custom
+	function to get the interfaces list in RH7.2 derivatives.
+	* Utils/Parse.pm (expand): recurse properly in replacement arrays
+	* Utils/Platform.pm: Fix regexp for a bunch of ditributions, makes me
+	wonder about the distribution of whoever has used s-t-b...
+
+2006-11-20  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Utils/Platform.pm: added Yellow Dog, it behaves like FC
 
 2006-11-17  Carlos Garnacho  <carlosg@gnome.org>
