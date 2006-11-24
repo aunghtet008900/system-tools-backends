@@ -1,3 +1,11 @@
+2006-11-24  Carlos Garnacho  <carlosg@gnome.org>
+
+	* test-backends: move to test-backends.in
+	* test-backends.in: added, make it use the same Net::DBus copy than
+	the backends.
+	* configure.am: build test-backends
+	* Makefile.am: autofoo changes for test-backends.in
+
 2006-11-20  Carlos Garnacho  <carlosg@gnome.org>
 
 	These changes make it work again for RH derivatives, plenty of thanks

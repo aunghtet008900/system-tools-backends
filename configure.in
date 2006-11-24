@@ -128,6 +128,7 @@ Time/Makefile
 Users/Makefile
 Utils/Makefile
 SystemToolsBackends.pl
+test-backends
 org.freedesktop.SystemToolsBackends.service
 system-tools-backends.conf
 Net-DBus/Makefile

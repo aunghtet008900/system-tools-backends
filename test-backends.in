@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+use lib "@netdbusdir@";
+
 use Net::DBus;
 use Net::DBus::Reactor;
 
