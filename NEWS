@@ -1,3 +1,33 @@
+System Tools Backends Version 2.0.0, 2006-11-26
+-------------------------------------------------
+
+The System Tools Backends version 2.0.0 "Humanity needs diapers" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  - handle zoneinfo as links (garnacho)
+  - do not double escape quotes when running certain commands (garnacho)
+  - Improve PPP info parsing in IfacesConfig (garnacho)
+  - Fix infinite loop if the chatscript contains tabs (Kris Shannon, garnacho)
+  - Improve NFS shares parsing (garnacho)
+  - Use localstatedir to save the pidfile (garnacho)
+  - Added Yellow Dog Linux, behaves like FC (Joseph E. Sacco)
+  - Improve distribution detection (garnacho)
+  - include test-backends in tarballs (garnacho)
+
+  Thanks to anyone involved in this release
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.0/
+
+
 System Tools Backends Version 1.9.91, 2006-11-05
 -------------------------------------------------
 

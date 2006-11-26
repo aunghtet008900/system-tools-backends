@@ -1,5 +1,9 @@
 2006-11-26  Carlos Garnacho  <carlosg@gnome.org>
 
+        * Release 2.0
+
+2006-11-26  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Utils/File.pm (get_base_path): use localstatedir.
 
 2006-11-24  Carlos Garnacho  <carlosg@gnome.org>
