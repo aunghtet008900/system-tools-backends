@@ -30,7 +30,6 @@ use File::Copy;
 use File::Temp;
 use Carp;
 
-
 $FILE_READ  = 1;
 $FILE_WRITE = 2;
 
@@ -39,7 +38,7 @@ $FILE_WRITE = 2;
 
 sub get_base_path
 {
-  my $path = "/var/cache/system-tools-backends";
+  my $path = "/$main::localstatedir/cache/system-tools-backends";
   chmod (0755, $path);
   return $path;
 }
