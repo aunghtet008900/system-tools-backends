@@ -113,8 +113,6 @@ end_of_usage_generic;
 
        Modifiers (specify any combination of these):
 
-          -no-daemon  Does not daemonize the backend
-
           --platform  <name-ver>  Overrides the detection of your platform\'s
                       name and version, e.g. redhat-6.2. Use with care. See the
                       documentation for a full list of supported platforms.
@@ -129,8 +127,6 @@ end_of_usage_generic;
 
        -v --verbose   Prints human-readable diagnostic messages to standard
                       error.
-
-      --session-bus   Makes the backends to use the session bus.
 
 end_of_usage_generic;
 
@@ -204,12 +200,16 @@ sub set_with_param
   $$tool{$arg_name} = $value;
 }
 
-sub set_no_daemon
+sub set_disable_shutdown
 {
   my ($tool) = @_;
+  &set_with_param ($tool, "no-shutdown", 1);
+}
 
-  &set_with_param ($tool, "no-daemon", 1);
-  $no_daemon = 1;
+sub set_module
+{
+  my ($tool, $module) = @_;
+  &set_with_param ($tool, "module", "$module.pm");
 }
 
 sub set_prefix
@@ -223,16 +223,7 @@ sub set_prefix
 sub set_dist
 {
   my ($tool, $dist) = @_;
-
-  &Utils::Platform::set_platform ($dist);
-}
-
-sub set_session_bus
-{
-  my ($tool) = @_;
-
-  &set_with_param ($tool, "session-bus", 1);
-  $session_bus = 1;
+  &set_with_param ($tool, "platform", $dist);
 }
 
 sub is_backend
@@ -247,6 +238,19 @@ sub is_backend
   }
 
   return 0;
+}
+
+sub ensure_platform
+{
+  if (!$$tool{"platform"})
+  {
+    my $bus = Net::DBus->system;
+    my $service = $bus->get_service("org.freedesktop.SystemToolsBackends");
+    my $obj = $service->get_object ("/org/freedesktop/SystemToolsBackends/Platform");
+    my $platform = $obj->getPlatform ();
+
+    &set_dist (\%tool, $platform) if ($platform);
+  }
 }
 
 sub init
@@ -271,11 +275,11 @@ sub init
   while ($arg = shift (@args))
   {
     if    ($arg eq "--help"      || $arg eq "-h") { &print_usage   (\%tool, 0); }
-    elsif ($arg eq "--no-daemon" || $arg eq "-n") { &set_no_daemon (\%tool);    }
+    elsif ($arg eq "--module"    || $arg eq "-m") { &set_module    (\%tool, shift @args); }
     elsif ($arg eq "--version")                   { &print_version (\%tool, 0); }
     elsif ($arg eq "--prefix"    || $arg eq "-p") { &set_prefix    (\%tool, shift @args); }
     elsif ($arg eq "--platform")                  { &set_dist      (\%tool, shift @args); }
-    elsif ($arg eq "--session-bus")               { &set_session_bus (\%tool); }
+    elsif ($arg eq "--disable-shutdown")          { &set_disable_shutdown (\%tool); }
     elsif ($arg eq "--verbose"   || $arg eq "-v")
     {
       $tool{"do_verbose"} = $do_verbose = 1;
@@ -293,40 +297,42 @@ sub init
     }
   }
 
-  if (!$no_daemon)
-  {
-    &daemonize ();
-  }
-
   # Set up subsystems.
   &Utils::Report::begin ();
+  &Utils::Platform::get_system ();
+  &initialize_timer (\%tool);
 
   return \%tool;
 }
 
-sub daemonize
-{
-  chdir '/'                  or die "Can't chdir to /: $!";
-  umask 0;
-  open STDIN, '/dev/null'    or die "Can't read /dev/null: $!";
-  open STDOUT, '>/dev/null'  or die "Can't write to /dev/null: $!";
-  open STDERR, '>/dev/null'  or die "Can't write to /dev/null: $!";
-
-  defined (my $pid = fork)   or die "Can't fork: $!";
-  exit (0) if $pid;
-
-  setsid                     or die "Can't start a new session: $!";
-
-  # write pid file
-  open (PIDFILE, ">$main::localstatedir/run/system-tools-backends.pid");
-  print PIDFILE $$;
-  close (PIDFILE);
-}
-
 sub get_bus
 {
-  return Net::DBus->session if ($session_bus);
-  return Net::DBus->system;
+  return Net::DBus->session
+}
+
+sub run
+{
+  Net::DBus::Reactor->main->run ();
+}
+
+sub shutdown
+{
+  # exit the main loop
+  Net::DBus::Reactor->main->shutdown ();
+}
+
+sub initialize_timer
+{
+  my ($tool) = @_;
+
+  if (!$$tool{"no-shutdown"})
+  {
+    # remove previous timer
+    Net::DBus::Reactor->main->remove_timeout ($$tool{"timer"}) if ($$tool {"timer"});
+
+    #wait three minutes until shutdown
+    $$tool{"timer"} = Net::DBus::Reactor->main->add_timeout (180000, Net::DBus::Callback->new(method => \&shutdown));
+  }
 }
 
 1;

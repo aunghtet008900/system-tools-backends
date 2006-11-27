@@ -22,19 +22,23 @@
 
 package IfacesConfig;
 
-use Network::Ifaces;
-
-use base qw(Net::DBus::Object);
+use base qw(StbObject);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
+use Network::Ifaces;
 
 my $OBJECT_NAME = "IfacesConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
+my $format = [[ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string", "string", "int32", "string" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "int32", "int32", "string", "string", "int32", "int32", "int32", "int32" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string", "int32", "int32", "int32", "int32" ]]];
 
 sub new
 {
-  my $class   = shift;
-  my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
+  my $class = shift;
+  my $self  = $class->SUPER::new ($OBJECT_PATH, $OBJECT_NAME);
 
   bless $self, $class;
 
@@ -44,26 +48,14 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [],
-             [[ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string", "string", "int32", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "string", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "int32", "int32", "string", "string", "int32", "int32", "int32", "int32" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string", "int32", "int32", "int32", "int32" ]]]);
-dbus_method ("set",
-             [[ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string", "string", "int32", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "string", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "int32", "int32", "string", "string", "int32", "int32", "int32", "int32" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string", "int32", "int32", "int32", "int32" ]]], []);
-
-dbus_signal ("changed", []);
+dbus_method ("get", [], $format);
+dbus_method ("set", $format, []);
+#dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
+  $self->SUPER::reset_counter ();
 
   return &Network::Ifaces::get ();
 }
@@ -71,9 +63,12 @@ sub get
 sub set
 {
   my ($self, @config) = @_;
+  $self->SUPER::reset_counter ();
 
   &Network::Ifaces::set ($config[0], $config[1], $config[2],
                          $config[3], $config[4], $config[5]);
 }
+
+my $config = IfacesConfig->new ();
 
 1;

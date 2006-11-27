@@ -22,18 +22,21 @@
 
 package HostsConfig;
 
-use base qw(Net::DBus::Object);
+use base qw(StbObject);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Network::Hosts;
 
 my $OBJECT_NAME = "HostsConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
+my $format = [ "string", "string", 
+               [ "array", [ "struct", "string", [ "array", "string" ]]],
+               [ "array", "string" ],
+               [ "array", "string" ]];
 
 sub new
 {
-  my $class   = shift;
-  my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
+  my $class = shift;
+  my $self  = $class->SUPER::new ($OBJECT_PATH, $OBJECT_NAME);
 
   bless $self, $class;
 
@@ -43,23 +46,17 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [],
-             [ "string", "string", 
-               [ "array", [ "struct", "string", [ "array", "string" ]]],
-               [ "array", "string" ],
-               [ "array", "string" ]]);
-dbus_method ("set",
-             [ "string", "string",
-               [ "array", [ "struct", "string", [ "array", "string" ]]],
-               [ "array", "string" ],
-               [ "array", "string" ]], []);
-
-dbus_signal ("changed", []);
+dbus_method ("get", [], $format);
+dbus_method ("set", $format, []);
+#dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
   my ($hostname, $domainname);
+  $self->SUPER::reset_counter ();
+
+  print "quepapsapsapap\n";
 
   ($hostname, $domainname) = Network::Hosts::get_fqdn ();
 
@@ -72,11 +69,14 @@ sub get
 sub set
 {
   my ($self, @config) = @_;
+  $self->SUPER::reset_counter ();
 
   Network::Hosts::set_hosts ($config[2], $config[0], $config[1]);
   Network::Hosts::set_dns ($config[3]);
   Network::Hosts::set_search_domains ($config[4]);
   Network::Hosts::set_fqdn ($config[0], $config[1]);
 }
+
+my $config = HostsConfig->new ();
 
 1;

@@ -22,34 +22,35 @@
 
 package NFSConfig;
 
-use base qw(Net::DBus::Object);
+use base qw(StbObject);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Shares::NFS;
 
 my $OBJECT_NAME = "NFSConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
+my $format = [[ "array", [ "struct", "string", [ "array", [ "struct", "string", "int32" ]]]]];
 
 sub new
 {
-  my $class   = shift;
-  my $service = shift;
-  my $self    = $class->SUPER::new ($service, $OBJECT_PATH);
+  my $class = shift;
+  my $self  = $class->SUPER::new ($OBJECT_PATH, $OBJECT_NAME);
 
   bless $self, $class;
 
-  Utils::Monitor::monitor_files (&Shares::NFS::get_distro_nfs_file (),
-                                 $self, $OBJECT_NAME, "changed");
+#  Utils::Monitor::monitor_files (&Shares::NFS::get_distro_nfs_file (),
+#                                 $self, $OBJECT_NAME, "changed");
   return $self;
 }
 
-dbus_method ("get", [], [[ "array", [ "struct", "string", [ "array", [ "struct", "string", "int32" ]]]]]);
-dbus_method ("set", [[ "array", [ "struct", "string", [ "array", [ "struct", "string", "int32" ]]]]], []);
-dbus_signal ("changed", []);
+dbus_method ("get", [], $format);
+dbus_method ("set", $format, []);
+#dbus_signal ("changed", []);
 
 sub get
 {
   my ($self) = @_;
   my ($shares);
+  $self->SUPER::reset_counter ();
 
   $shares = &Shares::NFS::get ();
 
@@ -59,8 +60,11 @@ sub get
 sub set
 {
   my ($self, @config) = @_;
+  $self->SUPER::reset_counter ();
 
   &Shares::NFS::set (@config);
 }
+
+my $config = NFSConfig->new ();
 
 1;

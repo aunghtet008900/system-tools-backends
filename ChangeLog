@@ -1,5 +1,77 @@
 2006-11-27  Carlos Garnacho  <carlosg@gnome.org>
 
+	Merge c-dispatcher branch, adds a lightweight dispatcher which raises
+	configuration modules on demand, reducing memory use during inactivity
+	and allowing the development of modules in other languages than Perl.
+
+	2006-10-24  Carlos Garnacho  <carlosg@gnome.org>
+
+	* dispatcher/dispatcher.c: exit() on SIGTERM.
+
+	2006-10-24  Carlos Garnacho  <carlosg@gnome.org>
+
+	Continued work on the dispatcher, I think it's now feature complete
+	enough to work.
+
+	* StbObject.pm: base object for s-t-b services, does all
+	initialization and common stuff.
+
+	* GroupsConfig.pm, HostsConfig.pm, IfacesConfig.pm, NFSConfig.pm,
+	NTPConfig.pm, SMBConfig.pm, ServicesConfig.pm, TimeConfig.pm,
+	UsersConfig.pm: inherit from StbObject, keep message format in a 
+	variable to avoid duplicates.
+
+	* Utils/Platform.pm: move DBus code to Platform.pm.
+	* Platform.pm: added, new DBus object.
+
+	* Utils/Backend.pm: ensure system and platform.
+
+	* Init/Services.pm: code improvements for archlinux
+
+	* dispatcher/dispatcher.c: Add license, make it raise it's own private
+	session bus to spawn configuration modules, cache platform and return
+	it when asked, create a copy of the message to pass around (seems to
+	be necessary by design)
+
+	* services/*: added, used to raise configuration modules.
+	* configure.in, Makefile.am: added services directory stuff.
+
+	2006-10-13  Carlos Garnacho  <carlosg@gnome.org>
+
+	* dispatcher/dispatcher.c (daemonize): added, function to make the 
+	dispatcher become a daemon.
+
+	2006-10-12  Carlos Garnacho  <carlosg@gnome.org>
+
+	beginnings of a really lightweight dispatcher written in C, this way
+	the modules will only be loaded when necessary, reducing memory usage
+	and allowing to develop modules in other languages than Perl.
+
+	* dispatcher/dispatcher.c, Makefile.am: added, first draft of the
+	dispatcher, it already forwards messages and sends replies back and
+	tries to raise modules in the session bus
+
+	* Makefile.am: add the dispatcher directory.
+
+	* configure.in: require GLib to build the dispatcher, maybe this dep
+	could be dropped at some point in the future, if I don't feel too
+	lazy...
+
+	* Utils/Backend.pm: remove --no-daemon and --session-bus parameters,
+	should be no longer needed. Add --disable-shutdown for testing
+	purposes, as modules are supposed to shutdown automatically after some
+	inactivity. Add --module parameter to raise a configuration module.
+
+	* GroupsConfig.pm, HostsConfig.pm, IfacesConfig.pm, NFSConfig.pm,
+	NTPConfig.pm, SMBConfig.pm, ServicesConfig.pm, TimeConfig.pm,
+	UsersConfig.pm: create the DBus object by themselves.
+
+	* SystemToolsBackends.pl.in: do not create all the DBus objects, just
+	the one we want to raise, this way the script becomes a loader for
+	services instead of a service itself.
+
+2006-11-27  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Init/Services.pm: add some sanity checks.
 
 2006-11-26  Carlos Garnacho  <carlosg@gnome.org>

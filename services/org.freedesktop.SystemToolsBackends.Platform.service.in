@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.SystemToolsBackends.Platform
+Exec=@scriptsdir@/SystemToolsBackends.pl -m Platform
+

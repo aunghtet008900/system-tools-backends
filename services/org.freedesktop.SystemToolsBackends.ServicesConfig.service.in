@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.SystemToolsBackends.ServicesConfig
+Exec=@scriptsdir@/SystemToolsBackends.pl -m ServicesConfig
+

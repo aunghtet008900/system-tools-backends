@@ -2,10 +2,12 @@ if INTERNAL_NET_DBUS
 net_dbus_SUBDIRS = Net-DBus
 endif
 
-SUBDIRS = files Init Network Shares Time Users Utils $(net_dbus_SUBDIRS)
+SUBDIRS = dispatcher services files Init Network Shares Time Users Utils $(net_dbus_SUBDIRS)
 
 modulesdir = $(scriptsdir)
 modules_DATA =	\
+	Platform.pm	\
+	StbObject.pm	\
 	GroupsConfig.pm	\
 	HostsConfig.pm		\
 	IfacesConfig.pm	\

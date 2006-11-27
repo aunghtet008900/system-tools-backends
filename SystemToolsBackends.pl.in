@@ -43,34 +43,8 @@ use Utils::Backend;
 use Utils::Monitor;
 use Utils::Platform;
 
-use SMBConfig;
-use NFSConfig;
-use UsersConfig;
-use GroupsConfig;
-use TimeConfig;
-use NTPConfig;
-use HostsConfig;
-use IfacesConfig;
-use ServicesConfig;
-
 # Initialize tool
 &Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
 
-# Initialize bus
-my $bus = &Utils::Backend::get_bus ();
-my $service = $bus->export_service ($Utils::Backend::DBUS_PREFIX);
-
-#Initialize all objects
-my $platforms_list  = Utils::Platform->new ($service);
-my $smb_config      = SMBConfig->new       ($service);
-my $nfs_config      = NFSConfig->new       ($service);
-my $users_config    = UsersConfig->new     ($service);
-my $groups_config   = GroupsConfig->new    ($service);
-my $time_config     = TimeConfig->new      ($service);
-my $ntp_config      = NTPConfig->new       ($service);
-my $hosts_config    = HostsConfig->new     ($service);
-my $ifaces_config   = IfacesConfig->new    ($service);
-my $services_config = ServicesConfig->new  ($service);
-
-Utils::Monitor::init_file_monitor ();
-Net::DBus::Reactor->main->run ();
+require $Utils::Backend::tool{"module"};
+&Utils::Backend::run ();
