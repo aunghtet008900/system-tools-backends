@@ -176,7 +176,6 @@ sub get_sysv_services
 	my (@arr);
 
 	($rcd_path, $initd_path) = &get_sysv_paths ();
-
   return undef unless ($rcd_path && $initd_path);
 
 	foreach $service (<$initd_path/*>)
@@ -225,6 +224,7 @@ sub run_sysv_initd_script
   &Utils::Report::enter ();
   
   ($rcd_path, $initd_path) = &get_sysv_paths ();
+  return -1 unless ($rcd_path && $initd_path);
 
   if (-f "$initd_path/$service")
   {
@@ -248,6 +248,7 @@ sub set_sysv_service
   my ($runlevel, $action, %configured_runlevels);
 
   ($rcd_path, $initd_path, $relative_path) = &get_sysv_paths ();
+  return unless ($rcd_path && $initd_path && $relative_path);
 
   $script = $$service[0];
   $runlevels = $$service[1];
@@ -458,6 +459,7 @@ sub set_filerc_services
   my ($services) = @_;
   my ($buff, $lineno, $line, $file);
   my ($rcd_path, $initd_path, $relative_path) = &get_sysv_paths ();
+  return unless ($rcd_path && $initd_path && $relative_path);
 
   $file = "/etc/runlevel.conf";
 
@@ -1069,6 +1071,7 @@ sub get_suse_services
   my ($service, @arr);
 
   ($rcd_path, $initd_path) = &get_sysv_paths ();
+  return undef unless ($rcd_path && $initd_path);
 
   foreach $service (<$gst_prefix/etc/init.d/*>)
   {
