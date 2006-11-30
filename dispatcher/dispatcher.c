@@ -202,12 +202,16 @@ daemonize (void)
 
       setsid ();
 
-      if ((pidfile_fd = open ("/var/run/system-tools-backends.pid", O_WRONLY)) != -1)
+      if ((pidfile_fd = open ("/var/run/system-tools-backends.pid", O_CREAT | O_WRONLY)) != -1)
 	{
 	  str = g_strdup_printf ("%d", getpid ());
 	  write (pidfile_fd, str, strlen (str));
 	  g_free (str);
+
+	  close (pidfile_fd);
 	}
+
+      close (dev_null_fd);
     }
 }
 
