@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
+#include "config.h"
 
 #define DBUS_ADDRESS_ENVVAR "DBUS_SESSION_BUS_ADDRESS"
 #define DBUS_INTERFACE_STB "org.freedesktop.SystemToolsBackends"
@@ -202,7 +203,7 @@ daemonize (void)
 
       setsid ();
 
-      if ((pidfile_fd = open ("/var/run/system-tools-backends.pid", O_CREAT | O_WRONLY)) != -1)
+      if ((pidfile_fd = open (LOCALSTATEDIR "/run/system-tools-backends.pid", O_CREAT | O_WRONLY)) != -1)
 	{
 	  str = g_strdup_printf ("%d", getpid ());
 	  write (pidfile_fd, str, strlen (str));

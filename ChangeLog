@@ -1,5 +1,10 @@
 2006-11-30  Carlos Garnacho  <carlosg@gnome.org>
 
+	* configure.in, dispatcher/dispatcher.c: use localstatedir for the
+	pidfile location based on the autogen/configure arguments.
+
+2006-11-30  Carlos Garnacho  <carlosg@gnome.org>
+
 	* dispatcher/dispatcher.c (daemonize): Oops, create the pid file if it
 	doesn't exist, also close unneeded file descriptors.
 

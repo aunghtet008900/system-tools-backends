@@ -35,16 +35,14 @@ AC_DEFUN([AC_EXPAND], [
 ])
 
 dnl get expanded paths
-DATADIR_TMP="${datadir}"
 AC_EXPAND(datadir,"NONE",EXPANDED_DATADIR)
 AC_SUBST(EXPANDED_DATADIR)
 
-SYSCONFDIR_TMP="${sysconfdir}"
 AC_EXPAND(sysconfdir,"NONE",EXPANDED_SYSCONFDIR)
 AC_SUBST(EXPANDED_SYSCONFDIR)
 
-LOCALSTATEDIR_TMP="${localsatedir}"
 AC_EXPAND(localstatedir, "NONE", localstatedir)
+AC_DEFINE_UNQUOTED(LOCALSTATEDIR, "${localstatedir}", [localstatedir])
 AC_SUBST(localstatedir)
 
 dnl scriptsdir & filesdir
