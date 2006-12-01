@@ -1,5 +1,10 @@
 2006-12-01  Carlos Garnacho  <carlosg@gnome.org>
 
+	* dispatcher/dispatcher.c: catch DBus errors, kill the private bus if
+	there was any fatal error.
+
+2006-12-01  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Release 2.1.0
 
 2006-11-30  Carlos Garnacho  <carlosg@gnome.org>

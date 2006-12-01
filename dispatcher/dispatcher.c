@@ -233,6 +233,9 @@ static DBusConnection*
 get_private_bus (void)
 {
   DBusConnection *connection = NULL;
+  DBusError error;
+
+  dbus_error_init (&error);
 
   if (!bus_pid)
     {
@@ -255,14 +258,17 @@ get_private_bus (void)
       putenv (envvar);
 
       /* get a connection with the newly created bus */
-      connection = dbus_bus_get (DBUS_BUS_SESSION, NULL);
+      connection = dbus_bus_get (DBUS_BUS_SESSION, &error);
+
+      if (dbus_error_is_set (&error))
+	g_critical (error.message);
     }
 
   return connection;
 }
 
 void
-on_sigterm (gint signal)
+kill_private_bus (gint signal)
 {
   /* terminate the private bus */
   if (bus_pid)
@@ -286,24 +292,29 @@ main (int argc, char *argv[])
   dbus_error_init (&error);
 
   daemonize ();
-  signal (SIGTERM, on_sigterm);
+  signal (SIGTERM, kill_private_bus);
 
   session_connection = get_private_bus ();
   connection = dbus_bus_get (DBUS_BUS_SYSTEM, &error);
 
   if (!session_connection || !connection)
-    exit (-1);
+    {
+      kill_private_bus (0);
+      exit (-1);
+    }
 
   dbus_connection_set_exit_on_disconnect (connection, FALSE);
   dbus_connection_set_exit_on_disconnect (session_connection, FALSE);
 
-  dbus_bus_request_name (connection, DBUS_INTERFACE_STB, 0, &error);
   dbus_connection_add_filter (connection, dispatcher_filter_func, session_connection, NULL);
+  dbus_bus_request_name (connection, DBUS_INTERFACE_STB, 0, &error);
+
+  if (dbus_error_is_set (&error))
+    g_critical (error.message);
+
 
   dbus_connection_setup_with_g_main (connection, NULL);
   dbus_connection_setup_with_g_main (session_connection, NULL);
-
-  /* FIXME: error checking */
 
   main_loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (main_loop);
