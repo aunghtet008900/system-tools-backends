@@ -241,8 +241,9 @@ get_private_bus (void)
     {
       /* spawn private bus */
       static gchar *argv[] = { "dbus-daemon", "--session", "--print-address", "--nofork", NULL };
-      gint output_fd;
-      gchar str[300], *envvar;
+      gint output_fd, size;
+      gchar *envvar;
+      gchar str[300] = { 0, };
 
       if (!g_spawn_async_with_pipes (NULL, argv, NULL,
 				     G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD,
@@ -251,8 +252,8 @@ get_private_bus (void)
 	return NULL;
 
       watch_id = g_child_watch_add (bus_pid, on_bus_term, NULL);
-      read (output_fd, str, sizeof (str));
-      str[strlen(str) - 1] = '\0';
+      size = read (output_fd, str, sizeof (str));
+      str[size - 1] = '\0';
 
       envvar = g_strdup_printf (DBUS_ADDRESS_ENVVAR "=%s", str);
       putenv (envvar);
