@@ -3531,13 +3531,12 @@ sub set_interface_config
 {
   my ($dev, $values_hash, $old_hash) = @_;
   my (%dist_attrib, %fn);
-  my ($proc, $i, $res);
+  my ($i, $res);
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("network_iface_set", $dev);
 
   %dist_attrib = &get_interface_replace_table ();
-  $proc = $dist_attrib{"iface_set"};
   %fn = %{$dist_attrib{"fn"}};
 
   foreach $i (keys (%fn))
@@ -3549,9 +3548,6 @@ sub set_interface_config
 
   $res = &Utils::Replace::set_from_table ($dist_attrib{"fn"}, $dist_attrib{"table"},
                                   $values_hash, $old_hash);
-
-  # if success saving the settings for the interface, set up immediatly.
-  &$proc ($values_hash, $old_hash, $$values_hash{"enabled"}, 0) if !$res;
 
   &Utils::Report::leave ();
   return $res;
