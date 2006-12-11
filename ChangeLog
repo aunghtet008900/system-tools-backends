@@ -1,3 +1,7 @@
+2006-12-11  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Net-DBus/*: update to Net::DBus 0.33.4, add some .cvsignore files
+
 2006-12-10  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Net-DBus/Makefile.am: specify INSTALLSITEARCH, this should let perl

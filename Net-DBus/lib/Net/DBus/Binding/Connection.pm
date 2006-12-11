@@ -555,7 +555,7 @@ sub make_error_message {
     my $replyto = shift;
     my $name = shift;
     my $description = shift;
-    
+
     return Net::DBus::Binding::Message::Error->new(replyto => $replyto,
 						   name => $name,
 						   description => $description);

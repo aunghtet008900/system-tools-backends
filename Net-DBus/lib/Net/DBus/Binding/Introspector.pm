@@ -140,8 +140,8 @@ sub new {
 	$self->{children} = exists $params{children} ? $params{children} : [];
     }
 
-    # XXX it is really a bug that these aren't included in the introspection
-    # data the bus generates
+    # Some versions of dbus failed to include signals in introspection data
+    # so this code adds them, letting us keep compatability with old versions
     if ($self->{object_path} eq "/org/freedesktop/DBus") {
 	if (!$self->has_signal("NameOwnerChanged")) {
 	    $self->add_signal("NameOwnerChanged", ["string","string","string"], "org.freedesktop.DBus");
@@ -702,7 +702,7 @@ sub _parse_type {
 		    $current = pop @cont;
 		}
 	    } elsif ($type eq "v") {
-		push @{$current}, "variant";
+		push @{$current}, ["variant"];
 		if ($current->[0] eq "array") {
 		    $current = pop @cont;
 		}

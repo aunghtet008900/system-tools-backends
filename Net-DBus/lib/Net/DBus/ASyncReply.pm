@@ -154,6 +154,13 @@ sub get_result {
 
     my $reply = $self->{pending_call}->get_reply;
 
+    if ($reply->isa("Net::DBus::Binding::Message::Error")) {
+	my $iter = $reply->iterator();
+	my $desc = $iter->get_string();
+	die Net::DBus::Error->new(name => $reply->get_error_name,
+				  message => $desc);
+    }
+
     my @reply;
     if ($self->{introspector}) {
 	@reply = $self->{introspector}->decode($reply, "methods", $self->{method_name}, "returns");

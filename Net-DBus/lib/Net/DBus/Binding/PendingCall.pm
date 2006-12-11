@@ -130,14 +130,12 @@ with the complete call.
 sub get_reply {
     my $self = shift;
 
-    my $reply = $self->{pending_call}->dbus_pending_call_steal_reply();
+    my $reply = $self->{pending_call}->_steal_reply();
     my $type = $reply->dbus_message_get_type;
     if ($type == &Net::DBus::Binding::Message::MESSAGE_TYPE_ERROR) {
-	return $self->{connection}->make_error_message($self->{method_call},
-						       $reply);
+	return $self->{connection}->make_raw_message($reply);
     } elsif ($type == &Net::DBus::Binding::Message::MESSAGE_TYPE_METHOD_RETURN) {
-	return $self->{connection}->make_method_return_message($self->{method_call},
-							       $reply);
+	return $self->{connection}->make_raw_message($reply);
     } else {
 	die "unknown method reply type $type";
     }
