@@ -1,3 +1,23 @@
+2007-01-04  Carlos Garnacho  <carlosg@gnome.org>
+
+	Added support for extensible configuration methods and wireless key
+	types, with this, new additions may be handled almost transparently on
+	top of s-t-b. This change is backwards compatible with the old format.
+
+	* Network/Ifaces.pm (get_available_configuration_methods): Added, gets
+	an extensible list of the interface configuration methods that are
+	recognized/available for the current distribution.
+	(get_available_encryptions): Added, same for encryption types.
+	(get) (set): add a new text field for ethernet-like interfaces
+	containing the used configuration method. Ditto for wireless key type
+	in wireless interfaces.
+	(get_rh_bootproto) (set_rh_bootproto) (get_debian_bootproto)
+	(get_slackware_bootproto) (get_bootproto) (get_suse_bootproto)
+	(get_gentoo_bootproto) (set_gentoo_bootproto) (set_freebsd_bootproto)
+	(get_sunos_bootproto) (get_wep_key): internal changes to follow the
+	same formats.
+	* IfacesConfig.pm: add a few new fields to the expected DBus struct.
+
 2006-12-11  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Net-DBus/*: update to Net::DBus 0.33.4, add some .cvsignore files

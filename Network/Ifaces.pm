@@ -318,10 +318,11 @@ sub get_rh_bootproto
   my ($file, $key) = @_;
   my %rh_to_proto_name =
 	 (
-	  "bootp" => "bootp",
-	  "dhcp"  => "dhcp",
-    "pump"  => "pump",
-	  "none"  => "none"
+	  "bootp"  => "bootp",
+	  "dhcp"   => "dhcp",
+    "pump"   => "pump",
+	  "none"   => "static",
+    "static" => "static"
 	  );
   my $ret;
 
@@ -343,7 +344,8 @@ sub set_rh_bootproto
 	  "bootp"    => "bootp",
 	  "dhcp"     => "dhcp",
     "pump"     => "pump",
-	  "none"     => "none"
+	  "none"     => "none",
+    "static"   => "static"
 	  );
 
   return &Utils::Replace::set_sh ($file, $key, $proto_name_to_rh{$value});
@@ -359,7 +361,7 @@ sub get_debian_bootproto
        "dhcp"     => "dhcp",
        "loopback" => "none",
        "ppp"      => "none",
-       "static"   => "none"
+       "static"   => "static"
        );
 
   &Utils::Report::enter ();
@@ -426,7 +428,7 @@ sub get_slackware_bootproto
   }
   else
   {
-    return "none";
+    return "static";
   }
 }
 
@@ -453,7 +455,7 @@ sub get_bootproto
 
   return "dhcp"  if ($key =~ /dhcp/i);
   return "bootp" if ($key =~ /bootp/i);
-  return "none";
+  return "static";
 }
 
 sub set_suse_bootproto
@@ -463,7 +465,7 @@ sub set_suse_bootproto
      (
       "dhcp"     => "dhcp",
       "bootp"    => "bootp",
-      "static"   => "none",
+      "static"   => "static",
      );
 
   return &Utils::Replace::set_sh ($file, $key, $proto_name_to_suse90{$value});
@@ -474,7 +476,7 @@ sub get_gentoo_bootproto
   my ($file, $dev) = @_;
 
   return "dhcp" if (&Utils::Parse::get_confd_net ($file, "config_$dev") =~ /dhcp/i);
-  return "none";
+  return "static";
 }
 
 sub set_gentoo_bootproto
@@ -483,7 +485,7 @@ sub set_gentoo_bootproto
 
   return if ($dev =~ /^ppp/);
 
-  return &Utils::Replace::set_confd_net ($file, "config_$dev", "dhcp") if ($value ne "none");
+  return &Utils::Replace::set_confd_net ($file, "config_$dev", "dhcp") if ($value eq "dhcp");
 
   # replace with a fake IP address, it will be replaced
   # later with the correct one, I know it's a hack
@@ -494,14 +496,14 @@ sub set_freebsd_bootproto
 {
   my ($file, $dev, $value) = @_;
 
-  return &Utils::Replace::set_sh ($file, "ifconfig_$dev", "dhcp") if ($value ne "none");
+  return &Utils::Replace::set_sh ($file, "ifconfig_$dev", "dhcp") if ($value eq "dhcp");
   return &Utils::Replace::set_sh ($file, "ifconfig_$dev", "");
 }
 
 sub get_sunos_bootproto
 {
   my ($dhcp_file, $dev) = @_;
-  return (&Utils::File::exists ($dhcp_file)) ? "dhcp" : "none";
+  return (&Utils::File::exists ($dhcp_file)) ? "dhcp" : "static";
 }
 
 sub set_sunos_bootproto
@@ -607,8 +609,8 @@ sub get_wep_key_type
 
   $val = &$func (@_);
 
-  return "ascii" if ($val =~ /^s\:/);
-  return "hexadecimal";
+  return "wep-ascii" if ($val =~ /^s\:/);
+  return "wep-hex";
 }
 
 sub get_wep_key
@@ -633,7 +635,7 @@ sub set_wep_key_full
   $key_type = pop @_;
   $key = pop @_;
 
-  if ($key_type eq "ascii")
+  if ($key_type eq "wep-ascii")
   {
     $key = "s:" . $key;
   }
@@ -3610,13 +3612,38 @@ sub bootproto_to_code
   return ($$iface{"bootproto"} eq "dhcp") ? 2 : 1;
 }
 
+sub get_available_configuration_methods
+{
+  my $dist = $Utils::Backend::tool{"platform"};
+  my $default = [ "static", "dhcp" ];
+  my %dist_map = (
+  );
+
+  push @$default, @{$dist_map{$dist}};
+  return $default;
+}
+
+sub get_available_encryptions
+{
+  my $dist = $Utils::Backend::tool{"platform"};
+  my $default = [ "wep-hex", "wep-ascii" ];
+  my %dist_map = (
+  );
+
+  push @$default, @{$dist_map{$dist}};
+  return $default;
+}
+
 sub get
 {
   my ($config, $iface, $type);
   my ($ethernet, $wireless, $irlan);
   my ($plip, $modem, $isdn);
+  my ($config_methods, $encryptions);
 
   $config = &get_interfaces_config ();
+  $config_methods = &get_available_configuration_methods ();
+  $encryptions = &get_available_encryptions ();
 
   foreach $i (keys %$config)
   {
@@ -3628,7 +3655,8 @@ sub get
       push @$ethernet, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                          &bootproto_to_code ($iface),
                          $$iface{"address"}, $$iface{"netmask"},
-                         $$iface{"network"}, $$iface{"broadcast"}, $$iface{"gateway"} ];
+                         $$iface{"network"}, $$iface{"broadcast"}, $$iface{"gateway"},
+                         $$iface{"bootproto"} ];
     }
     elsif ($type eq "wireless")
     {
@@ -3637,15 +3665,17 @@ sub get
                          $$iface{"address"}, $$iface{"netmask"},
                          $$iface{"network"}, $$iface{"broadcast"}, $$iface{"gateway"},
                          $$iface{"essid"},
-                         ($$iface{"key_type"} eq "ascii") ? 0 : 1,
-                         $$iface{"key"} ];
+                         ($$iface{"key_type"} eq "wep-ascii") ? 0 : 1,
+                         $$iface{"key"},
+                         $$iface{"key_type"}, $$iface{"bootproto"} ];
     }
     elsif ($type eq "irlan")
     {
       push @$irlan, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                       &bootproto_to_code ($iface),
                       $$iface{"address"}, $$iface{"netmask"},
-                      $$iface{"network"}, $$iface{"broadcast"}, $$iface{"gateway"} ];
+                      $$iface{"network"}, $$iface{"broadcast"}, $$iface{"gateway"},
+                      $$iface{"bootproto"} ];
     }
     elsif ($type eq "plip")
     {
@@ -3673,7 +3703,8 @@ sub get
   }
 
   return ($ethernet, $wireless, $irlan,
-          $plip, $modem, $isdn);
+          $plip, $modem, $isdn,
+          $config_methods, $encryptions);
 }
 
 sub set
@@ -3683,29 +3714,43 @@ sub set
 
   foreach $iface (@$ethernet)
   {
-    $bootproto = ($$iface[3] == 2) ? "dhcp" : "none";
+    if (!$$iface[9])
+    {
+      $$iface[9] = ($$iface[3] == 2) ? "dhcp" : "static";
+    }
 
     $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
-                          "bootproto" => $bootproto,
+                          "bootproto" => $$iface[9],
                           "address" => $$iface[4], "netmask" => $$iface[5], "gateway" => $$iface[8] };
   }
 
   foreach $iface (@$wireless)
   {
-    $bootproto = ($$iface[3] == 2) ? "dhcp" : "none";
-    $key_type = ($$iface[10] == 1) ? "hexadecimal" : "ascii";
+    if (!$$iface[13])
+    {
+      $$iface[13] = ($$iface[3] == 2) ? "dhcp" : "static";
+    }
+
+    if (!$$iface[12])
+    {
+      $$iface[12] = ($$iface[10] == 1) ? "wep-hex" : "wep-ascii";
+    }
 
     $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
-                          "bootproto" => $bootproto,
+                          "bootproto" => $$iface[13],
                           "address" => $$iface[4], "netmask" => $$iface[5], "gateway" => $$iface[8],
-                          "essid" => $$iface[9], "key_type" => $key_type, "key" => $$iface[11] };
+                          "essid" => $$iface[9], "key_type" => $$iface[12], "key" => $$iface[11] };
   }
 
   foreach $iface (@$irlan)
   {
-    $bootproto = ($$iface[3] == 2) ? "dhcp" : "none";
+    if (!$$iface[9])
+    {
+      $$iface[9] = ($$iface[3] == 2) ? "dhcp" : "static";
+    }
+
     $hash{$$iface[0]} = { "dev" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
-                          "bootproto" => $bootproto,
+                          "bootproto" => $$iface[9],
                           "address" => $$iface[4], "netmask" => $$iface[5], "gateway" => $$iface[8] };
   }
 

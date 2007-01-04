@@ -28,12 +28,14 @@ use Network::Ifaces;
 
 my $OBJECT_NAME = "IfacesConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
-my $format = [[ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string", "string", "int32", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string" ]],
+my $format = [[ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string", "string", "int32", "string", "string", "string" ]],
+              [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string", "string" ]],
               [ "array", [ "struct", "string", "int32", "int32", "string", "string" ]],
               [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "int32", "int32", "string", "string", "int32", "int32", "int32", "int32" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string", "int32", "int32", "int32", "int32" ]]];
+              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string", "int32", "int32", "int32", "int32"]],
+              [ "array", "string" ],
+              [ "array", "string" ]];
 
 sub new
 {
