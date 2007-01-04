@@ -38,6 +38,7 @@ my $PLATFORM_INFO = {
   "ubuntu-5.10"     => [ "Ubuntu Linux", "5.10", "Breezy" ],
   "ubuntu-6.06"     => [ "Ubuntu Linux", "6.06", "Dapper" ],
   "ubuntu-6.10"     => [ "Ubuntu Linux", "6.10", "Edgy" ],
+  "ubuntu-7.04"     => [ "Ubuntu Linux", "7.04", "Feisty" ],
   "redhat-5.2"      => [ "Red Hat Linux", "5.2", "Apollo" ],
   "redhat-6.0"      => [ "Red Hat Linux", "6.0", "Hedwig" ],
   "redhat-6.1"      => [ "Red Hat Linux", "6.1", "Cartman" ],
@@ -430,11 +431,15 @@ sub init
 {
   &get_system ();
 
-  if (!&get_cached_platform ())
-  {
+  # FIXME: need to figure out whether the underlying platform has
+  # been updated or changed, until now it's safer to ignore the cache,
+  # this function is called just once in all the executable lifecicle,
+  # so I don't expect any noticeable performance decrease.
+  #if (!&get_cached_platform ())
+  #{
     &guess ($self) if !$Utils::Backend::tool{"platform"};
     &cache_platform ();
-  }
+  #}
 }
 
 1;

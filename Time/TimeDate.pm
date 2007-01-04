@@ -166,6 +166,7 @@ sub get_dist
    "redhat-8.0"      => "redhat-6.2",
    "mandrake-9.0"    => "redhat-6.2",
    "debian-3.0"      => "debian-3.0",
+   "ubuntu-7.04"     => "debian-3.0",
    "suse-9.0"        => "redhat-6.2",
    "slackware-9.1.0" => "redhat-6.2",
    "gentoo"          => "redhat-6.2",

@@ -137,6 +137,7 @@ sub get_distro_smb_file
    "redhat-8.0"      => "debian-3.0",
    "mandrake-9.0"    => "debian-3.0",
    "debian-3.0"      => "debian-3.0",
+   "ubuntu-7.04"     => "debian-3.0",
    "suse-9.0"        => "debian-3.0",
    "slackware-9.1.0" => "debian-3.0",
    "gentoo"          => "debian-3.0",

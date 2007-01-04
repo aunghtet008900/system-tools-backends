@@ -1,5 +1,17 @@
 2007-01-04  Carlos Garnacho  <carlosg@gnome.org>
 
+	* */*.pm: Add support for Ubuntu Feisty, separated from the rest of
+	the debian based ones, because there are supposed to be important
+	changes.
+	* Network/Ifaces.pm (get_available_configuration_methods): add ipv4ll
+	support for Ubuntu Feisty.
+	* Utils/Platform.pm (init): do not use cache at the moment, might
+	give incorrect results if the underlying system requires different
+	treatment, and as it's called just one in all s-t-b app lifecicle,
+	there shouldn't be any noticeable performance decrease.
+
+2007-01-04  Carlos Garnacho  <carlosg@gnome.org>
+
 	* configure.in: bump revision number.
 
 2007-01-04  Carlos Garnacho  <carlosg@gnome.org>

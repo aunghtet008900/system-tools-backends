@@ -1989,6 +1989,7 @@ sub get_interface_dist
     "yoper-2.2"       => "redhat-6.2",
     "conectiva-9"     => "conectiva-9",
     "debian-3.0"      => "debian-3.0",
+    "ubuntu-7.04"     => "debian-3.0",
     "suse-9.0"        => "suse-9.0",
     "pld-1.0"         => "pld-1.0",
     "vine-3.0"        => "vine-3.0",
@@ -3617,6 +3618,7 @@ sub get_available_configuration_methods
   my $dist = $Utils::Backend::tool{"platform"};
   my $default = [ "static", "dhcp" ];
   my %dist_map = (
+    "ubuntu-7.04"  =>  "ipv4ll",
   );
 
   push @$default, @{$dist_map{$dist}};
