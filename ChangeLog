@@ -1,5 +1,9 @@
 2007-01-04  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Release 2.1.2
+
+2007-01-04  Carlos Garnacho  <carlosg@gnome.org>
+
 	* */*.pm: Add support for Ubuntu Feisty, separated from the rest of
 	the debian based ones, because there are supposed to be important
 	changes.

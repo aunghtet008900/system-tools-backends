@@ -1,3 +1,28 @@
+System Tools Backends Version 2.1.2, 2007-01-04
+-----------------------------------------------
+
+The System Tools Backends version 2.1.2 "Rootless" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  - Do not try to enable network interfaces twice (garnacho)
+  - Update internal DBus to 0.33.4 (garnacho, Joseph Sacco)
+  - add support for extensible interface configuration methods. This will allow to support new configuration methods without needing to modify stuff on top of s-t-b (garnacho)
+  - add support for extensible wireless key types (garnacho)
+  - add initial support for Ubuntu Feisty (garnacho)
+  - add ipv4ll support for Ubuntu Feisty (garnacho, Martin Pitt)
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.1/
+
+
 System Tools Backends Version 2.1.1, 2006-12-04
 -------------------------------------------------
 
