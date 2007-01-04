@@ -1,5 +1,9 @@
 2007-01-04  Carlos Garnacho  <carlosg@gnome.org>
 
+	* configure.in: bump revision number.
+
+2007-01-04  Carlos Garnacho  <carlosg@gnome.org>
+
 	Added support for extensible configuration methods and wireless key
 	types, with this, new additions may be handled almost transparently on
 	top of s-t-b. This change is backwards compatible with the old format.
