@@ -1,3 +1,9 @@
+2007-01-08  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Network/Ifaces.pm (get_available_configuration_methods): oops,
+	elements in mapping table are arrays, not scalars. Definitely add
+	ipv4ll support for ubuntu-7.04.
+
 2007-01-04  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 2.1.2

@@ -3618,7 +3618,7 @@ sub get_available_configuration_methods
   my $dist = $Utils::Backend::tool{"platform"};
   my $default = [ "static", "dhcp" ];
   my %dist_map = (
-    "ubuntu-7.04"  =>  "ipv4ll",
+    "ubuntu-7.04"  => [ "ipv4ll" ],
   );
 
   push @$default, @{$dist_map{$dist}};
