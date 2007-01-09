@@ -361,7 +361,8 @@ sub get_debian_bootproto
        "dhcp"     => "dhcp",
        "loopback" => "none",
        "ppp"      => "none",
-       "static"   => "static"
+       "static"   => "static",
+       "ipv4ll"   => "ipv4ll",
        );
 
   &Utils::Report::enter ();
@@ -400,7 +401,8 @@ sub set_debian_bootproto
        "dhcp"     => "dhcp",
        "loopback" => "loopback",
        "ppp"      => "ppp",
-       "none"     => "static"
+       "none"     => "static",
+       "ipv4ll"   => "ipv4ll",
        );
 
   my %dev_to_method = 
@@ -3512,11 +3514,11 @@ sub interface_configured
 
   if ($type eq "ethernet" || $type eq "irlan")
   {
-    return 1 if ($$iface{"bootproto"} eq "dhcp" || ($$iface{"address"} && $$iface{"netmask"}));
+    return 1 if (($$iface{"bootproto"} eq "static" && $$iface{"address"} && $$iface{"netmask"}) || $$iface{"bootproto"});
   }
   elsif ($type eq "wireless")
   {
-    return 1 if (($$iface{"bootproto"} eq "dhcp" || ($$iface{"address"} && $$iface{"netmask"})) && $$iface{"essid"});
+    return 1 if ((($$iface{"bootproto"} eq "static" && $$iface{"address"} && $$iface{"netmask"}) || $$iface{"bootproto"}) && $$iface{"essid"});
   }
   elsif ($type eq "plip")
   {
@@ -3599,7 +3601,6 @@ sub set_interfaces_config
       # only state has changed
       &$set_proc ($$values_hash{$i}, $$old_hash{$i}, $do_active, 1);
     }
-    
   }
 
   &Utils::Report::leave ();

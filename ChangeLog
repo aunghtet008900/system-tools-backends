@@ -1,3 +1,10 @@
+2007-01-09  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Network/Ifaces.pm (get_debian_bootproto) (set_debian_bootproto):
+	misc fixes to make extensible config methods work ok.
+	(interface_configured): parse correctly bootproto to determine whether
+	an interface is configured.
+
 2007-01-08  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Network/Ifaces.pm (get_available_configuration_methods): oops,
