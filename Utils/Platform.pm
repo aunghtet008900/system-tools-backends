@@ -93,6 +93,7 @@ my $PLATFORM_INFO = {
   "solaris-2.11"    => [ "Solaris / OpenSolaris", "2.11", "Nevada" ],
   "nexenta-1.0"     => [ "Nexenta GNU/Solaris", "1.0", "Ellate" ],
   "yellowdog-4.1"   => [ "Yellow Dog Linux", "4.1", "Sagitta" ],
+  "guadalinex-v4"   => [ "Guadalinex", "v4", "Toro" ],
 };
 
 sub get_platform_info
@@ -145,6 +146,7 @@ sub ensure_distro_map
      "vine-3.1"         => "vine-3.0",
      "vlos-1.2"         => "gentoo",
      "nexenta-1.0"      => "solaris-2.11",
+     "guadalinex-v4"    => "debian-3.0",
      );
 
   return $metamap{$distro} if ($metamap{$distro});
