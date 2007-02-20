@@ -1,3 +1,8 @@
+2007-02-20  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Network/Ifaces.pm: oops, actually be able to configure static
+	interfaces in debian...
+
 2007-02-19  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Utils/Platform.pm: patch by the Guadalinex people to support

@@ -403,6 +403,7 @@ sub set_debian_bootproto
        "ppp"      => "ppp",
        "none"     => "static",
        "ipv4ll"   => "ipv4ll",
+       "static"   => "static",
        );
 
   my %dev_to_method = 
@@ -3514,11 +3515,11 @@ sub interface_configured
 
   if ($type eq "ethernet" || $type eq "irlan")
   {
-    return 1 if (($$iface{"bootproto"} eq "static" && $$iface{"address"} && $$iface{"netmask"}) || $$iface{"bootproto"});
+    return 1 if (($$iface{"bootproto"} eq "static" && $$iface{"address"} && $$iface{"netmask"}) || $$iface{"bootproto"} ne "static");
   }
   elsif ($type eq "wireless")
   {
-    return 1 if ((($$iface{"bootproto"} eq "static" && $$iface{"address"} && $$iface{"netmask"}) || $$iface{"bootproto"}) && $$iface{"essid"});
+    return 1 if ((($$iface{"bootproto"} eq "static" && $$iface{"address"} && $$iface{"netmask"}) || $$iface{"bootproto"} ne "static") && $$iface{"essid"});
   }
   elsif ($type eq "plip")
   {
