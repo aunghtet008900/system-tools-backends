@@ -1,3 +1,24 @@
+System Tools Backends Version 2.1.4, 2007-01-10
+-----------------------------------------------
+
+The System Tools Backends version 2.1.4 "This is not a cowboy movie" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+  - Add Guadalinex 4 support (Guadalinex people)
+  - Configure static interfaces properly in Debian (garnacho)
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.1/
+
+
 System Tools Backends Version 2.1.3, 2007-01-10
 -----------------------------------------------
 
