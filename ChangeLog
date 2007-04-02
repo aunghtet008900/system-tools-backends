@@ -1,5 +1,9 @@
 2007-04-03  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Release 2.2.1
+
+2007-04-03  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Net-DBus/lib/Net/DBus.pm: do not use nonexistent
 	Test::MockConnection module, noticed by Carlos Eduardo Rodrigues
 	Diógenes <cerdiogenes@yahoo.com.br>
