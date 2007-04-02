@@ -95,7 +95,6 @@ BEGIN {
 use Net::DBus::Binding::Bus;
 use Net::DBus::Service;
 use Net::DBus::RemoteService;
-use Net::DBus::Test::MockConnection;
 use Net::DBus::Binding::Value;
 
 use vars qw($bus_system $bus_session);
