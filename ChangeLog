@@ -1,3 +1,11 @@
+2007-04-08  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Net-DBus/Makefile.am: improve uninstall rules. Suggested by
+	Joseph E. Sacco  <jsacco@gnome.org>
+	* configure.in: make netdbusdir equal to modulesdir if none is
+	specified.
+	* HostsConfig.pm: remove print.
+
 2007-04-03  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 2.2.1

@@ -80,7 +80,7 @@ if ! test -z "$with_net_dbus" ; then
     netdbusdir="$with_net_dbus"
 else
 dnl hack to avoid an empty path in netdbusdir
-    netdbusdir=$scriptsdir
+    netdbusdir=$modulesdir
 fi
 
 AC_SUBST(netdbusdir)

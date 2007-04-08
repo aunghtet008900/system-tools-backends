@@ -56,8 +56,6 @@ sub get
   my ($hostname, $domainname);
   $self->SUPER::reset_counter ();
 
-  print "quepapsapsapap\n";
-
   ($hostname, $domainname) = Network::Hosts::get_fqdn ();
 
   return ($hostname, $domainname,

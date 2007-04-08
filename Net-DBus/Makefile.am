@@ -50,6 +50,7 @@ clean-local:
 install-fakeDATA: install-perl
 
 uninstall-local:
-	find $(DESTDIR)$(prefix) -name perllocal.pod -exec rm -f {} \;
+	rm -f `cat $(netdbusdir)/auto/Net/DBus/.packlist`
+	rm -f $(netdbusdir)/auto/Net/DBus/.packlist
+	find $(netdbusdir) -name perllocal.pod -exec rm -f '{}' \;
 	true
-
