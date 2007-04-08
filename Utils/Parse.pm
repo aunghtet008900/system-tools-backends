@@ -408,8 +408,11 @@ sub split_all_array_with_pos
 
   foreach $i (@$arr)
   {
-    @s = split ($sep, $i);
-    push @ret, @s[0];
+    if ($i)
+    {
+      @s = split ($sep, $i);
+      push @ret, @s[0];
+    }
   }
 
   return \@ret;

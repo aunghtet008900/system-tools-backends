@@ -1,3 +1,8 @@
+2007-04-09  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Parse.pm (split_all_array_with_pos): only push non empty
+	values. Improves GNOME bug #420213.
+
 2007-04-08  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Net-DBus/Makefile.am: improve uninstall rules. Suggested by
