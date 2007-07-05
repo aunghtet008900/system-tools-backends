@@ -1,4 +1,4 @@
-2007-06-05  Carlos Garnacho  <carlosg@gnome.org>
+2007-07-05  Carlos Garnacho  <carlosg@gnome.org>
 
 	Added WPA/WPA2 PSK wireless encryption support (wext driver), at the
 	moment just for debian like distros (specifically ubuntu >= 7.04). 
@@ -13,12 +13,12 @@
 
 	* Utils/Platform.pm (ensure_distro_map): Add Gutsy to the list.
 
-2007-06-05  Carlos Garnacho  <carlosg@gnome.org>
+2007-07-05  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Network/Ifaces.pm (get_modem_volume) (get): change a couple of
 	default values that make more sense for uninitialized modem devices.
 
-2007-06-05  Carlos Garnacho  <carlosg@gnome.org>
+2007-07-05  Carlos Garnacho  <carlosg@gnome.org>
 
 	* dispatcher/dispatcher.c (get_destination): be more paranoid checking
 	the destination path before creating the forwarded copy.
