@@ -1,5 +1,10 @@
 2007-06-05  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Network/Ifaces.pm (get_modem_volume) (get): change a couple of
+	default values that make more sense for uninitialized modem devices.
+
+2007-06-05  Carlos Garnacho  <carlosg@gnome.org>
+
 	* dispatcher/dispatcher.c (get_destination): be more paranoid checking
 	the destination path before creating the forwarded copy.
 	(dispatch_stb_message): do not leak the copy if there was something

@@ -654,7 +654,7 @@ sub get_modem_volume
 
   $volume = &Utils::Parse::get_from_chatfile ($file, "AT.*(M0|L[1-3])");
 
-  return 3 if ($volume eq undef);
+  return 0 if ($volume eq undef);
 
   $volume =~ s/^[ml]//i;
   return $volume;
@@ -3691,7 +3691,7 @@ sub get
       push @$modem, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
                       $$iface{"phone_number"}, $$iface{"external_line"},
                       $$iface{"serial_port"}, $$iface{"volume"},
-                      ($$iface{"dial_command"} eq "atdt") ? 0 : 1,
+                      ($$iface{"dial_command"} eq "atdp") ? 1 : 0,
                       $$iface{"login"}, $$iface{"password"},
                       $$iface{"set_default_gw"}, $$iface{"update_dns"},
                       $$iface{"persist"}, $$iface{"noauth"} ];
