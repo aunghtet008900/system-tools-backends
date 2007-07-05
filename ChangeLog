@@ -1,5 +1,20 @@
 2007-06-05  Carlos Garnacho  <carlosg@gnome.org>
 
+	Added WPA/WPA2 PSK wireless encryption support (wext driver), at the
+	moment just for debian like distros (specifically ubuntu >= 7.04). 
+	Fixes GNOME bug #161376
+
+	* Network/Ifaces.pm (get_debian_key_type) (set_debian_key)
+	(set_debian_essid): Added , unified functions for handling essid/key
+	for wep/wpa.
+	(get_interface_parse_table) (get_interface_replace_table): use these 
+	functions.
+	(get_available_encryptions): add wpa-psk and wpa2-psk for ubuntu.
+
+	* Utils/Platform.pm (ensure_distro_map): Add Gutsy to the list.
+
+2007-06-05  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Network/Ifaces.pm (get_modem_volume) (get): change a couple of
 	default values that make more sense for uninitialized modem devices.
 

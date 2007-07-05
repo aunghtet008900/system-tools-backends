@@ -616,6 +616,23 @@ sub get_wep_key_type
   return "wep-hex";
 }
 
+sub get_debian_key_type
+{
+  my ($file, $iface) = @_;
+  my ($val);
+
+  $val = &Utils::Parse::get_interfaces_option_str ($file, $iface, "wireless[_-]key1?");
+
+  if ($val)
+  {
+    return "wep-ascii" if ($val =~ /^s\:/);
+    return "wep-hex";
+  }
+
+  $val = &Utils::Parse::get_interfaces_option_str ($file, $iface, "wpa-psk");
+  return "wpa-psk";
+}
+
 sub get_wep_key
 {
   my ($func) = shift @_;
@@ -645,6 +662,64 @@ sub set_wep_key_full
 
   push @_, $key;
   &$func (@_);
+}
+
+sub set_debian_key
+{
+  my ($file, $iface, $key, $essid, $key_type) = @_;
+
+  #remove undesired options, due to syntax duality
+  &Utils::Replace::set_interfaces_option_str ($file, $iface, "wireless-key", "");
+  &Utils::Replace::set_interfaces_option_str ($file, $iface, "wireless-key1", "");
+  &Utils::Replace::set_interfaces_option_str ($file, $iface, "wireless_key", "");
+  &Utils::Replace::set_interfaces_option_str ($file, $iface, "wireless_key1", "");
+
+  #remove all wpa related keys
+  &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-psk", "");
+  &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-driver", "");
+  &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-key-mgmt", "");
+  &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-proto", "");
+
+  if ($key_type =~ /^wep/)
+  {
+    &Utils::Replace::set_interfaces_option_str ($file, $iface, "wireless-key",
+                                                ($key && $key_type eq "wep-ascii") ? "s:" . $key : $key);
+  }
+  elsif ($key_type =~ /^wpa/)
+  {
+    if ($key)
+    {
+      &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-psk", $key);
+      &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-driver", "wext");
+      &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-key-mgmt", "WPA-PSK");
+
+      if ($key_type =~ /^wpa2/)
+      {
+        &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-proto", "WPA2");
+      }
+      else
+      {
+        &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-proto", "WPA");
+      }
+    }
+  }
+}
+
+sub set_debian_essid
+{
+  my ($file, $iface, $key_type, $key, $essid) = @_;
+
+  Utils::Replace::set_interfaces_option_str ($file, $iface, "wireless-essid", "");
+  Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-ssid", "");
+
+  if (!$key || $key_type =~ /^wep/)
+  {
+    Utils::Replace::set_interfaces_option_str ($file, $iface, "wireless-essid", $essid);
+  }
+  elsif ($key_type =~ /^wpa/)
+  {
+    Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-ssid", $essid);
+  }
 }
 
 sub get_modem_volume
@@ -2404,8 +2479,10 @@ sub get_interface_parse_table
         [ "network",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "network" ],
         [ "gateway",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "gateway" ],
         [ "essid",              \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wireless[_-]essid" ],
-        [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_interfaces_option_str, INTERFACES, IFACE, "wireless[_-]key1?" ]],
+        [ "essid",              \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "wpa-ssid" ],
+        [ "key_type",           \&get_debian_key_type, [ INTERFACES, IFACE ]],
         [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_interfaces_option_str, INTERFACES, IFACE, "wireless[_-]key1?" ]],
+        [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_interfaces_option_str, INTERFACES, IFACE, "wpa-psk" ]],
         [ "remote_address",     \&get_debian_remote_address, [INTERFACES, IFACE]],
         [ "section",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "provider" ],
         [ "update_dns",         \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
@@ -3102,13 +3179,10 @@ sub get_interface_replace_table
       [ "address",            \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "address" ],
       [ "netmask",            \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "netmask" ],
       [ "gateway",            \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "gateway" ],
-      [ "essid",              \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "wireless-essid" ],
-      [ "key",                \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "wireless-key"   ],
-      [ "key_type",           \&set_wep_key_full, [ \&Utils::Replace::set_interfaces_option_str, INTERFACES, IFACE, "wireless-key", "%key%" ]],
+      [ "key_type",           \&set_debian_key, [ INTERFACES, IFACE, "%key%", "%essid%" ]],
+      [ "essid",              \&set_debian_essid, [ INTERFACES, IFACE, "%key_type%", "%key%" ]],
       # ugly hack for deleting undesired options (due to syntax duality)
       [ "essid",              \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "wireless_essid", "" ],
-      [ "key",                \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "wireless_key", ""   ],
-      [ "key",                \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "wireless_key1", ""   ],
       # End of hack
       [ "section",            \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "provider" ],
       [ "remote_address",     \&set_debian_remote_address, [INTERFACES, IFACE]],
@@ -3632,6 +3706,7 @@ sub get_available_encryptions
   my $dist = $Utils::Backend::tool{"platform"};
   my $default = [ "wep-hex", "wep-ascii" ];
   my %dist_map = (
+    "ubuntu-7.04" => [ "wpa-psk", "wpa2-psk" ],
   );
 
   push @$default, @{$dist_map{$dist}};
