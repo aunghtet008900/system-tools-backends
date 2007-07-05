@@ -1,3 +1,10 @@
+2007-06-05  Carlos Garnacho  <carlosg@gnome.org>
+
+	* dispatcher/dispatcher.c (get_destination): be more paranoid checking
+	the destination path before creating the forwarded copy.
+	(dispatch_stb_message): do not leak the copy if there was something
+	wrong with the destination.
+
 2007-04-09  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Utils/Parse.pm (split_all_array_with_pos): only push non empty

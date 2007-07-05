@@ -93,12 +93,20 @@ dispatch_reply (DBusPendingCall *pending_call,
 static gchar*
 get_destination (DBusMessage *message)
 {
-  gchar **arr, *destination;
+  gchar **arr, *destination = NULL;
 
   if (!dbus_message_get_path_decomposed (message, &arr))
     return NULL;
 
-  destination = g_strdup_printf (DBUS_INTERFACE_STB ".%s", arr[3]);
+  if (!arr)
+    return NULL;
+
+  /* paranoid check */
+  if (arr[0] && strcmp (arr[0], "org") == 0 &&
+      arr[1] && strcmp (arr[1], "freedesktop") == 0 &&
+      arr[2] && strcmp (arr[2], "SystemToolsBackends") == 0 && arr[3] && !arr[4])
+    destination = g_strdup_printf (DBUS_INTERFACE_STB ".%s", arr[3]);
+
   dbus_free_string_array (arr);
 
   return destination;
@@ -136,11 +144,12 @@ dispatch_stb_message (DBusConnection *connection,
     }
 
   destination = get_destination (message);
-  copy = dbus_message_copy (message);
 
   /* there's something wrong with the message */
   if (!destination)
     return;
+
+  copy = dbus_message_copy (message);
 
   /* forward the message to the corresponding service */
   dbus_message_set_destination (copy, destination);
