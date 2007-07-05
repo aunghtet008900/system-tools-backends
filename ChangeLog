@@ -1,3 +1,8 @@
+2007-07-06  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Network/Ifaces.pm (get_available_encryptions): add wpa to plain
+	debian too.
+
 2007-07-05  Carlos Garnacho  <carlosg@gnome.org>
 
 	Added WPA/WPA2 PSK wireless encryption support (wext driver), at the

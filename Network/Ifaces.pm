@@ -3706,6 +3706,7 @@ sub get_available_encryptions
   my $dist = $Utils::Backend::tool{"platform"};
   my $default = [ "wep-hex", "wep-ascii" ];
   my %dist_map = (
+    "debian-3.0"  => [ "wpa-psk", "wpa2-psk" ],
     "ubuntu-7.04" => [ "wpa-psk", "wpa2-psk" ],
   );
 
