@@ -1,5 +1,11 @@
 2007-07-06  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Network/Ifaces.pm (get_encrypted_wpa_psk): function to get encrypted
+	psk.
+	(set_debian_key): use it here.
+
+2007-07-06  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Network/Ifaces.pm (get_available_encryptions): add wpa to plain
 	debian too.
 

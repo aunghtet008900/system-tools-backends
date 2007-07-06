@@ -664,9 +664,28 @@ sub set_wep_key_full
   &$func (@_);
 }
 
+sub get_encrypted_wpa_psk
+{
+  my ($key, $essid) = @_;
+  my ($output);
+
+  # FIXME: not good to pass directly keys to processes,
+  # probably the network one won't be so important
+  # to keep secret to other users.
+  $output = &Utils::File::run_backtick ("wpa_passphrase $essid $key");
+
+  if ($output =~ /\tpsk=(.*)\n/)
+  {
+    return $1;
+  }
+
+  return undef;
+}
+
 sub set_debian_key
 {
   my ($file, $iface, $key, $essid, $key_type) = @_;
+  my ($psk);
 
   #remove undesired options, due to syntax duality
   &Utils::Replace::set_interfaces_option_str ($file, $iface, "wireless-key", "");
@@ -689,7 +708,8 @@ sub set_debian_key
   {
     if ($key)
     {
-      &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-psk", $key);
+      $psk = &get_encrypted_wpa_psk ($key, $essid);
+      &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-psk", $psk);
       &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-driver", "wext");
       &Utils::Replace::set_interfaces_option_str ($file, $iface, "wpa-key-mgmt", "WPA-PSK");
 
