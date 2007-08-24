@@ -1,3 +1,9 @@
+2007-08-24  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Network/Ifaces.pm (get_interface_parse_table)
+	(get_interface_replace_table): Fix wireless settings parsing/saving
+	for Slackware.
+
 2007-07-10  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 2.3.0

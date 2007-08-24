@@ -2646,8 +2646,8 @@ sub get_interface_parse_table
         [ "auto",               \&get_slackware_auto,            [RC_INET, RC_LOCAL, IFACE]],
         [ "bootproto",          \&get_slackware_bootproto,       [RC_INET_CONF, IFACE]],
         [ "essid",              \&Utils::Parse::get_wireless_opts,            [ WIRELESS, IFACE], \&get_wireless_ifaces, ESSID ],
-        [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_wireless_opts, [ WIRELESS, IFACE], \&get_wireless_ifaces, KEY ]],
-        [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_wireless_opts, [ WIRELESS, IFACE], \&get_wireless_ifaces, KEY ]],
+        [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_wireless_opts, WIRELESS, IFACE, \&get_wireless_ifaces, KEY ]],
+        [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_wireless_opts, WIRELESS, IFACE, \&get_wireless_ifaces, KEY ]],
         # Modem stuff
         [ "update_dns",         \&check_type, [TYPE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
         [ "noauth",             \&check_type, [TYPE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
@@ -3348,7 +3348,7 @@ sub get_interface_replace_table
       [ "auto",               \&set_slackware_auto, [ RC_INET, RC_LOCAL, IFACE ] ],
       [ "essid",              \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, ESSID ],
       [ "key",                \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, KEY   ],
-      [ "key_type",           \&set_wep_key_full, [ \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, KEY, "%key%" ]],
+      [ "key_type",           \&set_wep_key_full, [ \&Utils::Replace::set_wireless_opts, WIRELESS, IFACE, \&get_wireless_ifaces, KEY, "%key%" ]],
       # Modem stuff
       [ "phone_number",       \&check_type, [TYPE, "modem", \&create_pppscript, CHAT ]],
       [ "phone_number",       \&check_type, [TYPE, "modem", \&create_pppgo ]],
