@@ -1,5 +1,9 @@
 2007-08-27  Carlos Garnacho  <carlosg@gnome.org>
 
+        * Init/Services.pm: Fixes for Slackware code.
+
+2007-08-27  Carlos Garnacho  <carlosg@gnome.org>
+
         * Net-DBus/*: update to Net::DBus 0.33.5
 
 2007-08-24  Carlos Garnacho  <carlosg@gnome.org>

@@ -49,9 +49,9 @@ sub get_runlevels
      "suse-9.0"         => "redhat-6.2",
      "pld-1.0"          => "redhat-6.2",
      "vine-3.0"         => "redhat-6.2",
-     "slackware-9.1.0"  => "slackware-9.1.0",
+     "slackware-9.1.0"  => "freebsd-5",
      "gentoo"           => "gentoo",
-     "freebsd-5"        => "slackware-9.1.0",
+     "freebsd-5"        => "freebsd-5",
      "solaris-2.11"     => "freebsd-5",
     );
 
@@ -506,7 +506,8 @@ sub set_filerc_services
 sub get_bsd_scripts_list
 {
   my ($files) = [ "rc.M", "rc.inet2", "rc.4" ];
-  my ($file, $i, @scripts);
+  my ($file, $i, %scripts);
+  my ($service, $name);
 
   foreach $i (@$files)
   {
@@ -515,7 +516,7 @@ sub get_bsd_scripts_list
 
     if (!$fd) {
       &Utils::Report::do_report ("rc_file_read_failed", $file);
-      return undef;
+      next;
     }
 
     while (<$fd>)
@@ -525,54 +526,50 @@ sub get_bsd_scripts_list
       if ($line =~ /^if[ \t]+\[[ \t]+\-x[ \t]([0-9a-zA-Z\/\.\-_]+) .*\]/)
       {
         $service = $1;
+        $name = $service;
+        $name =~ s/^.*\///;
+        $name =~ s/^rc\.//;
 
-        push @scripts, $service;
+        $scripts{$name} = $service;
       }
     }
 
     &Utils::File::close_file ($fd);
   }
 
-  return \@scripts;
+  return \%scripts;
+}
+
+sub get_bsd_service_status
+{
+  my ($service) = @_;
+  return (-x $service) ? $SERVICE_START : $SERVICE_STOP;
 }
 
 sub get_bsd_service_info
 {
-  my ($service) = @_;
-  my ($script, @runlevels);
+  my ($service, $name) = @_;
+  my (@runlevels, $status);
 
-  $script = $service;
-  $script =~ s/^.*\///;
-  $script =~ s/^rc\.//;
+  return if (! Utils::File::exists ($service));
 
-  return undef if (! Utils::File::exists ($service));
+  $status = &get_bsd_service_status ($service);
+  push @runlevels, [ "default", $status, 0 ];
 
-  # hardcode the fourth runlevel, it's the graphical one
-  if ( -x $service)
-  {
-    push @runlevels, [ "4", $SERVICE_START, 0 ];
-  }
-  else
-  {
-    push @runlevels, [ "4", $SERVICE_STOP, 0 ];
-  }
-
-  # FIXME: $service contains full path, would
-  # be nice to just show the $script name
-  return ($service, $runlevels);
+  return ($name, \@runlevels);
 }
 
 sub get_bsd_services
 {
-  my (@arr, @scripts, $script);
+  my (@arr, %scripts, $name);
 
   $scripts = &get_bsd_scripts_list ();
 
-  foreach $script (@scripts)
+  foreach $name (keys %$scripts)
   {
     my (@info);
 
-    @info = &get_bsd_service_info ($script);
+    @info = &get_bsd_service_info ($$scripts{$name}, $name);
     push @arr, \@info if (scalar (@info));
   }
 
@@ -593,7 +590,7 @@ sub run_bsd_script
     &Utils::File::run ("chmod ugo+x $service");
   }
   
-  &Utils::File::run ("$service $arg");
+  &Utils::File::run ("$service $arg", 1);
 
   # return it to it's normal state
   if ($chmod)
@@ -603,41 +600,28 @@ sub run_bsd_script
 }
 
 # This function stores the configuration in a bsd init
-sub get_bsd_service_path
-{
-  my ($script) = @_;
-  my (@scripts, $elem, $i);
-
-  $scripts = &get_bsd_scripts_list ();
-
-  foreach $i (@scripts)
-  {
-    $elem = $i;
-    $elem =~ s/^.*\///;
-    $elem =~ s/^rc\.//;
-
-    return $i if ($elem eq $script);
-  }
-
-  return undef;
-}
-
 sub set_bsd_services
 {
   my ($services) = @_;
-  my ($script, $runlevels, @scripts);
+  my ($script, $runlevels, %scripts);
+  my ($status);
+
+  $scripts = &get_bsd_scripts_list ();
 
   foreach $service (@$services)
   {
-    $script = &get_bsd_service_path ($$service[0]);
+    $script = $$scripts{$$service[0]};
     $runlevels = $$service[1];
     $runlevel  = $$runlevels[0];
 
     next if ($script eq undef);
 
-    $action = $$runlevel[1];
+    $status = $$runlevel[1];
 
-    if ($action == $SERVICE_START)
+    next if ($status == &get_bsd_service_status ($script));
+
+    if ($status ne undef &&
+        $status == $SERVICE_START)
     {
       &Utils::File::run ("chmod ugo+x $script");
       &run_bsd_script ($script, "start");
@@ -1050,7 +1034,7 @@ sub get_suse_service_info ($service)
 {
   my ($service) = @_;
   my (@runlevels, $link, $runlevel);
-                                                                                                                                                             
+
   foreach $link (<$rcd_path/rc[0-9S].d/S[0-9][0-9]$service>)
   {
     $link =~ s/$rcd_path\///;
