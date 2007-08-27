@@ -1,3 +1,7 @@
+2007-08-28  Sasa Ostrouska  <saxa@droplinegnome.org>
+
+	* Utils/Platform.pm: Support Slackware 11.0 and 12.0.
+
 2007-08-27  Carlos Garnacho  <carlosg@gnome.org>
 
         * Utils/Backend.pm: make --platform work again
