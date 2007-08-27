@@ -242,7 +242,7 @@ sub is_backend
 
 sub ensure_platform
 {
-  if (!$$tool{"platform"})
+  if (!$tool{"platform"})
   {
     my $bus = Net::DBus->system;
     my $service = $bus->get_service("org.freedesktop.SystemToolsBackends");

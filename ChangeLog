@@ -1,5 +1,9 @@
 2007-08-27  Carlos Garnacho  <carlosg@gnome.org>
 
+        * Utils/Backend.pm: make --platform work again
+
+2007-08-27  Carlos Garnacho  <carlosg@gnome.org>
+
         * Init/Services.pm: Fixes for Slackware code.
 
 2007-08-27  Carlos Garnacho  <carlosg@gnome.org>
