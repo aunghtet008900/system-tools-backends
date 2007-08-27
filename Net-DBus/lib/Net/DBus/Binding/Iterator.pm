@@ -72,17 +72,6 @@ use warnings;
 
 use Net::DBus;
 
-our $have_quads = 0;
-
-BEGIN {
-  eval "pack 'Q', 1243456";
-  if ($@) {
-    $have_quads = 0;
-  } else {
-    $have_quads = 1;
-  }
-}
-
 =item $res = $iter->has_next()
 
 Determines if there are any more fields in the message
@@ -185,25 +174,21 @@ from/to the message iterator
 
 sub get_int64 {
     my $self = shift;
-    die "Quads not supported on this platform\n" unless $have_quads;
     return $self->_get_int64;
 }
 
 sub get_uint64 {
     my $self = shift;
-    die "Quads not supported on this platform\n" unless $have_quads;
     return $self->_get_uint64;
 }
 
 sub append_int64 {
     my $self = shift;
-    die "Quads not supported on this platform\n" unless $have_quads;
     $self->_append_int64(shift);
 }
 
 sub append_uint64 {
     my $self = shift;
-    die "Quads not supported on this platform\n" unless $have_quads;
     $self->_append_uint64(shift);
 }
 
@@ -240,16 +225,19 @@ sub get {
 	if ($actual != $type) {
 	    # "Be strict in what you send, be leniant in what you accept"
 	    #    - ie can't rely on python to send correct types, eg int32 vs uint32
-	    #die "requested type '" . chr($type) . "' ($type) did not match wire type '" . chr($actual) . "' ($actual)";
-	    warn "requested type '" . chr($type) . "' ($type) did not match wire type '" . chr($actual) . "' ($actual)";
+	    # But, don't complain for variants because a number of apps (eg HAL)
+	    # claim to return variants, but in fact don't correctly encode their
+	    # data as variants. Technically a bug in the server, but it does
+	    # 'just work' normally.
+	    warn "requested type '" . chr($type) . "' ($type) did not match wire type '" . chr($actual) . "' ($actual)"
+		if $type != &Net::DBus::Binding::Message::TYPE_VARIANT;
+
 	    $type = $actual;
 	}
     } else {
 	$type = $self->get_arg_type;
     }
 
-	
-    
     if ($type == &Net::DBus::Binding::Message::TYPE_STRING) {
 	return $self->get_string;
     } elsif ($type == &Net::DBus::Binding::Message::TYPE_BOOLEAN) {
@@ -648,7 +636,7 @@ sub append_dict {
     
     foreach my $key (keys %{$hash}) {
 	my $value = $hash->{$key};
-	my $entry = $iter->_open_container(&Net::DBus::Binding::Message::TYPE_DICT_ENTRY, $sig);
+	my $entry = $iter->_open_container(&Net::DBus::Binding::Message::TYPE_DICT_ENTRY, "");
 
 	$entry->append($key, $type->[0]);
 	$entry->append($value, $type->[1]);

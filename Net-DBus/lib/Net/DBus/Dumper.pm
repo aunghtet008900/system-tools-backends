@@ -77,7 +77,7 @@ package Net::DBus::Dumper;
 use strict;
 use warnings;
 
-use Exporter;
+use base qw(Exporter);
 
 use vars qw(@EXPORT);
 

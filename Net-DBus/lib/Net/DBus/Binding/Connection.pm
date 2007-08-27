@@ -83,7 +83,12 @@ use Net::DBus::Binding::PendingCall;
 =item my $con = Net::DBus::Binding::Connection->new(address => "unix:path=/path/to/socket");
 
 Creates a new connection to the remove server specified by
-the parameter C<address>. 
+the parameter C<address>. If the C<private> parameter is
+supplied, and set to a True value the connection opened is
+private; otherwise a shared connection is opened. A private
+connection must be explicitly shutdown with the C<disconnect>
+method before the last reference to the object is released.
+A shared connection must never be explicitly disconnected.
 
 =cut
 
@@ -93,8 +98,12 @@ sub new {
     my %params = @_;
     my $self = {};
 
+    my $private = $params{private} ? $params{private} : 0;
     $self->{address} = exists $params{address} ? $params{address} : (exists $params{connection} ? "" : die "address parameter is required");
-    $self->{connection} = exists $params{connection} ? $params{connection} : Net::DBus::Binding::Connection::_open($self->{address});
+    $self->{connection} = exists $params{connection} ? $params{connection} :
+	($private ?
+	 Net::DBus::Binding::Connection::_open_private($self->{address}) :
+	 Net::DBus::Binding::Connection::_open($self->{address}));
 
     bless $self, $class;
 

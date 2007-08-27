@@ -20,30 +20,30 @@
 
 =head1 NAME
 
-Net::DBus::Reactor - application event loop 
+Net::DBus::Reactor - application event loop
 
 =head1 SYNOPSIS
 
 Create and run an event loop:
 
    use Net::DBus::Reactor;
-   my $reactor = Net::DBus::Reactor->new();
+   my $reactor = Net::DBus::Reactor->main();
 
    $reactor->run();
 
 Manage some file handlers
 
-   $reactor->add_read($fd, 
+   $reactor->add_read($fd,
                       Net::DBus::Callback->new(method => sub {
                          my $fd = shift;
                          ...read some data...
                       }, args => [$fd]);
 
-   $reactor->add_write($fd, 
-                      Net::DBus::Callback->new(method => sub {
-                         my $fd = shift;
-                         ...write some data...
-                      }, args => [$fd]);
+   $reactor->add_write($fd,
+                       Net::DBus::Callback->new(method => sub {
+                          my $fd = shift;
+                          ...write some data...
+                       }, args => [$fd]);
 
 Temporarily (dis|en)able a handle
 
@@ -152,7 +152,7 @@ sub new {
 
 use vars qw($main_reactor);
 
-=item $reactor->main
+=item $reactor = Net::DBus::Reactor->main;
 
 Return a handle to the singleton instance of the reactor. This
 is the recommended way of getting hold of a reactor, since it

@@ -58,6 +58,15 @@ use XML::Twig;
 
 use Net::DBus::Binding::Message;
 
+our $debug = 0;
+
+BEGIN {
+    if ($ENV{NET_DBUS_DEBUG} &&
+	$ENV{NET_DBUS_DEBUG} eq "introspect") {
+	$debug = 1;
+    }
+}
+
 our %simple_type_map = (
   "byte" => &Net::DBus::Binding::Message::TYPE_BYTE,
   "bool" => &Net::DBus::Binding::Message::TYPE_BOOLEAN,
@@ -935,24 +944,32 @@ sub encode {
 
     my $interface = $message->get_interface;
 
+    my @types;
     if ($interface) {
-	die "no interface '$interface' in introspection data for object '" . $self->get_object_path . "' encoding $type '$name'\n"
-	    unless exists $self->{interfaces}->{$interface};
-	die "no introspection data when encoding $type '$name' in object " . $self->get_object_path . "\n"
-	    unless exists $self->{interfaces}->{$interface}->{$type}->{$name};
+	if (exists $self->{interfaces}->{$interface}) {
+	    if (exists $self->{interfaces}->{$interface}->{$type}->{$name}) {
+		@types = @{$self->{interfaces}->{$interface}->{$type}->{$name}->{$direction}};
+	    } else {
+		warn "missing introspection data when encoding $type '$name' in object " .
+		    $self->get_object_path . "\n" if $debug;
+	    }
+	} else {
+	    warn "missing interface '$interface' in introspection data for object '" .
+		$self->get_object_path . "' encoding $type '$name'\n" if $debug;
+	}
     } else {
 	foreach my $in (keys %{$self->{interfaces}}) {
 	    if (exists $self->{interfaces}->{$in}->{$type}->{$name}) {
 		$interface = $in;
 	    }
 	}
-	if (!$interface) {
-	    die "no interface in introspection data for object " . $self->get_object_path . " encoding $type '$name'\n"
+	if ($interface) {
+	    @types = @{$self->{interfaces}->{$interface}->{$type}->{$name}->{$direction}};
+	} else {
+	    warn "no interface in introspection data for object " .
+		$self->get_object_path . " encoding $type '$name'\n" if $debug;
 	}
     }
-
-    my @types =
-	@{$self->{interfaces}->{$interface}->{$type}->{$name}->{$direction}};
 
     # If you don't explicitly 'return ()' from methods, Perl
     # will always return a single element representing the
@@ -964,6 +981,14 @@ sub encode {
 	$#args != -1) {
 	@args = ();
     }
+
+    # No introspection data available, then just fallback
+    # to a plain (guess types) append
+    unless (@types) {
+	$message->append_args_list(@args);
+	return;
+    }
+
 
     die "expected " . int(@types) . " $direction, but got " . int(@args)
 	unless $#types == $#args;
@@ -1018,11 +1043,20 @@ sub decode {
 
     my $interface = $message->get_interface;
 
+    my @types;
     if ($interface) {
-	die "no interface '$interface' in introspection data for object '" . $self->get_object_path . "' decoding $type '$name'\n"
-	    unless exists $self->{interfaces}->{$interface};
-	die "no introspection data when encoding $type '$name' in object " . $self->get_object_path . "\n"
-	    unless exists $self->{interfaces}->{$interface}->{$type}->{$name};
+	if (exists $self->{interfaces}->{$interface}) {
+	    if (exists $self->{interfaces}->{$interface}->{$type}->{$name}) {
+	        @types =
+		    @{$self->{interfaces}->{$interface}->{$type}->{$name}->{$direction}};
+	    } else {
+		warn "missing introspection data when decoding $type '$name' in object " .
+		    $self->get_object_path . "\n" if $debug;
+	    }
+	} else {
+	    warn "missing interface '$interface' in introspection data for object '" .
+		$self->get_object_path . "' when decoding $type '$name'\n" if $debug;
+	}
     } else {
 	foreach my $in (keys %{$self->{interfaces}}) {
 	    if (exists $self->{interfaces}->{$in}->{$type}->{$name}) {
@@ -1030,12 +1064,13 @@ sub decode {
 	    }
 	}
 	if (!$interface) {
-	    die "no interface in introspection data for object " . $self->get_object_path . " decoding $type '$name'\n"
+	    warn "no interface in introspection data for object " .
+		$self->get_object_path . " decoding $type '$name'\n" if $debug;
+	} else {
+	    @types =
+		@{$self->{interfaces}->{$interface}->{$type}->{$name}->{$direction}};
 	}
     }
-
-    my @types =
-	@{$self->{interfaces}->{$interface}->{$type}->{$name}->{$direction}};
 
     # If there are no types defined, just return the
     # actual data from the message, assuming the introspection
@@ -1045,18 +1080,20 @@ sub decode {
 
     my $iter = $message->iterator;
 
+    my $hasnext = 1;
     my @rawtypes = $self->_convert(@types);
     my @ret;
-    do {
+    while (@types) {
 	my $type = shift @types;
 	my $rawtype = shift @rawtypes;
 
 	if (exists $magic_type_map{$type}) {
 	    push @ret, &$rawtype($message);
-	} else {
+	} elsif ($hasnext) {
 	    push @ret, $iter->get($rawtype);
+	    $hasnext = $iter->next;
 	}
-    } while ($iter->next);
+    }
     return @ret;
 }
 

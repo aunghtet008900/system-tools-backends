@@ -31,6 +31,69 @@ static int net_dbus_debug = 0;
 #endif
 
 
+/*
+ * On 32-bit OS (and some 64-bit) Perl does not have an
+ * integer type capable of storing 64 bit numbers. So
+ * we serialize to/from strings on these platforms
+ */
+
+dbus_int64_t
+_dbus_parse_int64(SV *sv) {
+#ifdef USE_64_BIT_ALL
+    return SvIV(sv);
+#else
+    //DEBUG_MSG("Parrse %s\n", SvPV_nolen(sv));
+    return strtoll(SvPV_nolen(sv), NULL, 10);
+#endif
+}
+
+dbus_uint64_t
+_dbus_parse_uint64(SV *sv) {
+#ifdef USE_64_BIT_ALL
+    return SvUV(sv);
+#else
+    //DEBUG_MSG("Parrse %s\n", SvPV_nolen(sv));
+    return strtoull(SvPV_nolen(sv), NULL, 10);
+#endif
+}
+
+
+#ifndef PRId64
+#define PRId64 "lld"
+#endif
+
+SV *
+_dbus_format_int64(dbus_int64_t val) {
+#ifdef USE_64_BIT_ALL
+    return newSViv(val);
+#else
+    char buf[100];
+    int len;
+    len = snprintf(buf, 100, "%" PRId64, val);
+    //DEBUG_MSG("Format i64 [%" PRId64 "] to [%s]\n", val, buf);
+    return newSVpv(buf, len);
+#endif
+}
+
+#ifndef PRIu64
+#define PRIu64 "llu"
+#endif
+
+SV *
+_dbus_format_uint64(dbus_uint64_t val) {
+#ifdef USE_64_BIT_ALL
+    return newSVuv(val);
+#else
+    char buf[100];
+    int len;
+    len = snprintf(buf, 100, "%" PRIu64, val);
+    //DEBUG_MSG("Format u64 [%" PRIu64 "] to [%s]\n", val, buf);
+    return newSVpv(buf, len);
+#endif
+}
+
+
+
 /* The -1 is required by the contract for
    dbus_{server,connection}_allocate_slot
    initialization */
@@ -463,7 +526,26 @@ _open(address)
 	DBusConnection *con;
     CODE:
 	dbus_error_init(&error);
+        DEBUG_MSG("Open connection shared %s\n", address);
 	con = dbus_connection_open(address, &error);
+        dbus_connection_ref(con);
+	if (!con) {
+	  _croak_error (&error);
+	}
+	RETVAL = con;
+    OUTPUT:
+	RETVAL
+
+DBusConnection *
+_open_private(address)
+	char *address;
+    PREINIT:
+	DBusError error;
+	DBusConnection *con;
+    CODE:
+	dbus_error_init(&error);
+        DEBUG_MSG("Open connection private %s\n", address);
+	con = dbus_connection_open_private(address, &error);
         dbus_connection_ref(con);
 	if (!con) {
 	  _croak_error (&error);
@@ -825,7 +907,26 @@ _open(type)
 	DBusConnection *con;
     CODE:
 	dbus_error_init(&error);
+        DEBUG_MSG("Open bus shared %d\n", type);
 	con = dbus_bus_get(type, &error);
+        dbus_connection_ref(con);
+	if (!con) {
+	  _croak_error(&error);
+	}
+	RETVAL = con;
+    OUTPUT:
+	RETVAL
+
+DBusConnection *
+_open_private(type)
+	DBusBusType type;
+    PREINIT:
+	DBusError error;
+	DBusConnection *con;
+    CODE:
+	dbus_error_init(&error);
+        DEBUG_MSG("Open bus private %d\n", type);
+	con = dbus_bus_get_private(type, &error);
         dbus_connection_ref(con);
 	if (!con) {
 	  _croak_error(&error);
@@ -1200,7 +1301,10 @@ _open_container(iter, type, sig)
 	char *sig;
     CODE:
 	RETVAL = dbus_new(DBusMessageIter, 1);
-	dbus_message_iter_open_container(iter, type, sig, RETVAL);
+	if (!dbus_message_iter_open_container(iter, type, sig && *sig == '\0' ? NULL : sig, RETVAL)) {
+		dbus_free(RETVAL);
+		croak("failed to open iterator container");
+	}
     OUTPUT:
 	RETVAL
 

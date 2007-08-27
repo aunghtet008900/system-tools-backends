@@ -59,7 +59,10 @@ use base qw(Net::DBus::Binding::Connection);
 
 Open a connection to a message bus, either a well known bus type
 specified using the C<type> parameter, or an arbitrary bus specified
-using the C<address> parameter.
+using the C<address> parameter. If the C<private> parameter is set
+to a true value, then a private connection to the bus is obtained.
+The caller must explicitly disconnect this bus instance before
+releasing the last instance of the object.
 
 =cut
 
@@ -70,9 +73,17 @@ sub new {
     
     my $connection;
     if (defined $params{type}) {
-	$connection = Net::DBus::Binding::Bus::_open($params{type});
+	if ($params{private}) {
+	    $connection = Net::DBus::Binding::Bus::_open_private($params{type});
+	} else {
+	    $connection = Net::DBus::Binding::Bus::_open($params{type});
+	}
     } elsif (defined $params{address}) {
-	$connection = Net::DBus::Binding::Connection::_open($params{address});
+	if ($params{private}) {
+	    $connection = Net::DBus::Binding::Connection::_open_private($params{address});
+	} else {
+	    $connection = Net::DBus::Binding::Connection::_open($params{address});
+	}
 	$connection->dbus_bus_register();
     } else {
 	die "either type or address parameter is required";

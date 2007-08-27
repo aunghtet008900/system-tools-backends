@@ -13,8 +13,24 @@ dbus_int16_t T_IV
 dbus_uint16_t T_UV
 dbus_int32_t T_IV
 dbus_uint32_t T_UV
-dbus_int64_t T_IV
-dbus_uint64_t T_UV
+dbus_int64_t T_DBUS_INT64
+dbus_uint64_t T_DBUS_UINT64
+
+INPUT
+T_DBUS_INT64
+    $var = _dbus_parse_int64($arg);
+
+OUTPUT
+T_DBUS_INT64
+    $arg = _dbus_format_int64($var);
+
+INPUT
+T_DBUS_UINT64
+    $var = _dbus_parse_uint64($arg);
+
+OUTPUT
+T_DBUS_UINT64
+    $arg = _dbus_format_uint64($var);
 
 INPUT
 O_OBJECT_connection
