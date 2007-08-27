@@ -1,3 +1,27 @@
+System Tools Backends Version 2.3.1, 2007-08-28
+-----------------------------------------------
+
+The System Tools Backends version 2.3.1 "All in you" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+- Fixes in network and services modules for Slackware (garnacho)
+- Update to Net::DBus 0.33.5
+- Support Slackware 11.0 and 12.0 (Sasa Ostrouska)
+
+Thanks to anyone involved!
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.3/
+
+
 System Tools Backends Version 2.3.0, 2007-07-10
 -----------------------------------------------
 
