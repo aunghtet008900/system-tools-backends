@@ -1,3 +1,8 @@
+2007-08-29  Markus Kanet  <darkvision@gmx.info>
+
+	* Init/Services.pm: Apply correctly the information for Slackware.
+	Fixes #471254.
+
 2007-08-28  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 2.3.1

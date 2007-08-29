@@ -584,12 +584,12 @@ sub run_bsd_script
   return if (!&Utils::File::exists ($service));
 
   # if it's not executable then chmod it
-  if (!((stat ($service))[2] & (S_IXUSR || S_IXGRP || S_IXOTH)))
+  if (! -x $service)
   {
     $chmod = 1;
     &Utils::File::run ("chmod ugo+x $service");
   }
-  
+
   &Utils::File::run ("$service $arg", 1);
 
   # return it to it's normal state
@@ -617,11 +617,11 @@ sub set_bsd_services
     next if ($script eq undef);
 
     $status = $$runlevel[1];
+    $status = $SERVICE_STOP if ($status eq undef);
 
     next if ($status == &get_bsd_service_status ($script));
 
-    if ($status ne undef &&
-        $status == $SERVICE_START)
+    if ($status == $SERVICE_START)
     {
       &Utils::File::run ("chmod ugo+x $script");
       &run_bsd_script ($script, "start");
