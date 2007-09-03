@@ -1,5 +1,9 @@
 2007-09-03  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Release 2.3.2
+
+2007-09-03  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Users/Shells.pm (get): get list of unique elements.
 
 2007-08-29  Markus Kanet  <darkvision@gmx.info>
