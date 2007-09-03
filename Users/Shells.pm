@@ -40,15 +40,16 @@ sub get_files
 sub push_shell
 {
   my ($shells, $shell) = @_;
-  push @$shells, $shell if (stat ($shell));
+
+  $$shells{$shell} = 1 if (stat ($shell));
 }
 
 sub get
 {
-  my ($ifh, @shells, $shell);
+  my ($ifh, %shells, $shell, @arr);
 
-  # Init @shells, I think every *nix has /bin/false.
-  &push_shell (\@shells, "/bin/false");
+  # Init shells, I think every *nix has /bin/false.
+  &push_shell (\%shells, "/bin/false");
 
   if ($Utils::Backend::tool{"system"} eq "SunOS")
   {
@@ -61,7 +62,7 @@ sub get
 
     foreach $shell (@$possible_shells)
     {
-      &push_shell (\@shells, $shell);
+      &push_shell (\%shells, $shell);
     }
   }
   else
@@ -72,13 +73,17 @@ sub get
     {
       next if &Utils::Util::ignore_line ($_);
       chomp;
-      &push_shell (\@shells, $_);
+      &push_shell (\%shells, $_);
     }
 
     &Utils::File::close_file ($ifh);
   }
 
-  return \@shells;
+  foreach $i (keys (%shells)) {
+    push @arr, $i;
+  }
+
+  return \@arr;
 }
 
 sub set
