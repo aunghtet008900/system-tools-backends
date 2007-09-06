@@ -131,12 +131,6 @@ sub do_report
   {
     &do_report_stderr ($major, $key, $res);
   }
-
-  # Report (--report) output is machine-readable.
-  if ($Utils::Backend::do_report)
-  {
-    print STDOUT join ("::", $major, $key, $str, @args) . "\n";
-  }
 }
 
 sub add

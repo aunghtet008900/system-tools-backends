@@ -1,3 +1,9 @@
+2007-09-06  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Backend.pm, Utils/Report.pm: unused code cleanup.
+	* SystemToolsBackend.pl.in: update to Utils::Backend::init()
+	parameters.
+
 2007-09-03  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Release 2.3.2

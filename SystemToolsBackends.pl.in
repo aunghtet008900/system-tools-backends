@@ -44,7 +44,7 @@ use Utils::Monitor;
 use Utils::Platform;
 
 # Initialize tool
-&Utils::Backend::init ($name, $version, $description, $directives, @ARGV);
+&Utils::Backend::init (@ARGV);
 
 require $Utils::Backend::tool{"module"};
 &Utils::Backend::run ();
