@@ -23,7 +23,11 @@
 
 package Utils::Backend;
 
+use Net::DBus;
+use Net::DBus::Service;
+use Net::DBus::Reactor;
 use Utils::Report;
+use Utils::Platform;
 
 our $DBUS_PREFIX = "org.freedesktop.SystemToolsBackends";
 our $DBUS_PATH   = "/org/freedesktop/SystemToolsBackends";

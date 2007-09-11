@@ -1,5 +1,10 @@
 2007-09-12  Carlos Garnacho  <carlosg@gnome.org>
 
+	* SystemToolsBackends.pl.in: move some includes to
+	* Utils/Backend.pm: here
+
+2007-09-12  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Users/Users.pm (add_user): use abbreviated options for useradd, they
 	seem to be more generic, and makes adding users work again for
 	Slackware. Based on a patch by Markus Kanet <darkvision@gmx.info>. Bug

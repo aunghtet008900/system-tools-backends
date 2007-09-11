@@ -36,12 +36,7 @@ BEGIN {
   }
 }
 
-use Net::DBus;
-use Net::DBus::Service;
-use Net::DBus::Reactor;
 use Utils::Backend;
-use Utils::Monitor;
-use Utils::Platform;
 
 # Initialize tool
 &Utils::Backend::init (@ARGV);
