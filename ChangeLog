@@ -1,3 +1,10 @@
+2007-09-12  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Users/Users.pm (add_user): use abbreviated options for useradd, they
+	seem to be more generic, and makes adding users work again for
+	Slackware. Based on a patch by Markus Kanet <darkvision@gmx.info>. Bug
+	#471083.
+
 2007-09-06  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Utils/Backend.pm, Utils/Report.pm: unused code cleanup.

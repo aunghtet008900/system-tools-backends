@@ -601,12 +601,12 @@ sub add_user
     {
       # fallback to useradd
       $command = "$cmd_useradd -m" .
-          " --home \'"     . $$user[$HOME]   . "\'" .
-          " --gid \'"      . $$user[$GID]    . "\'" .
-          " --password \'" . $$user[$PASSWD] . "\'" .
-          " --shell \'"    . $$user[$SHELL]  . "\'" .
-          " --uid \'"      . $$user[$UID]    . "\'" .
-          " \'"            . $$user[$LOGIN]  . "\'";
+          " -d \'" . $$user[$HOME]   . "\'" .
+          " -g \'" . $$user[$GID]    . "\'" .
+          " -p \'" . $$user[$PASSWD] . "\'" .
+          " -s \'" . $$user[$SHELL]  . "\'" .
+          " -u \'" . $$user[$UID]    . "\'" .
+          " \'"    . $$user[$LOGIN]  . "\'";
 
       &Utils::File::run ($command);
     }
