@@ -1,3 +1,7 @@
+2007-09-12  Markus Kanet  <darkvision@gmx.info>
+
+	* Utils/Platform.pm: Add support for Bluewhite64.
+
 2007-09-12  Carlos Garnacho  <carlosg@gnome.org>
 
 	* SystemToolsBackends.pl.in: move some includes to
