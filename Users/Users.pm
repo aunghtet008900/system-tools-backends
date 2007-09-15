@@ -577,10 +577,11 @@ sub add_user
     $home_parents =~ s/\/+[^\/]+\/*$//;
     &Utils::File::run ("$tool_mkdir -p $home_parents");
 
-    if ($cmd_adduser)
+    if ($cmd_adduser &&
+        $Utils::Backend::tool{"platform"} !~ /^slackware/)
     {
-      # use adduser if available, set empty gecos fields
-      # and password, they will be filled out later
+      # use adduser if available and valid (slackware one is b0rk)
+      # set empty gecos fields and password, they will be filled out later
       $command = "$cmd_adduser --gecos '' --disabled-password" .
           " --home \'"  . $$user[$HOME]   . "\'" .
           " --gid \'"   . $$user[$GID]    . "\'" .
