@@ -1,3 +1,9 @@
+2007-09-17  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Init/Services (get_gentoo_*): general improvements to the gentoo
+	services parsing code, slightly refactored code, and faster (calling
+	rc-status -l too many times was the main culprit)
+
 2007-09-15  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Users/Users.pm (add_user): adduser doesn't work as expected in

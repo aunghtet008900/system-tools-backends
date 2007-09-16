@@ -28,6 +28,7 @@ my $SERVICE_START = 0;
 my $SERVICE_STOP  = 1;
 
 use Init::ServicesList;
+use Utils::Report;
 
 sub get_runlevels
 {
@@ -58,7 +59,7 @@ sub get_runlevels
   %runlevels=
     (
      "redhat-6.2"      => [ "0", "1", "2", "3", "4", "5", "6" ],
-     "gentoo"          => [ "boot", "default", "nonetwork" ],
+     "gentoo"          => &get_gentoo_runlevels (),
      "freebsd-5"       => [ "default" ],
     );
 
@@ -638,42 +639,51 @@ sub set_bsd_services
 sub get_gentoo_service_status
 {
   my ($script, $runlevel) = @_;
-  my ($services) = &get_gentoo_services_by_runlevel ($runlevel);
+  my ($services) = &get_gentoo_services_for_runlevel ($runlevel);
 
-  foreach $i (@$services)
-  {
-    return 1 if ($i eq $script);
-  }
-
-  return 0;
+  return ($$services {$script});
 }
 
 sub get_gentoo_runlevels
 {
-  my($raw_output) = Utils::File::run_backtick("rc-status -l");
+  my($raw_output) = Utils::File::run_backtick("rc-status -nc -l");
   my(@runlevels) = split(/\n/,$raw_output);
 
-  return @runlevels;
+  return \@runlevels;
 }
 
-sub get_gentoo_services_by_runlevel
+sub get_gentoo_services_for_runlevel
 {
   my($runlevel) = @_;
-  my($raw_output) = Utils::File::run_backtick("rc-status $runlevel");
+  my($raw_output) = Utils::File::run_backtick("rc-status -nc $runlevel");
   my(@raw_lines) = split(/\n/,$raw_output);
-  my(@services);
-  my($line);
+  my($line, $service);
+  my(%services);
 
   foreach $line (@raw_lines)
   {
     if ($line !~ /^Runlevel/)
     {
-      $line=(split(" ",$line))[0];
-	    push(@services,$line);
+      $service = (split(" ",$line))[0];
+      $services{$service} = 1;
 	  }
   }
 
-  return \@services
+  return \%services
+}
+
+sub get_gentoo_runlevels_services
+{
+  my (%runlevels_services, $runlevels);
+
+  $runlevels = &get_gentoo_runlevels ();
+
+  foreach $runlevel (@$runlevels)
+  {
+    $runlevels_services{$runlevel} = &get_gentoo_services_for_runlevel ($runlevel);
+  }
+
+  return \%runlevels_services;
 }
 
 sub get_gentoo_services_list
@@ -705,50 +715,16 @@ sub gentoo_service_exists
   return 0;
 }
 
-sub get_gentoo_runlevels_by_service
+sub get_gentoo_runlevels_status
 {
-  my ($service) = @_;
-  my(@runlevels,@services_in_runlevel,@contain_runlevels, $runlevel);
-  my ($elem);
+  my ($service, $runlevels_services) = @_;
+  my (@arr, $services_in_runlevel);
 
-  # let's do some caching to improve performance
-  if ($gentoo_services_hash eq undef)
+  foreach $runlevel (keys %$runlevels_services)
   {
-    @runlevels = &get_gentoo_runlevels ();
+    $services_in_runlevel = $$runlevels_services {$runlevel};
 
-    foreach $runlevel (@runlevels)
-    {
-      $$gentoo_services_hash{$runlevel} = &get_gentoo_services_by_runlevel ($runlevel);
-    }
-  }
-
-  if (&gentoo_service_exists($service))
-  {
-    foreach $runlevel (keys %$gentoo_services_hash)
-    {
-      $services_in_runlevel = $$gentoo_services_hash {$runlevel};
-
-      foreach $elem (@$services_in_runlevel)
-      {
-        push (@contain_runlevels, $runlevel) if ($elem eq $service);
-      }
-    }
-  }
-
-  return @contain_runlevels;
-}
-
-sub get_gentoo_runlevel_status_by_service
-{
-  my ($service) = @_;
-  my (@arr, @ret);
-  my (@runlevels) = &get_gentoo_runlevels();
-  my (@started) = &get_gentoo_runlevels_by_service($service);
-  my (%start_runlevels) = map { $started[$_], 1 } 0 .. $#started;
-
-  foreach $runlevel (@runlevels)
-  {
-    if (defined $start_runlevels{$runlevel})
+    if ($$services_in_runlevel{$service})
     {
       push @arr, [ $runlevel, $SERVICE_START, 0 ];
     }
@@ -763,26 +739,25 @@ sub get_gentoo_runlevel_status_by_service
 
 sub get_gentoo_service_info
 {
-	my ($service) = @_;
-	my ($script, @actions, @runlevels);
-	my ($role);
-	
-  $runlevels = &get_gentoo_runlevel_status_by_service ($service);
+  my ($service, $runlevels_services) = @_;
+  my (@runlevels_info);
 
-  return ($service, $runlevels);
+  $runlevels_info = &get_gentoo_runlevels_status ($service, $runlevels_services);
+
+  return ($service, $runlevels_info);
 }
 
 sub get_gentoo_services
 {
-  my ($service);
-  my (@arr);
+  my ($service, @arr);
   my ($service_list) = &get_gentoo_services_list ();
+  my ($runlevels_services) = &get_gentoo_runlevels_services ();
 
   foreach $service (@$service_list)
   {
     my (@info);
 
-    @info = &get_gentoo_service_info ($service);
+    @info = &get_gentoo_service_info ($service, $runlevels_services);
     push @arr, \@info if scalar (@info);
   }
 
@@ -1288,7 +1263,7 @@ sub get_init_type
   {
     return "rcng";
   }
-  elsif (($gst_dist =~ /gentoo/) || ($gst_dist =~ /^vlos/))
+  elsif ($gst_dist =~ /gentoo/)
   {
     return "gentoo";
   }
