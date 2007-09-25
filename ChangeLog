@@ -1,5 +1,12 @@
 2007-09-26  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Init/Services.pm (set_gentoo_service_status), (set_gentoo_services):
+	ensure that a service status has changed before trying to change it.
+	(get_gentoo_runlevels) (get_gentoo_runlevels_services): return undef
+	if it couldn't get the configuration.
+
+2007-09-26  Carlos Garnacho  <carlosg@gnome.org>
+
 	Add a diagnostics tool, returns the whole system configuration
 	without using DBus, it's way easier to debug problems when dealing
 	with the distro.

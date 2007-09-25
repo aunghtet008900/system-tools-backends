@@ -647,7 +647,10 @@ sub get_gentoo_service_status
 sub get_gentoo_runlevels
 {
   my($raw_output) = Utils::File::run_backtick("rc-status -nc -l");
-  my(@runlevels) = split(/\n/,$raw_output);
+  my(@runlevels);
+
+  return undef if (!$raw_output);
+  @runlevels = split(/\n/,$raw_output);
 
   return \@runlevels;
 }
@@ -677,6 +680,7 @@ sub get_gentoo_runlevels_services
   my (%runlevels_services, $runlevels);
 
   $runlevels = &get_gentoo_runlevels ();
+  return undef if (!$runlevels);
 
   foreach $runlevel (@$runlevels)
   {
@@ -788,7 +792,14 @@ sub run_gentoo_script
 
 sub set_gentoo_service_status
 {
-  my ($script, $rl, $action) = @_;
+  my ($script, $rl, $status, $runlevels_services) = @_;
+  my ($services_in_runlevel, $old_status);
+
+  $services_in_runlevel = $$runlevels_services {$rl};
+  $old_status = ($$services_in_runlevel{$script}) ?
+      $SERVICE_START : $SERVICE_STOP;
+
+  return if ($status == $old_status);
 
   if ($action == $SERVICE_START)
   {
@@ -807,6 +818,9 @@ sub set_gentoo_services
 {
   my ($services) = @_;
   my ($action, $rl, $script, $arr);
+  my ($runlevels_services) = &get_gentoo_runlevels_services ();
+
+  return if (!$runlevels_services);
 
   foreach $service (@$services)
   {
@@ -817,7 +831,8 @@ sub set_gentoo_services
     {
       $action = $$i[1];
       $rl = $$i[0];
-      &set_gentoo_service_status ($script, $rl, $action);
+      &set_gentoo_service_status ($script, $rl, $action,
+                                  $runlevels_services);
     }
   }
 }
