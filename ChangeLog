@@ -12,6 +12,7 @@
 	* StbObject.pm: use Utils::DBus. ensure platform and set counter here.
 	* diagnostics.pl: new tool, uses the s-t-b core, which doesn't depend
 	on DBus anymore.
+	* Makefile.am: added diagnostics.pl
 
 2007-09-17  Carlos Garnacho  <carlosg@gnome.org>
 

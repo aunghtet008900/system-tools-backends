@@ -28,6 +28,7 @@ EXTRA_DIST = \
 	system-tools-backends.conf.in \
 	org.freedesktop.SystemToolsBackends.service.in \
 	test-backends.in \
+	diagnostics.pl \
 	$(modules_DATA) \
 	README \
 	AUTHORS \
