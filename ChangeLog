@@ -1,3 +1,18 @@
+2007-09-26  Carlos Garnacho  <carlosg@gnome.org>
+
+	Add a diagnostics tool, returns the whole system configuration
+	without using DBus, it's way easier to debug problems when dealing
+	with the distro.
+
+	* Utils/Backend.pm: Remove DBus usage, move DBus related functions to:
+	* Utils/DBus.pm: new file.
+	* Utils/Makefile: added here too.
+	* SystemToolsBackend.pl.in: error out if no module was requested here.
+	* Platform: use Utils::DBus.
+	* StbObject.pm: use Utils::DBus. ensure platform and set counter here.
+	* diagnostics.pl: new tool, uses the s-t-b core, which doesn't depend
+	on DBus anymore.
+
 2007-09-17  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Init/Services (get_gentoo_*): general improvements to the gentoo

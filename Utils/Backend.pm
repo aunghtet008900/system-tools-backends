@@ -23,9 +23,6 @@
 
 package Utils::Backend;
 
-use Net::DBus;
-use Net::DBus::Service;
-use Net::DBus::Reactor;
 use Utils::Report;
 use Utils::Platform;
 
@@ -43,7 +40,7 @@ sub print_usage
 
   my $usage_text =<< "end_of_usage_text;";
         NOTE: You should not be running this directly, this is only
-              recomended for debuggin purposes.
+              recomended for debugging purposes.
 
        Usage: SystemToolsBackends.pl options
 
@@ -118,19 +115,6 @@ sub set_dist
   &set_with_param ($tool, "platform", $dist);
 }
 
-sub ensure_platform
-{
-  if (!$tool{"platform"})
-  {
-    my $bus = Net::DBus->system;
-    my $service = $bus->get_service("org.freedesktop.SystemToolsBackends");
-    my $obj = $service->get_object ("/org/freedesktop/SystemToolsBackends/Platform");
-    my $platform = $obj->getPlatform ();
-
-    &set_dist (\%tool, $platform) if ($platform);
-  }
-}
-
 sub init
 {
   my (@args) = @_;
@@ -155,48 +139,11 @@ sub init
     }
   }
 
-  if (!$tool{"module"})
-  {
-    print STDERR "Error: You must specify a module to load.\n\n";
-    &print_usage ($tool, 1);
-  }
-
   # Set up subsystems.
   &Utils::Report::begin ();
   &Utils::Platform::get_system ();
-  &initialize_timer (\%tool);
 
   return \%tool;
-}
-
-sub get_bus
-{
-  return Net::DBus->session
-}
-
-sub run
-{
-  Net::DBus::Reactor->main->run ();
-}
-
-sub shutdown
-{
-  # exit the main loop
-  Net::DBus::Reactor->main->shutdown ();
-}
-
-sub initialize_timer
-{
-  my ($tool) = @_;
-
-  if (!$$tool{"no-shutdown"})
-  {
-    # remove previous timer
-    Net::DBus::Reactor->main->remove_timeout ($$tool{"timer"}) if ($$tool {"timer"});
-
-    #wait three minutes until shutdown
-    $$tool{"timer"} = Net::DBus::Reactor->main->add_timeout (180000, Net::DBus::Callback->new(method => \&shutdown));
-  }
 }
 
 1;

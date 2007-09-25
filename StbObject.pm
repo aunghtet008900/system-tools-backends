@@ -20,6 +20,7 @@
 
 package StbObject;
 
+use Utils::DBus;
 use base qw(Net::DBus::Object);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 
@@ -28,20 +29,38 @@ sub new
   my $class   = shift;
   my $path    = shift;
   my $name    = shift;
+  my $platform;
 
-  my $bus = &Utils::Backend::get_bus ();
+  my $bus = &Utils::DBus::get_bus ();
   my $service = $bus->export_service ($Utils::Backend::DBUS_PREFIX . ".$name");
   my $self = $class->SUPER::new ($service, $path);
 
   bless $self, $class;
-  &Utils::Backend::ensure_platform ();
+
+  if (!$Utils::Backend::tool{"platform"})
+  {
+    $platform = &Utils::DBus::get_platform ();
+    &Utils::Backend::set_dist (\%Utils::Backend::tool, $platform) if ($platform);
+  }
+
+  if (!$Utils::Backend::tool{"no-shutdown"})
+  {
+    &set_counter ();
+  }
 
   return $self;
 }
 
+sub set_counter
+{
+  #wait three minutes until shutdown
+  $Utils::Backend::tool{"timer"} = &Utils::DBus::add_timeout (180000, \&Utils::DBus::shutdown);
+}
+
 sub reset_counter
 {
-  &Utils::Backend::initialize_timer (\%Utils::Backend::tool);
+  &Utils::DBus::remove_timeout ($Utils::Backend::tool{"timer"});
+  set_counter ();
 }
 
 1;

@@ -26,6 +26,7 @@ use base qw(Net::DBus::Object);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX . ".Platform");
 use Utils::Platform;
 use Utils::Backend;
+use Utils::DBus;
 
 my $OBJECT_NAME = "Platform";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
@@ -77,7 +78,7 @@ sub setPlatform
   &Utils::Platform::set_platform ($platform);
 }
 
-my $bus = &Utils::Backend::get_bus ();
+my $bus = &Utils::DBus::get_bus ();
 my $service = $bus->export_service ($Utils::Backend::DBUS_PREFIX . ".$OBJECT_NAME");
 my $platforms_list  = Platform->new ($service);
 

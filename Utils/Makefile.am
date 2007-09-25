@@ -2,6 +2,7 @@ utilsdir = $(scriptsdir)/Utils
 
 utils_DATA = \
 	Backend.pm	\
+	DBus.pm		\
 	File.pm		\
 	Monitor.pm	\
 	Parse.pm		\

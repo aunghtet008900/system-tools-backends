@@ -41,5 +41,12 @@ use Utils::Backend;
 # Initialize tool
 &Utils::Backend::init (@ARGV);
 
+if (!$Utils::Backend::tool{"module"})
+{
+  print STDERR "Error: You must specify a module to load.\n\n";
+  exit (-1);
+}
+
 require $Utils::Backend::tool{"module"};
-&Utils::Backend::run ();
+
+&Utils::DBus::run ();
