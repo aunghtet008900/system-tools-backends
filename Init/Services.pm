@@ -52,6 +52,7 @@ sub get_runlevels
      "vine-3.0"         => "redhat-6.2",
      "slackware-9.1.0"  => "freebsd-5",
      "gentoo"           => "gentoo",
+     "archlinux"        => "freebsd-5",
      "freebsd-5"        => "freebsd-5",
      "solaris-2.11"     => "freebsd-5",
     );
@@ -846,7 +847,7 @@ sub get_rcng_status_by_service
   # This is the only difference between rcNG and archlinux
   if ($Utils::Backend::tool{"platform"} eq "archlinux")
   {
-      return &Utils::File::exists ("/var/run/daemons/$service");
+    return &Utils::File::exists ("/var/run/daemons/$service");
   }
   else
   {
@@ -882,7 +883,7 @@ sub get_rcng_service_info
     push @runlevels, [ "default", $SERVICE_STOP, 0 ];
   }
 
-  return ($script, $runlevels);
+  return ($script, \@runlevels);
 }
 
 sub get_rcng_services
@@ -910,13 +911,13 @@ sub run_rcng_script
 
   if (!&Utils::File::run ("/etc/rc.d/$service $arg"))
   {
-    &Utils::File::do_report ("service_sysv_op_success", $service, $arg);
-    &Utils::File::leave ();
+    &Utils::Report::do_report ("service_sysv_op_success", $service, $arg);
+    &Utils::Report::leave ();
     return 0;
   }
 
-  &Utils::File::do_report ("service_sysv_op_failed", $service, $arg);
-  &Utils::File::leave ();
+  &Utils::Report::do_report ("service_sysv_op_failed", $service, $arg);
+  &Utils::Report::leave ();
   return -1;
 }
 
@@ -977,8 +978,8 @@ sub set_archlinux_service_status
   my ($script, $active) = @_;
   my $rcconf = '/etc/rc.conf';
   my ($daemons);
-
   $daemons = &Utils::Parse::get_sh ($rcconf, "DAEMONS");
+  $daemons =~ s/[()]//;
 
   if (($daemons =~ m/$script/) && !$active)
   {
@@ -989,7 +990,7 @@ sub set_archlinux_service_status
     $daemons =~ s/network/network $script/g;
   }
 
-  &Utils::Replace::set_sh ($rcconf, "DAEMONS", $daemons);
+  &Utils::Replace::set_sh ($rcconf, "DAEMONS", "($daemons)", 1);
   &run_rcng_script ($service, ($active) ? "start" : "stop");
 }
 

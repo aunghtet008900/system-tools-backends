@@ -578,7 +578,8 @@ sub add_user
     &Utils::File::run ("$tool_mkdir -p $home_parents");
 
     if ($cmd_adduser &&
-        $Utils::Backend::tool{"platform"} !~ /^slackware/)
+        $Utils::Backend::tool{"platform"} !~ /^slackware/ &&
+        $Utils::Backend::tool{"platform"} !~ /^archlinux/)
     {
       # use adduser if available and valid (slackware one is b0rk)
       # set empty gecos fields and password, they will be filled out later

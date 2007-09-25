@@ -1,5 +1,15 @@
 2007-09-26  Carlos Garnacho  <carlosg@gnome.org>
 
+	Add support for Archlinux to UsersConfig and ServicesConfig. patch
+	provided by Ermanno Scaglione  <e.scaglione@arcor.de>
+
+	* Users/Users.pm (add_user): Archlinux prefers useradd.
+	* Init/Services.pm (get_runlevels) (set_archlinux_service_status)
+	(get_rcng_service_info) (run_rcng_script): Fixes for rcng/archlinux
+	init.
+
+2007-09-26  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Init/Services.pm (set_gentoo_service_status), (set_gentoo_services):
 	ensure that a service status has changed before trying to change it.
 	(get_gentoo_runlevels) (get_gentoo_runlevels_services): return undef
