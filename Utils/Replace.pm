@@ -250,10 +250,10 @@ sub join_first_array
 # Escape $value in /bin/sh way, find/append key and set escaped value.
 sub set_sh
 {
-  my ($file, $key, $value) = @_;
+  my ($file, $key, $value, $unescaped) = @_;
   my $ret;
 
-  $value = &Utils::Parse::escape ($value);
+  $value = &Utils::Parse::escape ($value) unless $unescaped;
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("replace_sh", $key, $file);

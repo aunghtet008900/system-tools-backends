@@ -1,3 +1,8 @@
+2007-09-28  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Utils/Replace.pm (set_sh): add option to keep the value unescaped.
+	actually needed when saving services config for Archlinux.
+
 2007-09-26  Carlos Garnacho  <carlosg@gnome.org>
 
 	Add support for Archlinux to UsersConfig and ServicesConfig. patch
