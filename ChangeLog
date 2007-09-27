@@ -1,5 +1,12 @@
 2007-09-28  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Utils/Backend.pm (print_platform_list): Added, prints supported
+	platforms.
+	(init): parse --platform-list
+	* diagnostics.pl: put that in the help blurb.
+
+2007-09-28  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Utils/Replace.pm (set_sh): add option to keep the value unescaped.
 	actually needed when saving services config for Archlinux.
 

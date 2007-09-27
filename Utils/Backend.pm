@@ -61,11 +61,28 @@ sub print_usage
 
   --disable-shutdown  Disable default shutdown timeout of 180 seconds.
 
+    --list-platforms  List available platforms.
+
 end_of_usage_text;
 
   print STDERR $usage_text;
 
   exit $exit_code if $exit_code ne undef;
+}
+
+sub print_platform_list
+{
+  my ($platforms) = &Utils::Platform::get_platform_info ();
+
+  foreach $platform (keys %$platforms)
+  {
+    my $value = $$platforms{$platform};
+    my $desc = join (" ", @$value);
+
+    printf ("%s\t- %s\n", $platform, $desc);
+  }
+
+  exit 0;
 }
 
 # --- Initialization and finalization --- #
@@ -132,6 +149,7 @@ sub init
     elsif ($arg eq "--platform")                  { &set_dist      (\%tool, shift @args); }
     elsif ($arg eq "--disable-shutdown")          { &set_disable_shutdown (\%tool); }
     elsif ($arg eq "--verbose"   || $arg eq "-v") { &set_with_param (\%$tool, "do_verbose", 1); }
+    elsif ($arg eq "--list-platforms")            { &print_platform_list (\%tool) }
     else
     {
       print STDERR "Error: Unrecognized option '$arg'.\n\n";

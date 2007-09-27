@@ -90,7 +90,7 @@ sub print_config
 
 if (!$Utils::Backend::tool{"platform"})
 {
-  print "No platform detected, try --platform <platform>\n";
+  print "No platform detected, try --platform <platform> or --list-platforms to see which are the supported platforms\n";
   exit (-1);
 }
 
