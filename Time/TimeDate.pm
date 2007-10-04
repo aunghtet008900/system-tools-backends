@@ -216,14 +216,14 @@ sub conf_get_parse_table
    {
      fn =>
      {
-       RC_LOCAL     => "/etc/rc.local",
+       RC_CONF      => "/etc/rc.conf",
        ZONEINFO     => "/usr/share/zoneinfo",
        LOCAL_TIME   => "/etc/localtime"
      },
      table =>
      [
       [ "local_time",   \&get_utc_time ],
-      [ "timezone",     \&Utils::Parse::get_sh, RC_LOCAL, TIMEZONE ],
+      [ "timezone",     \&Utils::Parse::get_sh, RC_CONF, TIMEZONE ],
      ]
    },
 

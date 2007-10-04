@@ -1,3 +1,8 @@
+2007-10-04  Carlos Garnacho  <carlosg@gnome.org>
+
+	* Time/TimeDate.pm, Time/NTP.pm: make time modules work for Archlinux.
+	Patch by Ermanno Scaglione  <e.scaglione@arcor.de>
+
 2007-09-28  Carlos Garnacho  <carlosg@gnome.org>
 
 	* Utils/Backend.pm (print_platform_list): Added, prints supported
