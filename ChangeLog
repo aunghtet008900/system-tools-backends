@@ -1,5 +1,9 @@
 2007-10-04  Carlos Garnacho  <carlosg@gnome.org>
 
+	* Release 2.4.1
+
+2007-10-04  Carlos Garnacho  <carlosg@gnome.org>
+
 	* Time/TimeDate.pm, Time/NTP.pm: make time modules work for Archlinux.
 	Patch by Ermanno Scaglione  <e.scaglione@arcor.de>
 

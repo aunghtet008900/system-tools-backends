@@ -1,3 +1,28 @@
+System Tools Backends Version 2.4.1, 2007-10-04
+-----------------------------------------------
+
+The System Tools Backends version 2.4.1 "Out of mind" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+- Fix a typo in UsersConfig module for Slackware (Markus Kanet)
+- Optimize gentoo services list parsing (garnacho)
+- Add diagnostics script, to check configuration parsing without all the DBus setup (garnacho)
+- Add/fix Users/Time/Services support for Archlinux (Ermanno Scaglione)
+
+Thanks to anyone involved!
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.4/
+
+
 System Tools Backends Version 2.4.0, 2007-09-14
 -----------------------------------------------
 
