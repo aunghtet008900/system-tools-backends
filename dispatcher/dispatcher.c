@@ -18,43 +18,135 @@
  * Authors: Carlos Garnacho Parro  <carlosg@gnome.org>
  */
 
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+
 #include <glib.h>
 #include <glib-object.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-lowlevel.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <signal.h>
-#include "config.h"
+#include "dispatcher.h"
 
 #define DBUS_ADDRESS_ENVVAR "DBUS_SESSION_BUS_ADDRESS"
 #define DBUS_INTERFACE_STB "org.freedesktop.SystemToolsBackends"
 #define DBUS_INTERFACE_STB_PLATFORM "org.freedesktop.SystemToolsBackends.Platform"
 
-/* FIXME: should be inside an object */
-static GPid bus_pid = 0;
-static guint watch_id = 0;
-static gchar *platform = NULL;
+#define STB_DISPATCHER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), STB_TYPE_DISPATCHER, StbDispatcherPrivate))
 
-typedef struct {
+typedef struct StbDispatcherPrivate   StbDispatcherPrivate;
+typedef struct StbDispatcherAsyncData StbDispatcherAsyncData;
+
+struct StbDispatcherPrivate
+{
   DBusConnection *connection;
+  DBusConnection *session_connection;
+
+  GPid   bus_pid;
+  guint  watch_id;
+  gchar *platform;
+};
+
+struct StbDispatcherAsyncData
+{
+  StbDispatcher *dispatcher;
   gchar *destination;
   gint serial;
-} AsyncData;
+};
+
+static void     stb_dispatcher_class_init  (StbDispatcherClass    *class);
+static void     stb_dispatcher_init        (StbDispatcher         *object);
+static void     stb_dispatcher_finalize    (GObject               *object);
+
+static GObject* stb_dispatcher_constructor (GType                  type,
+					    guint                  n_construct_properties,
+					    GObjectConstructParam *construct_params);
+
+
+G_DEFINE_TYPE (StbDispatcher, stb_dispatcher, G_TYPE_OBJECT);
 
 static void
-async_data_free (AsyncData *data)
+stb_dispatcher_class_init (StbDispatcherClass *class)
 {
-  dbus_connection_unref (data->connection);
+  GObjectClass *object_class = G_OBJECT_CLASS (class);
+
+  object_class->constructor = stb_dispatcher_constructor;
+  object_class->finalize    = stb_dispatcher_finalize;
+
+  g_type_class_add_private (object_class,
+			    sizeof (StbDispatcherPrivate));
+}
+
+static void
+on_bus_term (GPid     pid,
+	     gint     status,
+	     gpointer data)
+{
+  StbDispatcher *dispatcher;
+  StbDispatcherPrivate *priv;
+
+  dispatcher = STB_DISPATCHER (data);
+  priv = dispatcher->_priv;
+
+  g_spawn_close_pid (priv->bus_pid);
+  priv->bus_pid = 0;
+
+  /* if the bus dies, we screwed up */
+  g_critical ("Can't live without bus.");
+  g_assert_not_reached ();
+}
+
+static void
+setup_private_bus (StbDispatcher *dispatcher)
+{
+  StbDispatcherPrivate *priv;
+  DBusError error;
+
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+  dbus_error_init (&error);
+
+  if (!priv->bus_pid)
+    {
+      /* spawn private bus */
+      static gchar *argv[] = { "dbus-daemon", "--session", "--print-address", "--nofork", NULL };
+      gint output_fd, size;
+      gchar *envvar;
+      gchar str[300] = { 0, };
+
+      if (!g_spawn_async_with_pipes (NULL, argv, NULL,
+				     G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD,
+				     NULL, NULL, &priv->bus_pid,
+				     NULL, &output_fd, NULL, NULL))
+	return;
+
+      priv->watch_id = g_child_watch_add (priv->bus_pid, on_bus_term, dispatcher);
+      size = read (output_fd, str, sizeof (str));
+      str[size - 1] = '\0';
+
+      envvar = g_strdup_printf (DBUS_ADDRESS_ENVVAR "=%s", str);
+      putenv (envvar);
+
+      /* get a connection with the newly created bus */
+      priv->session_connection = dbus_bus_get (DBUS_BUS_SESSION, &error);
+
+      if (dbus_error_is_set (&error))
+	g_critical (error.message);
+
+      dbus_connection_set_exit_on_disconnect (priv->session_connection, FALSE);
+      dbus_connection_setup_with_g_main (priv->session_connection, NULL);
+    }
+}
+
+static void
+async_data_free (StbDispatcherAsyncData *data)
+{
+  g_object_unref (data->dispatcher);
   g_free (data->destination);
   g_free (data);
 }
 
-static void
+static gchar *
 retrieve_platform (DBusMessage *message)
 {
       DBusMessageIter iter;
@@ -64,28 +156,32 @@ retrieve_platform (DBusMessage *message)
       dbus_message_iter_get_basic (&iter, &str);
 
       if (str && *str)
-	platform = g_strdup (str);
+	return g_strdup (str);
+
+      return NULL;
 }
 
 static void
 dispatch_reply (DBusPendingCall *pending_call,
 		gpointer         data)
 {
+  StbDispatcherPrivate *priv;
   DBusMessage *reply;
-  AsyncData *async_data;
+  StbDispatcherAsyncData *async_data;
 
   reply = dbus_pending_call_steal_reply (pending_call);
-  async_data = (AsyncData *) data;
+  async_data = (StbDispatcherAsyncData *) data;
+  priv = async_data->dispatcher->_priv;
 
   /* get the platform if necessary */
   if (dbus_message_has_interface (reply, DBUS_INTERFACE_STB_PLATFORM) &&
-      dbus_message_has_member (reply, "getPlatform") && !platform)
-    retrieve_platform (reply);
+      dbus_message_has_member (reply, "getPlatform") && !priv->platform)
+    priv->platform = retrieve_platform (reply);
 
   /* send the reply back */
   dbus_message_set_destination (reply, async_data->destination);
   dbus_message_set_reply_serial (reply, async_data->serial);
-  dbus_connection_send (async_data->connection, reply, NULL);
+  dbus_connection_send (priv->connection, reply, NULL);
 
   dbus_message_unref (reply);
 }
@@ -113,18 +209,20 @@ get_destination (DBusMessage *message)
 }
 
 static void
-dispatch_stb_message (DBusConnection *connection,
-		      DBusConnection *session_connection,
-		      DBusMessage    *message)
+dispatch_stb_message (StbDispatcher *dispatcher,
+		      DBusMessage   *message)
 {
+  StbDispatcherPrivate *priv;
   DBusMessage *copy;
   DBusPendingCall *pending_call;
-  AsyncData *async_data;
+  StbDispatcherAsyncData *async_data;
   gchar *destination;
+
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
 
   if (dbus_message_has_interface (message, DBUS_INTERFACE_STB_PLATFORM))
     {
-      if (dbus_message_has_member (message, "getPlatform") && platform)
+      if (dbus_message_has_member (message, "getPlatform") && priv->platform)
 	{
 	  DBusMessage *reply;
 	  DBusMessageIter iter;
@@ -132,33 +230,36 @@ dispatch_stb_message (DBusConnection *connection,
 	  /* create a reply with the stored platform */
 	  reply = dbus_message_new_method_return (message);
 	  dbus_message_iter_init_append (reply, &iter);
-	  dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &platform);
+	  dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &priv->platform);
 
-	  dbus_connection_send (connection, reply, NULL);
+	  dbus_connection_send (priv->connection, reply, NULL);
 	  dbus_message_unref (reply);
 
 	  return;
 	}
       else if (dbus_message_has_member (message, "setPlatform"))
-	retrieve_platform (message);
+	priv->platform = retrieve_platform (message);
     }
 
   destination = get_destination (message);
 
   /* there's something wrong with the message */
-  if (!destination)
-    return;
+  if (G_UNLIKELY (!destination))
+    {
+      g_critical ("Could not get a valid destination, original one was: %s", dbus_message_get_path (message));
+      return;
+    }
 
   copy = dbus_message_copy (message);
 
   /* forward the message to the corresponding service */
   dbus_message_set_destination (copy, destination);
-  dbus_connection_send_with_reply (session_connection, copy, &pending_call, -1);
+  dbus_connection_send_with_reply (priv->session_connection, copy, &pending_call, -1);
 
   if (pending_call)
     {
-      async_data = g_new0 (AsyncData, 1);
-      async_data->connection = dbus_connection_ref (connection);
+      async_data = g_new0 (StbDispatcherAsyncData, 1);
+      async_data->dispatcher = g_object_ref (dispatcher);
       async_data->destination = g_strdup (dbus_message_get_sender (message));
       async_data->serial = dbus_message_get_serial (message);
 
@@ -175,7 +276,7 @@ dispatcher_filter_func (DBusConnection *connection,
 			DBusMessage    *message,
 			void           *data)
 {
-  DBusConnection *session_connection = (DBusConnection *) data;
+  StbDispatcher *dispatcher = STB_DISPATCHER (data);
 
   if (dbus_message_is_signal (message, DBUS_INTERFACE_LOCAL, "Disconnected"))
     {
@@ -188,146 +289,98 @@ dispatcher_filter_func (DBusConnection *connection,
   else if (dbus_message_has_interface (message, DBUS_INTERFACE_INTROSPECTABLE) ||
 	   dbus_message_has_interface (message, DBUS_INTERFACE_STB) ||
 	   dbus_message_has_interface (message, DBUS_INTERFACE_STB_PLATFORM))
-    dispatch_stb_message (connection, session_connection, message);
+    dispatch_stb_message (dispatcher, message);
 
   return DBUS_HANDLER_RESULT_HANDLED;
 }
 
 static void
-daemonize (void)
+setup_connection (StbDispatcher *dispatcher)
 {
-  int dev_null_fd, pidfile_fd;
-  gchar *str;
+  StbDispatcherPrivate *priv;
+  DBusError error;
 
-  if (!getenv ("STB_NO_DAEMON"))
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+  dbus_error_init (&error);
+
+  priv->connection = dbus_bus_get (DBUS_BUS_SYSTEM, &error);
+
+  if (dbus_error_is_set (&error))
     {
-      dev_null_fd = open ("/dev/null", O_RDWR);
-
-      dup2 (dev_null_fd, 0);
-      dup2 (dev_null_fd, 1);
-      dup2 (dev_null_fd, 2);
-
-      if (fork () != 0)
-	exit (0);
-
-      setsid ();
-
-      if ((pidfile_fd = open (LOCALSTATEDIR "/run/system-tools-backends.pid", O_CREAT | O_WRONLY)) != -1)
-	{
-	  str = g_strdup_printf ("%d", getpid ());
-	  write (pidfile_fd, str, strlen (str));
-	  g_free (str);
-
-	  close (pidfile_fd);
-	}
-
-      close (dev_null_fd);
+      g_critical (error.message);
+      dbus_error_free (&error);
     }
+
+  dbus_connection_set_exit_on_disconnect (priv->connection, FALSE);
+  dbus_connection_add_filter (priv->connection, dispatcher_filter_func, dispatcher, NULL);
+  dbus_bus_request_name (priv->connection, DBUS_INTERFACE_STB, 0, &error);
+
+  if (dbus_error_is_set (&error))
+    {
+      g_critical (error.message);
+      dbus_error_free (&error);
+    }
+
+  dbus_connection_setup_with_g_main (priv->connection, NULL);
 }
 
 static void
-on_bus_term (GPid     pid,
-	     gint     status,
-	     gpointer data)
+stb_dispatcher_init (StbDispatcher *dispatcher)
 {
-  g_spawn_close_pid (pid);
-  bus_pid = 0;
+  StbDispatcherPrivate *priv;
 
-  /* if the bus dies, we screwed up */
-  g_critical ("Can't live without bus.");
-  g_assert_not_reached ();
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+  dispatcher->_priv = priv;
+
+  setup_private_bus (dispatcher);
+  setup_connection (dispatcher);
+
+  /* we're screwed if we don't have these */
+  g_assert (priv->session_connection != NULL);
+  g_assert (priv->connection != NULL);
 }
 
-static DBusConnection*
-get_private_bus (void)
+static void
+stb_dispatcher_finalize (GObject *object)
 {
-  DBusConnection *connection = NULL;
-  DBusError error;
+  StbDispatcherPrivate *priv;
 
-  dbus_error_init (&error);
+  priv = STB_DISPATCHER_GET_PRIVATE (object);
 
-  if (!bus_pid)
-    {
-      /* spawn private bus */
-      static gchar *argv[] = { "dbus-daemon", "--session", "--print-address", "--nofork", NULL };
-      gint output_fd, size;
-      gchar *envvar;
-      gchar str[300] = { 0, };
+  dbus_connection_unref (priv->session_connection);
+  dbus_connection_unref (priv->connection);
 
-      if (!g_spawn_async_with_pipes (NULL, argv, NULL,
-				     G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD,
-				     NULL, NULL, &bus_pid,
-				     NULL, &output_fd, NULL, NULL))
-	return NULL;
-
-      watch_id = g_child_watch_add (bus_pid, on_bus_term, NULL);
-      size = read (output_fd, str, sizeof (str));
-      str[size - 1] = '\0';
-
-      envvar = g_strdup_printf (DBUS_ADDRESS_ENVVAR "=%s", str);
-      putenv (envvar);
-
-      /* get a connection with the newly created bus */
-      connection = dbus_bus_get (DBUS_BUS_SESSION, &error);
-
-      if (dbus_error_is_set (&error))
-	g_critical (error.message);
-    }
-
-  return connection;
-}
-
-void
-kill_private_bus (gint signal)
-{
   /* terminate the private bus */
-  if (bus_pid)
+  if (priv->bus_pid)
     {
-      g_source_remove (watch_id);
-      kill (bus_pid, SIGTERM);
+      g_source_remove (priv->watch_id);
+      priv->watch_id = 0;
+
+      kill (priv->bus_pid, SIGTERM);
+      priv->bus_pid = 0;
     }
 
-  exit (0);
+  g_free (priv->platform);
+
+  G_OBJECT_CLASS (stb_dispatcher_parent_class)->finalize (object);
 }
 
-int
-main (int argc, char *argv[])
+static GObject*
+stb_dispatcher_constructor (GType                  type,
+			    guint                  n_construct_properties,
+			    GObjectConstructParam *construct_params)
 {
-  DBusConnection *connection, *session_connection;
-  GMainLoop *main_loop;
-  DBusError error;
+  static GObject *object = NULL;
 
-  /* Currently not necessary, we're not using objects */
-  /* g_type_init (); */
-  dbus_error_init (&error);
+  if (!object)
+    object = G_OBJECT_CLASS (stb_dispatcher_parent_class)->constructor (type,
+									n_construct_properties,
+									construct_params);
+  return object;
+}
 
-  daemonize ();
-  signal (SIGTERM, kill_private_bus);
-
-  session_connection = get_private_bus ();
-  connection = dbus_bus_get (DBUS_BUS_SYSTEM, &error);
-
-  if (!session_connection || !connection)
-    {
-      kill_private_bus (0);
-      exit (-1);
-    }
-
-  dbus_connection_set_exit_on_disconnect (connection, FALSE);
-  dbus_connection_set_exit_on_disconnect (session_connection, FALSE);
-
-  dbus_connection_add_filter (connection, dispatcher_filter_func, session_connection, NULL);
-  dbus_bus_request_name (connection, DBUS_INTERFACE_STB, 0, &error);
-
-  if (dbus_error_is_set (&error))
-    g_critical (error.message);
-
-
-  dbus_connection_setup_with_g_main (connection, NULL);
-  dbus_connection_setup_with_g_main (session_connection, NULL);
-
-  main_loop = g_main_loop_new (NULL, FALSE);
-  g_main_loop_run (main_loop);
-
-  return 0;
+StbDispatcher*
+stb_dispatcher_get (void)
+{
+  return g_object_new (STB_TYPE_DISPATCHER, NULL);
 }
