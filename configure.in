@@ -10,6 +10,7 @@ AC_PROG_LIBTOOL
 
 DBUS_REQUIRED=0.35
 GLIB_REQUIRED=2.4.0
+POLICYKIT_REQUIRED=0.5.0
 
 dnl get prefix in $prefix, yes, this sucks
 if test "x$prefix" = "xNONE"; then
@@ -61,6 +62,9 @@ dnl DBus services dir
 DBUS_SERVICES_DIR="${prefix}/share/dbus-1/services"
 AC_SUBST(DBUS_SERVICES_DIR)
 
+dnl PolicyKit policy files dir
+POLKIT_POLICY_DIR="${prefix}/share/PolicyKit/policy/"
+AC_SUBST(POLKIT_POLICY_DIR)
 
 dnl where is DBus system.d directory?
 AC_ARG_WITH(dbus_sys, [  --with-dbus-sys=<dir>   where D-BUS system.d directory is])
@@ -114,6 +118,18 @@ PKG_CHECK_MODULES(DISPATCHER, [
 DISPATCHER_CFLAGS="-DDBUS_API_SUBJECT_TO_CHANGE $DISPATCHER_CFLAGS"
 AC_SUBST(DISPATCHER_LIBS)
 AC_SUBST(DISPATCHER_CFLAGS)
+
+dnl check for PolicyKit
+PKG_CHECK_MODULES(POLKIT, polkit-dbus >= $POLICYKIT_REQUIRED, have_polkit=yes, have_polkit=no)
+
+if test "$have_polkit" = "yes"; then
+  AC_DEFINE(HAVE_POLKIT, [1], [whether PolicyKit was found])
+fi
+
+AC_SUBST(POLKIT_LIBS)
+AC_SUBST(POLKIT_CFLAGS)
+AM_CONDITIONAL(HAVE_POLKIT, test x$have_polkit = xyes)
+
 
 dnl check for Net::DBus
 AC_MSG_CHECKING([for Net::DBus])
@@ -171,6 +187,7 @@ Configuration (BACKENDS):
   The backends will be installed in : ${scriptsdir}
   The files will be installed in    : ${filesdir}
   Using internal copy of Net::Dbus  : ${internalnetdbus}
+  Use PolicyKit:                    : ${have_polkit}
 
   DBus system.d directory           : ${DBUS_SYSTEMD_DIR}
   System tools backends admin group : ${STB_GROUP}

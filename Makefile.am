@@ -54,3 +54,7 @@ service_DATA = org.freedesktop.SystemToolsBackends.service
 systemddir = $(DBUS_SYSTEMD_DIR)
 systemd_DATA = system-tools-backends.conf
 
+if HAVE_POLKIT
+policydir = $(POLKIT_POLICY_DIR)
+policy_DATA = system-tools-backends.policy
+endif

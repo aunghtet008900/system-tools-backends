@@ -27,7 +27,14 @@
 #include <glib-object.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-lowlevel.h>
+#include "config.h"
 #include "dispatcher.h"
+
+#ifdef HAVE_POLKIT
+#include <polkit/polkit.h>
+#include <polkit-dbus/polkit-dbus.h>
+#endif
+
 
 #define DBUS_ADDRESS_ENVVAR "DBUS_SESSION_BUS_ADDRESS"
 #define DBUS_INTERFACE_STB "org.freedesktop.SystemToolsBackends"
@@ -46,6 +53,10 @@ struct StbDispatcherPrivate
   GPid   bus_pid;
   guint  watch_id;
   gchar *platform;
+
+#ifdef HAVE_POLKIT
+  PolKitContext *polkit_context;
+#endif
 };
 
 struct StbDispatcherAsyncData
@@ -208,6 +219,59 @@ get_destination (DBusMessage *message)
   return destination;
 }
 
+static gboolean
+can_caller_do_action (StbDispatcher *dispatcher,
+		      DBusMessage   *message)
+{
+#ifdef HAVE_POLKIT
+  StbDispatcherPrivate *priv;
+  PolKitAction *action;
+  PolKitCaller *caller;
+  DBusError error;
+  PolKitResult result;
+  const gchar *member;
+  gchar *action_id;
+
+  /* Allow getting information */
+  if (dbus_message_has_member (message, "get"))
+    return TRUE;
+
+  /* Do not allow anything besides "set" past this point */
+  if (!dbus_message_has_member (message, "set"))
+    return FALSE;
+
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+  member = dbus_message_get_member (message);
+
+  g_return_val_if_fail (member != NULL, FALSE);
+
+  action = polkit_action_new ();
+  action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s", member);
+  polkit_action_set_action_id (action, action_id);
+  g_free (action_id);
+
+  dbus_error_init (&error);
+  caller = polkit_caller_new_from_dbus_name (priv->connection, dbus_message_get_sender (message), &error);
+
+  if (dbus_error_is_set (&error))
+    {
+      g_critical (error.message);
+      dbus_error_free (&error);
+
+      return FALSE;
+    }
+
+  result = polkit_context_can_caller_do_action (priv->polkit_context, action, caller);
+
+  polkit_caller_unref (caller);
+  polkit_action_unref (action);
+
+  return (result == POLKIT_RESULT_YES);
+#else
+  return TRUE;
+#endif /* HAVE_POLKIT */
+}
+
 static void
 dispatch_stb_message (StbDispatcher *dispatcher,
 		      DBusMessage   *message)
@@ -271,6 +335,22 @@ dispatch_stb_message (StbDispatcher *dispatcher,
   dbus_message_unref (copy);
 }
 
+static void
+return_error (StbDispatcher *dispatcher,
+	      DBusMessage   *message,
+	      const gchar   *error_name)
+{
+  DBusMessage *reply;
+  StbDispatcherPrivate *priv;
+
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+
+  reply = dbus_message_new_error (message, error_name,
+				  "No permissions to perform the task.");
+  dbus_connection_send (priv->connection, reply, NULL);
+  dbus_message_unref (reply);
+}
+
 static DBusHandlerResult
 dispatcher_filter_func (DBusConnection *connection,
 			DBusMessage    *message,
@@ -287,9 +367,15 @@ dispatcher_filter_func (DBusConnection *connection,
       /* FIXME: handle NameOwnerChanged */
     }
   else if (dbus_message_has_interface (message, DBUS_INTERFACE_INTROSPECTABLE) ||
-	   dbus_message_has_interface (message, DBUS_INTERFACE_STB) ||
 	   dbus_message_has_interface (message, DBUS_INTERFACE_STB_PLATFORM))
     dispatch_stb_message (dispatcher, message);
+  else if (dbus_message_has_interface (message, DBUS_INTERFACE_STB))
+    {
+      if (can_caller_do_action (dispatcher, message))
+	dispatch_stb_message (dispatcher, message);
+      else
+	return_error (dispatcher, message, DBUS_ERROR_ACCESS_DENIED);
+    }
 
   return DBUS_HANDLER_RESULT_HANDLED;
 }
@@ -338,6 +424,11 @@ stb_dispatcher_init (StbDispatcher *dispatcher)
   /* we're screwed if we don't have these */
   g_assert (priv->session_connection != NULL);
   g_assert (priv->connection != NULL);
+
+#ifdef HAVE_POLKIT
+  priv->polkit_context = polkit_context_new ();
+  polkit_context_init (priv->polkit_context, NULL);
+#endif
 }
 
 static void
@@ -349,6 +440,10 @@ stb_dispatcher_finalize (GObject *object)
 
   dbus_connection_unref (priv->session_connection);
   dbus_connection_unref (priv->connection);
+
+#ifdef HAVE_POLKIT
+  polkit_context_unref  (priv->polkit_context);
+#endif
 
   /* terminate the private bus */
   if (priv->bus_pid)
