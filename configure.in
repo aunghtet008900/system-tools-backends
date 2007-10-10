@@ -10,7 +10,7 @@ AC_PROG_LIBTOOL
 
 DBUS_REQUIRED=0.35
 GLIB_REQUIRED=2.4.0
-POLICYKIT_REQUIRED=0.5.0
+POLICYKIT_REQUIRED=0.5
 
 dnl get prefix in $prefix, yes, this sucks
 if test "x$prefix" = "xNONE"; then
