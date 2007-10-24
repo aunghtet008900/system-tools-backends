@@ -283,28 +283,6 @@ dispatch_stb_message (StbDispatcher *dispatcher,
   gchar *destination;
 
   priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
-
-  if (dbus_message_has_interface (message, DBUS_INTERFACE_STB_PLATFORM))
-    {
-      if (dbus_message_has_member (message, "getPlatform") && priv->platform)
-	{
-	  DBusMessage *reply;
-	  DBusMessageIter iter;
-
-	  /* create a reply with the stored platform */
-	  reply = dbus_message_new_method_return (message);
-	  dbus_message_iter_init_append (reply, &iter);
-	  dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &priv->platform);
-
-	  dbus_connection_send (priv->connection, reply, NULL);
-	  dbus_message_unref (reply);
-
-	  return;
-	}
-      else if (dbus_message_has_member (message, "setPlatform"))
-	priv->platform = retrieve_platform (message);
-    }
-
   destination = get_destination (message);
 
   /* there's something wrong with the message */
@@ -351,6 +329,38 @@ return_error (StbDispatcher *dispatcher,
   dbus_message_unref (reply);
 }
 
+static void
+dispatch_platform_message (StbDispatcher *dispatcher,
+			   DBusMessage   *message)
+{
+  StbDispatcherPrivate *priv;
+
+  priv = dispatcher->_priv;
+
+  if (!dbus_message_has_interface (message, DBUS_INTERFACE_STB_PLATFORM))
+    return;
+
+  if (dbus_message_has_member (message, "getPlatform") && priv->platform)
+    {
+      DBusMessage *reply;
+      DBusMessageIter iter;
+
+      /* create a reply with the stored platform */
+      reply = dbus_message_new_method_return (message);
+      dbus_message_iter_init_append (reply, &iter);
+      dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &priv->platform);
+
+      dbus_connection_send (priv->connection, reply, NULL);
+      dbus_message_unref (reply);
+
+      return;
+    }
+  else if (dbus_message_has_member (message, "setPlatform"))
+    priv->platform = retrieve_platform (message);
+
+  dispatch_stb_message (dispatcher, message);
+}
+
 static DBusHandlerResult
 dispatcher_filter_func (DBusConnection *connection,
 			DBusMessage    *message,
@@ -366,9 +376,10 @@ dispatcher_filter_func (DBusConnection *connection,
     {
       /* FIXME: handle NameOwnerChanged */
     }
-  else if (dbus_message_has_interface (message, DBUS_INTERFACE_INTROSPECTABLE) ||
-	   dbus_message_has_interface (message, DBUS_INTERFACE_STB_PLATFORM))
+  else if (dbus_message_has_interface (message, DBUS_INTERFACE_INTROSPECTABLE))
     dispatch_stb_message (dispatcher, message);
+  else if (dbus_message_has_interface (message, DBUS_INTERFACE_STB_PLATFORM))
+    dispatch_platform_message (dispatcher, message);
   else if (dbus_message_has_interface (message, DBUS_INTERFACE_STB))
     {
       if (can_caller_do_action (dispatcher, message))
