@@ -16,6 +16,7 @@ modules_DATA =	\
 	ServicesConfig.pm	\
 	SMBConfig.pm		\
 	TimeConfig.pm		\
+	UserConfig.pm		\
 	UsersConfig.pm
 
 scripts = \

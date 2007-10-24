@@ -527,6 +527,32 @@ sub modify_shadow_password
   &Utils::File::save_buffer ($buffer, @shadow_names);
 }
 
+sub set_passwd
+{
+  my ($login, $password) = @_;
+  my ($pwdpipe, $command);
+
+  if ($Utils::Backend::tool{"system"} eq "FreeBSD")
+  {
+
+    $command = "$cmd_pw usermod -H 0";
+    $pwdpipe = &Utils::File::run_pipe_write ($command);
+    print $pwdpipe $password;
+    &Utils::File::close_file ($pwdpipe);
+  }
+  elsif ($Utils::Backend::tool{"system"} eq "SunOS")
+  {
+    &modify_shadow_password ($login, $password);
+  }
+  else
+  {
+    $command = "$cmd_usermod " .
+        " -p '" . $password . "' " . $login;
+
+    &Utils::File::run ($command);
+  }
+}
+
 sub add_user
 {
 	my ($user) = @_;
@@ -748,6 +774,36 @@ sub set
       {
         &change_user ($old_config_hash{$i}, $config_hash{$i});
       }
+    }
+  }
+}
+
+sub get_user
+{
+  my ($uid) = @_;
+  my ($users) = &get ();
+
+  foreach $user (@$users)
+  {
+    next if ($uid != $$user[$UID]);
+    return ($$user[$UID], $$user[$PASSWD], $$user[$COMMENT]);
+  }
+
+  return ($uid, "", []);
+}
+
+sub set_user
+{
+  my ($uid, $passwd, @comment) = @_;
+  my ($users) = &get ();
+
+  foreach $user (@$users)
+  {
+    if ($uid == $$user[$UID])
+    {
+      &set_passwd ($$user[$LOGIN], $passwd);
+      &change_user_chfn ($$user[$LOGIN], undef, @comment);
+      return;
     }
   }
 }
