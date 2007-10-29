@@ -26,6 +26,7 @@ scripts_SCRIPTS = $(scripts)
 EXTRA_DIST = \
 	system-tools-backends-2.0.pc.in \
 	system-tools-backends.conf.in \
+	system-tools-backends.policy \
 	org.freedesktop.SystemToolsBackends.service.in \
 	test-backends.in \
 	diagnostics.pl \
