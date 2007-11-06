@@ -39,6 +39,8 @@
 #define DBUS_ADDRESS_ENVVAR "DBUS_SESSION_BUS_ADDRESS"
 #define DBUS_INTERFACE_STB "org.freedesktop.SystemToolsBackends"
 #define DBUS_INTERFACE_STB_PLATFORM "org.freedesktop.SystemToolsBackends.Platform"
+#define DBUS_PATH_USER_CONFIG "/org/freedesktop/SystemToolsBackends/UserConfig"
+#define DBUS_PATH_SELF_CONFIG "/org/freedesktop/SystemToolsBackends/SelfConfig"
 
 #define STB_DISPATCHER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), STB_TYPE_DISPATCHER, StbDispatcherPrivate))
 
@@ -221,7 +223,8 @@ get_destination (DBusMessage *message)
 
 static gboolean
 can_caller_do_action (StbDispatcher *dispatcher,
-		      DBusMessage   *message)
+		      DBusMessage   *message,
+		      const gchar   *name)
 {
 #ifdef HAVE_POLKIT
   StbDispatcherPrivate *priv;
@@ -246,7 +249,12 @@ can_caller_do_action (StbDispatcher *dispatcher,
   g_return_val_if_fail (member != NULL, FALSE);
 
   action = polkit_action_new ();
-  action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s", member);
+
+  if (name)
+    action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s.%s", name, member);
+  else
+    action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s", member);
+
   polkit_action_set_action_id (action, action_id);
   g_free (action_id);
 
@@ -274,7 +282,8 @@ can_caller_do_action (StbDispatcher *dispatcher,
 
 static void
 dispatch_stb_message (StbDispatcher *dispatcher,
-		      DBusMessage   *message)
+		      DBusMessage   *message,
+		      gint           serial)
 {
   StbDispatcherPrivate *priv;
   DBusMessage *copy;
@@ -303,7 +312,7 @@ dispatch_stb_message (StbDispatcher *dispatcher,
       async_data = g_new0 (StbDispatcherAsyncData, 1);
       async_data->dispatcher = g_object_ref (dispatcher);
       async_data->destination = g_strdup (dbus_message_get_sender (message));
-      async_data->serial = dbus_message_get_serial (message);
+      async_data->serial = (serial) ? serial : dbus_message_get_serial (message);
 
       dbus_pending_call_set_notify (pending_call, dispatch_reply, async_data, (DBusFreeFunction) async_data_free);
       dbus_pending_call_unref (pending_call);
@@ -358,7 +367,80 @@ dispatch_platform_message (StbDispatcher *dispatcher,
   else if (dbus_message_has_member (message, "setPlatform"))
     priv->platform = retrieve_platform (message);
 
-  dispatch_stb_message (dispatcher, message);
+  dispatch_stb_message (dispatcher, message, 0);
+}
+
+static void
+dispatch_user_config (StbDispatcher *dispatcher,
+		      DBusMessage   *message)
+{
+  StbDispatcherPrivate *priv;
+  DBusMessageIter iter;
+  DBusMessage *user_message = NULL;
+  const gchar *sender;
+  gulong uid;
+
+  priv = dispatcher->_priv;
+  sender = dbus_message_get_sender (message);
+  uid = (uid_t) dbus_bus_get_unix_user (priv->connection, sender, NULL);
+
+  g_return_if_fail (uid != -1);
+
+  if (dbus_message_has_member (message, "get"))
+    {
+      /* compose the call to UserConfig with the uid of the caller */
+      user_message = dbus_message_new_method_call (DBUS_INTERFACE_STB ".UserConfig",
+						   DBUS_PATH_USER_CONFIG,
+						   DBUS_INTERFACE_STB,
+						   "get");
+      dbus_message_iter_init_append (user_message, &iter);
+      dbus_message_iter_append_basic (&iter, DBUS_TYPE_UINT32, &uid);
+    }
+  else if (dbus_message_has_member (message, "set"))
+    {
+      DBusMessageIter array_iter;
+      const gchar *passwd;
+      gchar **gecos;
+      gint gecos_elements, i;
+      uid_t message_uid;
+
+      if (dbus_message_get_args (message, NULL,
+				 DBUS_TYPE_UINT32, &message_uid,
+				 DBUS_TYPE_STRING, &passwd,
+				 DBUS_TYPE_ARRAY, &gecos, &gecos_elements,
+				 DBUS_TYPE_INVALID))
+	{
+	  user_message = dbus_message_new_method_call (DBUS_INTERFACE_STB ".UserConfig",
+						       DBUS_PATH_USER_CONFIG,
+						       DBUS_INTERFACE_STB,
+						       "set");
+
+	  dbus_message_iter_init_append (user_message, &iter);
+	  dbus_message_iter_append_basic (&iter, DBUS_TYPE_UINT32, &uid);
+	  dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &passwd);
+
+	  /* append gecos array */
+	  dbus_message_iter_open_container (&iter,
+					    DBUS_TYPE_ARRAY,
+					    DBUS_TYPE_STRING_AS_STRING,
+					    &array_iter);
+
+	  for (i = 0; gecos[i]; i++)
+	    dbus_message_iter_append_basic (&array_iter, DBUS_TYPE_STRING, &gecos[i]);
+
+	  dbus_message_iter_close_container (&iter, &array_iter);
+	  dbus_free_string_array (gecos);
+	}
+    }
+  else
+    g_warning ("unsupported method on SelfConfig");
+
+  if (user_message)
+    {
+      dbus_message_set_sender (user_message, sender);
+      dispatch_stb_message (dispatcher, user_message, dbus_message_get_serial (message));
+      dbus_message_unref (user_message);
+    }
 }
 
 static DBusHandlerResult
@@ -377,13 +459,20 @@ dispatcher_filter_func (DBusConnection *connection,
       /* FIXME: handle NameOwnerChanged */
     }
   else if (dbus_message_has_interface (message, DBUS_INTERFACE_INTROSPECTABLE))
-    dispatch_stb_message (dispatcher, message);
+    dispatch_stb_message (dispatcher, message, 0);
   else if (dbus_message_has_interface (message, DBUS_INTERFACE_STB_PLATFORM))
     dispatch_platform_message (dispatcher, message);
+  else if (dbus_message_has_path (message, DBUS_PATH_SELF_CONFIG))
+    {
+      if (can_caller_do_action (dispatcher, message, "self"))
+	dispatch_user_config (dispatcher, message);
+      else
+	return_error (dispatcher, message, DBUS_ERROR_ACCESS_DENIED);
+    }
   else if (dbus_message_has_interface (message, DBUS_INTERFACE_STB))
     {
-      if (can_caller_do_action (dispatcher, message))
-	dispatch_stb_message (dispatcher, message);
+      if (can_caller_do_action (dispatcher, message, NULL))
+	dispatch_stb_message (dispatcher, message, 0);
       else
 	return_error (dispatcher, message, DBUS_ERROR_ACCESS_DENIED);
     }
