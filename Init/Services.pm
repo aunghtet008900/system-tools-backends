@@ -647,7 +647,7 @@ sub get_gentoo_service_status
 
 sub get_gentoo_runlevels
 {
-  my($raw_output) = Utils::File::run_backtick("rc-status -nc -l");
+  my($raw_output) = Utils::File::run_backtick("rc-status --nocolor -l");
   my(@runlevels);
 
   return undef if (!$raw_output);
@@ -659,7 +659,7 @@ sub get_gentoo_runlevels
 sub get_gentoo_services_for_runlevel
 {
   my($runlevel) = @_;
-  my($raw_output) = Utils::File::run_backtick("rc-status -nc $runlevel");
+  my($raw_output) = Utils::File::run_backtick("rc-status -nocolor $runlevel");
   my(@raw_lines) = split(/\n/,$raw_output);
   my($line, $service);
   my(%services);
