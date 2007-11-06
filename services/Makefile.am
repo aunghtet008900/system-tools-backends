@@ -1,15 +1,3 @@
-services_in = \
-	org.freedesktop.SystemToolsBackends.GroupsConfig.service.in \
-	org.freedesktop.SystemToolsBackends.HostsConfig.service.in \
-	org.freedesktop.SystemToolsBackends.IfacesConfig.service.in \
-	org.freedesktop.SystemToolsBackends.NFSConfig.service.in \
-	org.freedesktop.SystemToolsBackends.NTPConfig.service.in \
-        org.freedesktop.SystemToolsBackends.Platform.service.in \
-        org.freedesktop.SystemToolsBackends.ServicesConfig.service.in \
-	org.freedesktop.SystemToolsBackends.SMBConfig.service.in \
-	org.freedesktop.SystemToolsBackends.TimeConfig.service.in \
-	org.freedesktop.SystemToolsBackends.UsersConfig.service.in
-
 services = \
 	org.freedesktop.SystemToolsBackends.GroupsConfig.service \
 	org.freedesktop.SystemToolsBackends.HostsConfig.service \
@@ -20,9 +8,12 @@ services = \
         org.freedesktop.SystemToolsBackends.ServicesConfig.service \
 	org.freedesktop.SystemToolsBackends.SMBConfig.service \
 	org.freedesktop.SystemToolsBackends.TimeConfig.service \
+	org.freedesktop.SystemToolsBackends.UserConfig.service \
 	org.freedesktop.SystemToolsBackends.UsersConfig.service
 
-EXTRA_DIST = $(services_in)
+EXTRA_DIST = \
+	$(services:.service=.service.in)
+
 CLEANFILES = $(services)
 
 # Dbus service files
