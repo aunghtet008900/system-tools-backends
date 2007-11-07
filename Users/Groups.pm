@@ -25,10 +25,11 @@
 package Users::Groups;
 
 # enum like for verbose group array positions
-my $LOGIN  = 1;
-my $PASSWD = 2;
-my $GID    = 3;
-my $USERS  = 4;
+my $i = 0;
+my $LOGIN  = $i++;
+my $PASSWD = $i++;
+my $GID    = $i++;
+my $USERS  = $i++;
 
 # quite generic data
 $group_names = "/etc/group";
@@ -222,9 +223,8 @@ sub change_group
 sub get
 {
   my ($ifh, @groups, $group_last_modified);
-  my (@line, $copy, @a, $counter);
+  my (@line, $copy, @a);
 
-  $counter = 1;
   $ifh = &Utils::File::open_read_from_names($group_names);
   return unless ($ifh);
 
@@ -239,12 +239,10 @@ sub get
     next if &Utils::Util::ignore_line ($_);
 
     @line = split ':', $_, -1;
-    unshift @line, $counter;
     @a = split ',', pop @line;
     push @line, [@a];
     $copy = [@line];
     push (@groups, $copy);
-    $counter++;
   }
 
   &Utils::File::close_file ($ifh);
@@ -273,16 +271,16 @@ sub set
 
     $old_config = &get ();
 
-    foreach $i (@$config) 
+    foreach $i (@$config)
     {
-      $groups{$$i[0]} |= 1;
-      $config_hash{$$i[0]} = $i;
-	  }	
-	
+      $groups{$$i[$LOGIN]} |= 1;
+      $config_hash{$$i[$LOGIN]} = $i;
+    }
+
     foreach $i (@$old_config)
     {
-	    $groups{$$i[0]} |= 2;
-      $old_config_hash{$$i[0]} = $i;
+	    $groups{$$i[$LOGIN]} |= 2;
+      $old_config_hash{$$i[$LOGIN]} = $i;
     }
 
     # Delete all groups that only appeared in the old configuration
