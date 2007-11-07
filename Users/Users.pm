@@ -744,14 +744,14 @@ sub set
 
     foreach $i (@$config) 
     {
-      $users{$$i[0]} |= 1;
-      $config_hash{$$i[0]} = $i;
+      $users{$$i[$LOGIN]} |= 1;
+      $config_hash{$$i[$LOGIN]} = $i;
     }
 	
     foreach $i (@$old_config)
     {
-      $users{$$i[0]} |= 2;
-      $old_config_hash{$$i[0]} = $i;
+      $users{$$i[$LOGIN]} |= 2;
+      $old_config_hash{$$i[$LOGIN]} = $i;
     }
 
     # Delete all groups that only appeared in the old configuration
@@ -761,12 +761,12 @@ sub set
 
       if ($state == 1)
       {
-        # Groups with state 1 have been added to the config
+        # Users with state 1 have been added to the config
         &add_user ($config_hash{$i});
       }
       elsif ($state == 2)
       {
-        # Groups with state 2 have been deleted from the config
+        # Users with state 2 have been deleted from the config
         &del_user ($old_config_hash{$i});
       }
       elsif (($state == 3) &&
