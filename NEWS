@@ -1,3 +1,24 @@
+System Tools Backends Version 2.5.2, 2007-11-12
+-----------------------------------------------
+
+The System Tools Backends version 2.5.2 "Drifting beyond all time" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+- Add an internal UserConfig module, this is accessible outside s-t-b as SelfConfig, to edit the requester user settings (garnacho)
+- Compare internally users through login name instead of the exported ID (independent to UID), this will make a login change count as a user addition+removal, but will make the process more reliable, and will not have to count on having the other side implementing the right behavior. This is a behavior and format change, but given that the adoption of s-t-b isn't very wide, it's worth to do it now. (garnacho)
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.5/
+
+
 System Tools Backends Version 2.5.1, 2007-10-29
 -----------------------------------------------
 
@@ -18,7 +39,7 @@ Thanks to anyone involved!
 Downloading
 ===========
 You can get it from :
-http://system-tools-backends.freedesktop.org/downloads/2.6/
+http://system-tools-backends.freedesktop.org/downloads/2.5/
 
 
 System Tools Backends Version 2.4.1, 2007-10-04
