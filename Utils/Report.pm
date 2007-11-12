@@ -125,7 +125,7 @@ sub do_report
   $format = "$str\n";
   $res = sprintf ($format, @args);
 
-  if ($Utils::Backend::do_verbose   ||
+  if ($Utils::Backend::tool{"do_verbose"} ||
       $major eq "error" ||
       $major eq "debug")
   {

@@ -90,7 +90,7 @@ sub print_platform_list
 sub set_with_param
 {
   my ($tool, $arg_name, $value) = @_;
-  
+
   if ($$tool{$arg_name} ne "")
   {
     print STDERR "Error: You may specify --$arg_name only once.\n\n";
@@ -148,7 +148,7 @@ sub init
     elsif ($arg eq "--module"    || $arg eq "-m") { &set_module    (\%tool, shift @args); }
     elsif ($arg eq "--platform")                  { &set_dist      (\%tool, shift @args); }
     elsif ($arg eq "--disable-shutdown")          { &set_disable_shutdown (\%tool); }
-    elsif ($arg eq "--verbose"   || $arg eq "-v") { &set_with_param (\%$tool, "do_verbose", 1); }
+    elsif ($arg eq "--verbose"   || $arg eq "-v") { &set_with_param (\%tool, "do_verbose", 1); }
     elsif ($arg eq "--list-platforms")            { &print_platform_list (\%tool) }
     else
     {
