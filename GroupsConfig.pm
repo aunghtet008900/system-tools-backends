@@ -29,7 +29,7 @@ use Users::Users;
 
 my $OBJECT_NAME = "GroupsConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
-my $format = [[ "array", [ "struct", "uint32", "string", "string", "int32", [ "array", "string" ]]], "int32", "int32" ];
+my $format = [[ "array", [ "struct", "string", "string", "int32", [ "array", "string" ]]], "int32", "int32" ];
 
 sub new
 {
