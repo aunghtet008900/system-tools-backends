@@ -157,8 +157,6 @@ stb_file_monitor_add_files (StbFileMonitor  *file_monitor,
       g_signal_connect (monitor, "changed",
 			G_CALLBACK (monitor_changed), file_monitor);
 
-      g_print ("jijijiji\n");
-
       object_monitors = g_list_prepend (object_monitors, monitor);
     }
 

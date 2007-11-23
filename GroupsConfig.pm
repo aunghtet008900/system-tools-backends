@@ -67,6 +67,13 @@ sub set
   Users::Groups::set ($config);
 }
 
+sub getFiles
+{
+  my ($self) = @_;
+
+  return &Users::Groups::get_files ();
+}
+
 my $config = GroupsConfig->new ();
 
 1;
