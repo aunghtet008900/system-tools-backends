@@ -436,17 +436,6 @@ sub get
   return \@users;
 }
 
-sub get_files
-{
-  my @arr;
-
-  push @arr, @passwd_names;
-  push @arr, @shadow_names;
-
-  return \@arr;
-}
-
-
 sub del_user
 {
 	my ($user) = @_;
@@ -802,6 +791,16 @@ sub set_user
       return;
     }
   }
+}
+
+sub get_files
+{
+  my ($arr);
+
+  push @$arr, @passwd_names;
+  push @$arr, @shadow_names;
+
+  return $arr;
 }
 
 1;

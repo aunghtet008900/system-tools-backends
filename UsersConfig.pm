@@ -39,14 +39,11 @@ sub new
 
   bless $self, $class;
 
-#  Utils::Monitor::monitor_files (&Users::Users::get_files (),
-#                                 $self, $OBJECT_NAME, "changed");
   return $self;
 }
 
 dbus_method ("get", [], $format);
 dbus_method ("set", $format, []);
-#dbus_signal ("changed", []);
 
 sub get
 {
@@ -76,6 +73,16 @@ sub set
                                 "home_prefix" => $config[5],
                                 "shell"       => $config[6],
                                 "group"       => $config[7]});
+}
+
+sub getFiles
+{
+  my ($self) = @_;
+  my ($files);
+
+  $files = &Users::Users::get_files ();
+
+  return ($files);
 }
 
 my $config = UsersConfig->new ();

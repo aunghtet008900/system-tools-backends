@@ -57,6 +57,13 @@ sub set
   Users::Users::set_user (@config);
 }
 
+sub getFiles
+{
+  my ($self) = @_;
+
+  return Users::Users::get_files ();
+}
+
 my $config = UserConfig->new ();
 
 1;

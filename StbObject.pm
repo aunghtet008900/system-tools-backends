@@ -24,6 +24,8 @@ use Utils::DBus;
 use base qw(Net::DBus::Object);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 
+dbus_method ("getFiles", [], [[ "array", "string" ]]);
+
 sub new
 {
   my $class   = shift;
