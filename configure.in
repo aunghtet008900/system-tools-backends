@@ -11,6 +11,7 @@ AC_PROG_LIBTOOL
 DBUS_REQUIRED=0.35
 GLIB_REQUIRED=2.4.0
 POLICYKIT_REQUIRED=0.5
+GIO_REQUIRED=0.1
 
 dnl get prefix in $prefix, yes, this sucks
 if test "x$prefix" = "xNONE"; then
@@ -130,6 +131,16 @@ AC_SUBST(POLKIT_LIBS)
 AC_SUBST(POLKIT_CFLAGS)
 AM_CONDITIONAL(HAVE_POLKIT, test x$have_polkit = xyes)
 
+dnl check for Gio
+PKG_CHECK_MODULES(GIO, gio-2.0 >= $GIO_REQUIRED, have_gio=yes, have_gio=no)
+
+if test "$have_gio" = "yes"; then
+  AC_DEFINE(HAVE_GIO, [1], [whether Gio was found])
+fi
+
+AC_SUBST(GIO_LIBS)
+AC_SUBST(GIO_CFLAGS)
+AM_CONDITIONAL(HAVE_GIO, test x$have_gio = xyes)
 
 dnl check for Net::DBus
 AC_MSG_CHECKING([for Net::DBus])
@@ -188,7 +199,8 @@ Configuration (BACKENDS):
   The backends will be installed in : ${scriptsdir}
   The files will be installed in    : ${filesdir}
   Using internal copy of Net::Dbus  : ${internalnetdbus}
-  Use PolicyKit:                    : ${have_polkit}
+  Use PolicyKit                     : ${have_polkit}
+  File notification                 : ${have_gio}
 
   DBus system.d directory           : ${DBUS_SYSTEMD_DIR}
   System tools backends admin group : ${STB_GROUP}

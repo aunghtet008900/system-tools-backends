@@ -35,6 +35,9 @@
 #include <polkit-dbus/polkit-dbus.h>
 #endif
 
+#ifdef HAVE_GIO
+#include "file-monitor.h"
+#endif
 
 #define DBUS_ADDRESS_ENVVAR "DBUS_SESSION_BUS_ADDRESS"
 #define DBUS_INTERFACE_STB "org.freedesktop.SystemToolsBackends"
@@ -71,6 +74,10 @@ struct StbDispatcherPrivate
   PolKitContext *polkit_context;
 #endif
 
+#ifdef HAVE_GIO
+  StbFileMonitor *file_monitor;
+#endif
+
   guint debug : 1;
 };
 
@@ -97,6 +104,8 @@ static void     stb_dispatcher_get_property (GObject      *object,
 					     guint         prop_id,
 					     GValue       *value,
 					     GParamSpec   *pspec);
+
+static gchar*   get_destination            (DBusMessage *message);
 
 
 G_DEFINE_TYPE (StbDispatcher, stb_dispatcher, G_TYPE_OBJECT);
@@ -203,6 +212,104 @@ retrieve_platform (DBusMessage *message)
       return NULL;
 }
 
+#ifdef HAVE_GIO
+static void
+dispatch_file_list (DBusPendingCall *pending_call,
+		    gpointer         data)
+{
+  StbDispatcher *dispatcher;
+  StbDispatcherPrivate *priv;
+  DBusMessage *reply;
+  DBusError error;
+  gchar **files;
+  gint n_files;
+
+  dispatcher = STB_DISPATCHER (data);
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+  reply = dbus_pending_call_steal_reply (pending_call);
+  dbus_error_init (&error);
+
+  if (dbus_set_error_from_message (&error, reply))
+    {
+      g_critical (error.message);
+      dbus_error_free (&error);
+      dbus_message_unref (reply);
+      return;
+    }
+
+  if (dbus_message_get_args (reply, &error,
+			     DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &files, &n_files,
+			     DBUS_TYPE_INVALID))
+    {
+      stb_file_monitor_add_files (priv->file_monitor,
+				  dbus_message_get_path (reply),
+				  (const gchar **) files);
+      dbus_free_string_array (files);
+    }
+  else
+    {
+      g_critical (error.message);
+    }
+
+  dbus_message_unref (reply);
+}
+
+static void
+query_file_list (StbDispatcher *dispatcher,
+		 DBusMessage   *message)
+{
+  StbDispatcherPrivate *priv;
+  DBusPendingCall *pending_call;
+  DBusMessage *file_message;
+  gchar *destination;
+
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+  destination = get_destination (message);
+
+  if (G_UNLIKELY (!destination))
+    return;
+
+  if (stb_file_monitor_is_object_handled (priv->file_monitor, destination))
+    {
+      g_free (destination);
+      return;
+    }
+
+  file_message = dbus_message_new_method_call (destination,
+					       dbus_message_get_path (message),
+					       DBUS_INTERFACE_STB,
+					       "getFiles");
+
+  dbus_connection_send_with_reply (priv->session_connection, file_message, &pending_call, -1);
+
+  if (pending_call)
+    {
+      dbus_pending_call_set_notify (pending_call,
+				    dispatch_file_list,
+				    g_object_ref (dispatcher),
+				    (DBusFreeFunction) g_object_unref);
+      dbus_pending_call_unref (pending_call);
+    }
+
+  dbus_message_unref (file_message);
+  g_free (destination);
+}
+
+static void
+object_changed_cb (StbDispatcher *dispatcher,
+		   const gchar   *object_path)
+{
+  StbDispatcherPrivate *priv;
+  DBusMessage *signal;
+
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+  signal = dbus_message_new_signal (object_path, DBUS_INTERFACE_STB, "changed");
+
+  dbus_connection_send (priv->connection, signal, NULL);
+  dbus_message_unref (signal);
+}
+#endif /* HAVE_GIO */
+
 static void
 dispatch_reply (DBusPendingCall *pending_call,
 		gpointer         data)
@@ -220,7 +327,17 @@ dispatch_reply (DBusPendingCall *pending_call,
   /* get the platform if necessary */
   if (dbus_message_has_interface (reply, DBUS_INTERFACE_STB_PLATFORM) &&
       dbus_message_has_member (reply, "getPlatform") && !priv->platform)
-    priv->platform = retrieve_platform (reply);
+    {
+      /* get the platform if necessary */
+      priv->platform = retrieve_platform (reply);
+    }
+#ifdef HAVE_GIO
+  else if (dbus_message_has_interface (reply, DBUS_INTERFACE_STB))
+    {
+      /* monitor configuration files */
+      query_file_list (async_data->dispatcher, reply);
+    }
+#endif /* HAVE_GIO */
 
   /* send the reply back */
   dbus_message_set_destination (reply, async_data->destination);
@@ -564,6 +681,13 @@ stb_dispatcher_init (StbDispatcher *dispatcher)
   priv->polkit_context = polkit_context_new ();
   polkit_context_init (priv->polkit_context, NULL);
 #endif
+
+#ifdef HAVE_GIO
+  priv->file_monitor = stb_file_monitor_new ();
+
+  g_signal_connect_swapped (priv->file_monitor, "object_changed",
+			    G_CALLBACK (object_changed_cb), dispatcher);
+#endif
 }
 
 static void
@@ -612,6 +736,10 @@ stb_dispatcher_finalize (GObject *object)
 
 #ifdef HAVE_POLKIT
   polkit_context_unref  (priv->polkit_context);
+#endif
+
+#ifdef HAVE_GIO
+  g_object_unref (priv->file_monitor);
 #endif
 
   /* terminate the private bus */
