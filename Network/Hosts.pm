@@ -484,4 +484,19 @@ sub set_search_domains
                                      "[ \t]+", "[ \t]+", $search_domains);
 }
 
+sub get_files
+{
+  my (%dist_attrib, $fn, $f, $files);
+
+  %dist_attrib = &get_fqdn_parse_table ();
+  $fn = $dist_attrib {"fn"};
+
+  foreach $f (values %$fn)
+  {
+    push @$files, $f;
+  }
+
+  return $files;
+}
+
 1;

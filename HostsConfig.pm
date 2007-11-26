@@ -75,6 +75,13 @@ sub set
   Network::Hosts::set_fqdn ($config[0], $config[1]);
 }
 
+sub getFiles
+{
+  my ($self) = @_;
+
+  return Network::Hosts::get_files ();
+}
+
 my $config = HostsConfig->new ();
 
 1;

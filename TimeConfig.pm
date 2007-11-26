@@ -64,6 +64,11 @@ sub set
   Time::TimeDate::set (@config);
 }
 
+sub getFiles
+{
+  return Time::TimeDate::get_files ();
+}
+
 my $config = TimeConfig->new ();
 
 1;

@@ -379,4 +379,12 @@ sub set
   }
 }
 
+sub get_files
+{
+  my ($files);
+
+  push @$files, &get_distro_nfs_file ();
+  return $files;
+}
+
 1;

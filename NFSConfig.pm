@@ -65,6 +65,11 @@ sub set
   &Shares::NFS::set (@config);
 }
 
+sub getFiles
+{
+  return &Shares::NFS::get_files ();
+}
+
 my $config = NFSConfig->new ();
 
 1;

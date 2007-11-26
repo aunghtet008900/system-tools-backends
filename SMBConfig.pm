@@ -60,6 +60,11 @@ sub set
   &Shares::SMB::set (@config);
 }
 
+sub getFiles
+{
+  return &Shares::SMB::get_files ();
+}
+
 my $config = SMBConfig->new ();
 
 1;

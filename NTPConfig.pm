@@ -64,6 +64,11 @@ sub set
   &Time::NTP::set (@config);  
 }
 
+sub getFiles
+{
+  return &Time::NTP::get_files ();
+}
+
 my $config = NTPConfig->new ();
 
 1;

@@ -167,4 +167,12 @@ sub set
   return &set_ntp_servers (@_);
 }
 
+sub get_files
+{
+  my ($files);
+
+  push @$files, &get_config_file ();
+  return $files;
+}
+
 1;

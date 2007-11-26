@@ -364,4 +364,19 @@ sub set
   return $res;
 }
 
+sub get_files
+{
+  my (%dist_attrib, $fn, $f, $files);
+
+  %dist_attrib = &conf_get_replace_table ();
+  $fn = $dist_attrib {"fn"};
+
+  foreach $f (values %$fn)
+  {
+    push @$files, $f;
+  }
+
+  return $files;
+}
+
 1;

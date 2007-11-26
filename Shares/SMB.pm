@@ -340,4 +340,12 @@ sub set
   &set_smb_users ($users);
 }
 
+sub get_files
+{
+  my ($files);
+
+  push @$files, &get_distro_smb_file ();
+  return $files;
+}
+
 1;
