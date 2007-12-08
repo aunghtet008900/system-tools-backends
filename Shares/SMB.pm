@@ -218,20 +218,38 @@ sub get_shares
   return \@table;
 }
 
+sub get_smb_users
+{
+  my ($fd, @info, $users);
+
+  $fd = &Utils::File::run_pipe_read ("pdbedit -L");
+  return [] if (!$fd);
+
+  while (<$fd>)
+  {
+    chomp;
+    @info = split (/:/, $_);
+    push @$users, [ $info[0], "" ];
+  }
+
+  return $users;
+}
+
 sub get
 {
   my ($smb_conf_file);
-  my ($shares, $workgroup, $desc, $wins, $winsserver);
+  my ($shares, $workgroup, $desc, $wins, $winsserver, $users);
 
   $smb_conf_file = &get_distro_smb_file;
   $shares = &get_shares ($smb_conf_file);
-  
+
   $workgroup = &Utils::Parse::get_from_ini ($smb_conf_file, "global", "workgroup");
   $smbdesc = &Utils::Parse::get_from_ini ($smb_conf_file, "global", "server string");
   $wins = &Utils::Parse::get_from_ini_bool ($smb_conf_file, "global", "wins support");
   $winsserver = &Utils::Parse::get_from_ini ($smb_conf_file, "global", "wins server");
+  $users = &get_smb_users ();
 
-  return ($shares, $workgroup, $smbdesc, $wins, $winsserver);
+  return ($shares, $workgroup, $smbdesc, $wins, $winsserver, $users);
 }
 
 sub set_shares
@@ -260,9 +278,53 @@ sub set_shares
   }
 }
 
+sub set_smb_users
+{
+  my ($users) = @_;
+  my ($old_users, $user, $config, $state);
+  my ($hash, $old_hash, $pipe);
+
+  $old_users = &get_smb_users ();
+
+  foreach $user (@$users)
+  {
+    $$config{$$user[0]} |= 1;
+    $hash{$$user[0]} = $user;
+  }
+
+  foreach $user (@$old_users)
+  {
+    $$config{$$user[0]} |= 2;
+    $old_hash{$$user[0]} = $user;
+  }
+
+  foreach $i (keys %$config)
+  {
+    $state = $$config{$i};
+    $user = $hash{$i};
+
+    if ($state == 1 || ($state == 3 && $$user[1]))
+    {
+      # User added
+      $user = $hash{$i};
+      $pipe = &Utils::File::run_pipe_write ("smbpasswd -s -a $$user[0]");
+      # Have to write the password twice
+      print $pipe "$$user[1]\n";
+      print $pipe "$$user[1]\n";
+      &Utils::File::close_file ($pipe);
+    }
+    elsif ($state == 2)
+    {
+      # User deleted
+      $user = $old_hash{$i};
+      &Utils::File::run ("pdbedit --delete -u $$user[0]");
+    }
+  }
+}
+
 sub set
 {
-  my ($shares, $workgroup, $desc, $wins, $winsserver) = @_;
+  my ($shares, $workgroup, $desc, $wins, $winsserver, $users) = @_;
   my ($smb_conf_file);
   my (@sections, $export);
 
@@ -274,6 +336,8 @@ sub set
   &Utils::Replace::set_ini ($smb_conf_file, "global", "server string", $desc);
   &Utils::Replace::set_ini_bool ($smb_conf_file, "global", "wins support", $wins);
   &Utils::Replace::set_ini ($smb_conf_file, "global", "wins server", ($wins) ? "" : $winsserver);
+
+  &set_smb_users ($users);
 }
 
 1;

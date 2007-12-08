@@ -29,7 +29,7 @@ use Shares::SMB;
 my $OBJECT_NAME = "SMBConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
 my $format = [[ "array", [ "struct", "string", "string", "string", "int32", "int32", "int32", "int32" ]],
-              "string", "string", "int32", "string" ];
+              "string", "string", "int32", "string", [ "array", [ "struct", "string", "string" ]]];
 
 sub new
 {
@@ -38,14 +38,11 @@ sub new
 
   bless $self, $class;
 
-#  Utils::Monitor::monitor_files (&Shares::SMB::get_distro_smb_file (),
-#                                 $self, $OBJECT_NAME, "changed");
   return $self;
 }
 
 dbus_method ("get", [], $format);
 dbus_method ("set", $format, []);
-#dbus_signal ("changed", []);
 
 sub get
 {
