@@ -44,6 +44,17 @@
 
 #define STB_DISPATCHER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), STB_TYPE_DISPATCHER, StbDispatcherPrivate))
 
+#define DEBUG(d,m...) \
+if (G_UNLIKELY (((StbDispatcherPrivate *) d->_priv)->debug)) \
+  { \
+    g_debug (m); \
+  }
+
+enum {
+  PROP_0,
+  PROP_DEBUG
+};
+
 typedef struct StbDispatcherPrivate   StbDispatcherPrivate;
 typedef struct StbDispatcherAsyncData StbDispatcherAsyncData;
 
@@ -59,6 +70,8 @@ struct StbDispatcherPrivate
 #ifdef HAVE_POLKIT
   PolKitContext *polkit_context;
 #endif
+
+  guint debug : 1;
 };
 
 struct StbDispatcherAsyncData
@@ -76,6 +89,15 @@ static GObject* stb_dispatcher_constructor (GType                  type,
 					    guint                  n_construct_properties,
 					    GObjectConstructParam *construct_params);
 
+static void     stb_dispatcher_set_property (GObject      *object,
+					     guint         prop_id,
+					     const GValue *value,
+					     GParamSpec   *pspec);
+static void     stb_dispatcher_get_property (GObject      *object,
+					     guint         prop_id,
+					     GValue       *value,
+					     GParamSpec   *pspec);
+
 
 G_DEFINE_TYPE (StbDispatcher, stb_dispatcher, G_TYPE_OBJECT);
 
@@ -85,8 +107,15 @@ stb_dispatcher_class_init (StbDispatcherClass *class)
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
   object_class->constructor = stb_dispatcher_constructor;
-  object_class->finalize    = stb_dispatcher_finalize;
+  object_class->set_property = stb_dispatcher_set_property;
+  object_class->get_property = stb_dispatcher_get_property;
+  object_class->finalize = stb_dispatcher_finalize;
 
+  g_object_class_install_property (object_class,
+				   PROP_DEBUG,
+				   g_param_spec_boolean ("debug", "", "",
+							 FALSE,
+							 G_PARAM_READWRITE));
   g_type_class_add_private (object_class,
 			    sizeof (StbDispatcherPrivate));
 }
@@ -185,6 +214,8 @@ dispatch_reply (DBusPendingCall *pending_call,
   reply = dbus_pending_call_steal_reply (pending_call);
   async_data = (StbDispatcherAsyncData *) data;
   priv = async_data->dispatcher->_priv;
+
+  DEBUG (async_data->dispatcher, "sending reply from: %s", dbus_message_get_path (reply));
 
   /* get the platform if necessary */
   if (dbus_message_has_interface (reply, DBUS_INTERFACE_STB_PLATFORM) &&
@@ -301,6 +332,8 @@ dispatch_stb_message (StbDispatcher *dispatcher,
       return;
     }
 
+  DEBUG (dispatcher, "dispatching message to: %s", dbus_message_get_path (message));
+
   copy = dbus_message_copy (message);
 
   /* forward the message to the corresponding service */
@@ -331,6 +364,8 @@ return_error (StbDispatcher *dispatcher,
   StbDispatcherPrivate *priv;
 
   priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+
+  DEBUG (dispatcher, "sending error %s from: %s", error_name, dbus_message_get_path (message));
 
   reply = dbus_message_new_error (message, error_name,
 				  "No permissions to perform the task.");
@@ -532,6 +567,40 @@ stb_dispatcher_init (StbDispatcher *dispatcher)
 }
 
 static void
+stb_dispatcher_set_property (GObject      *object,
+			     guint         prop_id,
+			     const GValue *value,
+			     GParamSpec   *pspec)
+{
+  switch (prop_id)
+    {
+    case PROP_DEBUG:
+      stb_dispatcher_set_debug (STB_DISPATCHER (object),
+				g_value_get_boolean (value));
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+stb_dispatcher_get_property (GObject      *object,
+			     guint         prop_id,
+			     GValue       *value,
+			     GParamSpec   *pspec)
+{
+  switch (prop_id)
+    {
+    case PROP_DEBUG:
+      g_value_set_boolean (value,
+			   stb_dispatcher_get_debug (STB_DISPATCHER (object)));
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
 stb_dispatcher_finalize (GObject *object)
 {
   StbDispatcherPrivate *priv;
@@ -578,4 +647,28 @@ StbDispatcher*
 stb_dispatcher_get (void)
 {
   return g_object_new (STB_TYPE_DISPATCHER, NULL);
+}
+
+void
+stb_dispatcher_set_debug (StbDispatcher *dispatcher,
+			  gboolean       debug)
+{
+  StbDispatcherPrivate *priv;
+
+  g_return_if_fail (STB_IS_DISPATCHER (dispatcher));
+
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+  priv->debug = debug;
+  g_object_notify (G_OBJECT (dispatcher), "debug");
+}
+
+gboolean
+stb_dispatcher_get_debug (StbDispatcher *dispatcher)
+{
+  StbDispatcherPrivate *priv;
+
+  g_return_val_if_fail (STB_IS_DISPATCHER (dispatcher), FALSE);
+
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+  return priv->debug;
 }

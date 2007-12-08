@@ -103,6 +103,9 @@ main (int argc, char *argv[])
   signal (SIGTERM, signal_received);
   dispatcher = stb_dispatcher_get ();
 
+  if (G_UNLIKELY (debug))
+    stb_dispatcher_set_debug (dispatcher, TRUE);
+
   main_loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (main_loop);
 

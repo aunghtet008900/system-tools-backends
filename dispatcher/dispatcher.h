@@ -52,6 +52,11 @@ GType          stb_dispatcher_get_type (void);
 
 StbDispatcher *stb_dispatcher_get      (void);
 
+void           stb_dispatcher_set_debug (StbDispatcher *dispatcher,
+					 gboolean       debug);
+gboolean       stb_dispatcher_get_debug (StbDispatcher *dispatcher);
+
+
 G_END_DECLS
 
 #endif /* __STB_DISPATCHER_H */
