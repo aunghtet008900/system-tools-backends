@@ -3886,4 +3886,45 @@ sub set
   &set_interfaces_config (\%hash);
 }
 
+sub get_files
+{
+  my (%dist_attrib, %config_hash, %hash, %fn);
+  my (@ifaces, @files);
+  my ($file, $proc);
+  my ($i, $j);
+
+  %hash = &get_interfaces_info ();
+  %dist_attrib = &get_interface_parse_table ();
+  %fn = %{$dist_attrib{"fn"}};
+  $proc = $dist_attrib{"ifaces_get"};
+
+  # FIXME: is proc necessary? why not using hash keys?
+  if ($proc)
+  {
+    @ifaces = &$proc ();
+  }
+  else
+  {
+    @ifaces = keys %hash;
+  }
+
+  &add_dialup_iface (\@ifaces);
+
+  # FIXME: this doesn't work for entries with %entry_name%
+  foreach $i (@ifaces)
+  {
+    foreach $j (keys (%fn))
+    {
+      ${$dist_attrib{"fn"}}{$j} = &Utils::Parse::expand ($fn{$j},
+                                                         "iface", $i,
+                                                         "type",  &get_interface_type ($i));
+
+      $file = ${$dist_attrib{"fn"}}{$j};
+      push @files, $file if ($file =~ /^\//);
+    }
+  }
+
+  return \@files;
+}
+
 1;

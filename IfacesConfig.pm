@@ -71,6 +71,11 @@ sub set
                          $config[3], $config[4], $config[5]);
 }
 
+sub getFiles
+{
+  return &Network::Ifaces::get_files ();
+}
+
 my $config = IfacesConfig->new ();
 
 1;
