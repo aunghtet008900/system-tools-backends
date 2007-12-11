@@ -305,7 +305,7 @@ sub set_smb_users
 
     if ($state == 1 || ($state == 3 && $$user[1]))
     {
-      # User added
+      # User added, or password was modified
       $user = $hash{$i};
       $pipe = &Utils::File::run_pipe_write ("smbpasswd -s -a $$user[0]");
       # Have to write the password twice
