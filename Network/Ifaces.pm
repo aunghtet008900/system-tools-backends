@@ -1040,98 +1040,6 @@ sub get_gateway
   return undef;
 }
 
-# looks for eth_up $eth_iface_number
-sub get_slackware_auto
-{
-  my ($file, $rclocal, $iface) = @_;
-  my ($search) = 0;
-  my ($buff);
-
-  if ($iface =~ /^eth/)
-  {
-    $buff = &Utils::File::load_buffer ($file);
-    &Utils::File::join_buffer_lines ($buff);
-
-    $iface =~ s/eth//;
-
-    foreach $i (@$buff)
-    {
-      if ($i =~ /^[ \t]*'start'\)/)
-      {
-        $search = 1;
-      }
-      elsif (($i =~ /^[ \t]*;;/) && ($search == 1))
-      {
-        return 0;
-      }
-      elsif (($i =~ /^[ \t]*eth_up (\S+)/) && ($search == 1))
-      {
-        return 1 if ($1 == $iface);
-      }
-    }
-
-    return 0;
-  }
-  elsif ($iface =~ /^ppp/)
-  {
-    return &Utils::Parse::get_kw ($rclocal, "ppp-go");
-  }
-}
-
-# adds or deletes eth_up $eth_iface_number
-sub set_slackware_auto
-{
-  my ($file, $rclocal, $iface, $active) = @_;
-  my ($search) = 0;
-  my ($nline) = 0;
-  my ($buff, $sline);
-
-  if ($iface =~ /^eth/)
-  {
-    $buff = &Utils::File::load_buffer ($file);
-    &Utils::File::join_buffer_lines ($buff);
-
-    $iface =~ s/eth//;
-
-    foreach $i (@$buff)
-    {
-      if ($i =~ /^[ \t]*('start'\)|\*\))/)
-      {
-        # if the line is 'start') or *), begin the search
-        $search = 1;
-      }
-      elsif (($i =~ /^[ \t]*gateway_up/) && ($search == 1))
-      {
-        # save the line in which we're going to save the eth_up stuff
-        $sline = $nline;
-      }
-      elsif (($i =~ /^[ \t]*(;;|esac)/) && ($search == 1))
-      {
-        # we've arrived to the end of the case, if we wanted to
-        # add the iface, now it's the moment
-        $$buff[$sline] = "\teth_up $iface\n" . $$buff[$sline] if ($active == 1);
-        $search = 0;
-      }
-      elsif (($i =~ /^[ \t]*eth_up (\S+)/) && ($search == 1))
-      {
-        if ($1 == $iface)
-        {
-          delete $$buff[$nline] if ($active == 0);
-          $search = 0;
-        }
-      }
-
-      $nline++;
-    }
-
-    return &Utils::File::save_buffer ($buff, $file);
-  }
-  elsif ($iface =~ /^ppp/)
-  {
-    return &Utils::Replace::set_kw ($rclocal, "ppp-go", $active);
-  }
-}
-
 sub get_sunos_auto
 {
   my ($file, $iface) = @_;
@@ -1789,16 +1697,11 @@ sub delete_pld_interface
 sub delete_slackware_interface
 {
   my ($old_hash) = @_;
-  my ($rcinetconf, $rcinet, $rclocal, $pppscript, $dev);
+  my ($rcinetconf, $rcinet, $pppscript, $dev);
 
   $rcinetconf = "/etc/rc.d/rc.inet1.conf";
-  $rcinet = "/etc/rc.d/rc.inet1";
-  $rclocal = "/etc/rc.d/rc.local";
   $pppscript = "/etc/ppp/pppscript";
   $dev = $$old_hash {"dev"};
-
-  # remove ifup/ppp-go at startup if existing
-  &set_slackware_auto ($rcinet, $rclocal, $dev, 0);
 
   if ($dev =~ /^ppp/)
   {
@@ -2627,7 +2530,6 @@ sub get_interface_parse_table
        fn =>
        {
          RC_INET_CONF => "/etc/rc.d/rc.inet1.conf",
-         RC_INET      => "/etc/rc.d/rc.inet1",
          RC_LOCAL     => "/etc/rc.d/rc.local",
          TYPE         => "#type#",
          IFACE        => "#iface#",
@@ -2643,7 +2545,7 @@ sub get_interface_parse_table
         [ "address",            \&Utils::Parse::get_rcinet1conf, [RC_INET_CONF, IFACE], IPADDR ],
         [ "netmask",            \&Utils::Parse::get_rcinet1conf, [RC_INET_CONF, IFACE], NETMASK ],
         [ "gateway",            \&get_gateway,                   RC_INET_CONF, GATEWAY, "%address%", "%netmask%" ],
-        [ "auto",               \&get_slackware_auto,            [RC_INET, RC_LOCAL, IFACE]],
+        [ "auto",               \&Utils::Parse::get_trivial,     1 ],
         [ "bootproto",          \&get_slackware_bootproto,       [RC_INET_CONF, IFACE]],
         [ "essid",              \&Utils::Parse::get_wireless_opts,            [ WIRELESS, IFACE], \&get_wireless_ifaces, ESSID ],
         [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_wireless_opts, WIRELESS, IFACE, \&get_wireless_ifaces, KEY ]],
@@ -3330,7 +3232,6 @@ sub get_interface_replace_table
      fn =>
      {
        RC_INET_CONF => "/etc/rc.d/rc.inet1.conf",
-       RC_INET      => "/etc/rc.d/rc.inet1",
        RC_LOCAL     => "/etc/rc.d/rc.local",
        IFACE        => "#iface#",
        TYPE         => "#type#",
@@ -3345,7 +3246,6 @@ sub get_interface_replace_table
       [ "address",            \&Utils::Replace::set_rcinet1conf,   [ RC_INET_CONF, IFACE ], IPADDR ],
       [ "netmask",            \&Utils::Replace::set_rcinet1conf,   [ RC_INET_CONF, IFACE ], NETMASK ],
       [ "bootproto",          \&set_slackware_bootproto, [ RC_INET_CONF, IFACE ] ],
-      [ "auto",               \&set_slackware_auto, [ RC_INET, RC_LOCAL, IFACE ] ],
       [ "essid",              \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, ESSID ],
       [ "key",                \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, KEY   ],
       [ "key_type",           \&set_wep_key_full, [ \&Utils::Replace::set_wireless_opts, WIRELESS, IFACE, \&get_wireless_ifaces, KEY, "%key%" ]],
