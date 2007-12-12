@@ -1191,7 +1191,7 @@ sub set_rcinet1conf
   $iface =~ s/eth//;
   $line = "$kw\[$iface\]";
 
-  $val = "\"$val\"" if ($val ne undef);
+  $val = "\"$val\"";
 
   return &split ($file, $line, "[ \t]*=[ \t]*", $val);
 }
