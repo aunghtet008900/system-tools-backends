@@ -3245,6 +3245,7 @@ sub get_interface_replace_table
      [
       [ "address",            \&Utils::Replace::set_rcinet1conf,   [ RC_INET_CONF, IFACE ], IPADDR ],
       [ "netmask",            \&Utils::Replace::set_rcinet1conf,   [ RC_INET_CONF, IFACE ], NETMASK ],
+      [ "gateway",            \&Utils::Replace::set_rcinet1conf_global, RC_INET_CONF, GATEWAY ],
       [ "bootproto",          \&set_slackware_bootproto, [ RC_INET_CONF, IFACE ] ],
       [ "essid",              \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, ESSID ],
       [ "key",                \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, KEY   ],
