@@ -978,19 +978,31 @@ sub set_archlinux_service_status
   my ($script, $active) = @_;
   my $rcconf = '/etc/rc.conf';
   my ($daemons);
-  $daemons = &Utils::Parse::get_sh ($rcconf, "DAEMONS");
-  $daemons =~ s/[()]//;
 
-  if (($daemons =~ m/$script/) && !$active)
+  $daemons = &Utils::Parse::get_sh ($rcconf, "DAEMONS");
+  $daemons =~ s/[\(\)]//g;
+
+  # escape these chars
+  $script =~ s/([\\\.\^\$\*\+\?\{\}\[\]\(\)\|])/\\\1/g;
+  $notscript = "\!" . $script;
+
+  if (($daemons =~ m/$notscript/) && $active)
   {
-    $daemons =~ s/$script[ \t]*//;
+    # It was disabled, enable it
+    $daemons =~ s/$notscript/$script/g;
+  }
+  elsif (($daemons =~ m/$script/) && !$active)
+  {
+    # It was enabled, disable it
+    $daemons =~ s/$script/$notscript/g;
   }
   elsif (($daemons !~ m/$script/) && $active)
   {
-    $daemons =~ s/network/network $script/g;
+    $daemons .= " ".$script;
   }
 
-  &Utils::Replace::set_sh ($rcconf, "DAEMONS", "($daemons)", 1);
+  $daemons = "(" . $daemons . ")";
+  &Utils::Replace::set_sh ($rcconf, "DAEMONS", $daemons, 1);
   &run_rcng_script ($service, ($active) ? "start" : "stop");
 }
 
