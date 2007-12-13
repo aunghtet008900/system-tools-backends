@@ -26,7 +26,7 @@ scripts_SCRIPTS = $(scripts)
 
 EXTRA_DIST = \
 	system-tools-backends-2.0.pc.in \
-	system-tools-backends.conf.in \
+	system-tools-backends.conf \
 	system-tools-backends.policy \
 	org.freedesktop.SystemToolsBackends.service.in \
 	test-backends.in \
@@ -40,7 +40,6 @@ CLEANFILES = \
 	test-backends			\
 	SystemToolsBackends.pl		\
 	system-tools-backends-2.0.pc	\
-	system-tools-backends.conf	\
 	org.freedesktop.SystemToolsBackends.service
 
 #DISTCLEANFILES =

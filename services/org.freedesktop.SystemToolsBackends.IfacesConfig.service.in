@@ -1,4 +1,4 @@
 [D-BUS Service]
 Name=org.freedesktop.SystemToolsBackends.IfacesConfig
 Exec=@scriptsdir@/SystemToolsBackends.pl -m IfacesConfig
-
+User=root

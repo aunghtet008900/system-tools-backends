@@ -28,7 +28,7 @@ use Net::DBus::Reactor;
 
 sub get_bus
 {
-  return Net::DBus->session;
+  return Net::DBus->system;
 }
 
 sub run

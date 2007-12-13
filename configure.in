@@ -8,7 +8,7 @@ AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AC_PROG_LIBTOOL
 
-DBUS_REQUIRED=0.35
+DBUS_REQUIRED=1.1.2
 GLIB_REQUIRED=2.4.0
 POLICYKIT_REQUIRED=0.5
 GIO_REQUIRED=0.1
@@ -60,7 +60,7 @@ AC_SUBST(modulesdir)
 
 
 dnl DBus services dir
-DBUS_SERVICES_DIR="${prefix}/share/dbus-1/services"
+DBUS_SERVICES_DIR="${prefix}/share/dbus-1/system-services"
 AC_SUBST(DBUS_SERVICES_DIR)
 
 dnl PolicyKit policy files dir
@@ -182,7 +182,6 @@ services/org.freedesktop.SystemToolsBackends.TimeConfig.service
 services/org.freedesktop.SystemToolsBackends.UserConfig.service
 services/org.freedesktop.SystemToolsBackends.UsersConfig.service
 org.freedesktop.SystemToolsBackends.service
-system-tools-backends.conf
 Net-DBus/Makefile
 Net-DBus/lib/Makefile
 Net-DBus/lib/Net/Makefile

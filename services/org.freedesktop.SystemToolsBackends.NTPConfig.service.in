@@ -1,4 +1,4 @@
 [D-BUS Service]
 Name=org.freedesktop.SystemToolsBackends.NTPConfig
 Exec=@scriptsdir@/SystemToolsBackends.pl -m NTPConfig
-
+User=root

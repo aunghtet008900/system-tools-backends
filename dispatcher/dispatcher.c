@@ -64,10 +64,6 @@ typedef struct StbDispatcherAsyncData StbDispatcherAsyncData;
 struct StbDispatcherPrivate
 {
   DBusConnection *connection;
-  DBusConnection *session_connection;
-
-  GPid   bus_pid;
-  guint  watch_id;
   gchar *platform;
 
 #ifdef HAVE_POLKIT
@@ -127,66 +123,6 @@ stb_dispatcher_class_init (StbDispatcherClass *class)
 							 G_PARAM_READWRITE));
   g_type_class_add_private (object_class,
 			    sizeof (StbDispatcherPrivate));
-}
-
-static void
-on_bus_term (GPid     pid,
-	     gint     status,
-	     gpointer data)
-{
-  StbDispatcher *dispatcher;
-  StbDispatcherPrivate *priv;
-
-  dispatcher = STB_DISPATCHER (data);
-  priv = dispatcher->_priv;
-
-  g_spawn_close_pid (priv->bus_pid);
-  priv->bus_pid = 0;
-
-  /* if the bus dies, we screwed up */
-  g_critical ("Can't live without bus.");
-  g_assert_not_reached ();
-}
-
-static void
-setup_private_bus (StbDispatcher *dispatcher)
-{
-  StbDispatcherPrivate *priv;
-  DBusError error;
-
-  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
-  dbus_error_init (&error);
-
-  if (!priv->bus_pid)
-    {
-      /* spawn private bus */
-      static gchar *argv[] = { "dbus-daemon", "--session", "--print-address", "--nofork", NULL };
-      gint output_fd, size;
-      gchar *envvar;
-      gchar str[300] = { 0, };
-
-      if (!g_spawn_async_with_pipes (NULL, argv, NULL,
-				     G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD,
-				     NULL, NULL, &priv->bus_pid,
-				     NULL, &output_fd, NULL, NULL))
-	return;
-
-      priv->watch_id = g_child_watch_add (priv->bus_pid, on_bus_term, dispatcher);
-      size = read (output_fd, str, sizeof (str));
-      str[size - 1] = '\0';
-
-      envvar = g_strdup_printf (DBUS_ADDRESS_ENVVAR "=%s", str);
-      putenv (envvar);
-
-      /* get a connection with the newly created bus */
-      priv->session_connection = dbus_bus_get (DBUS_BUS_SESSION, &error);
-
-      if (dbus_error_is_set (&error))
-	g_critical (error.message);
-
-      dbus_connection_set_exit_on_disconnect (priv->session_connection, FALSE);
-      dbus_connection_setup_with_g_main (priv->session_connection, NULL);
-    }
 }
 
 static void
@@ -280,7 +216,7 @@ query_file_list (StbDispatcher *dispatcher,
 					       DBUS_INTERFACE_STB,
 					       "getFiles");
 
-  dbus_connection_send_with_reply (priv->session_connection, file_message, &pending_call, -1);
+  dbus_connection_send_with_reply (priv->connection, file_message, &pending_call, -1);
 
   if (pending_call)
     {
@@ -317,14 +253,21 @@ dispatch_reply (DBusPendingCall *pending_call,
   StbDispatcherPrivate *priv;
   DBusMessage *reply;
   StbDispatcherAsyncData *async_data;
+  DBusError error;
 
   reply = dbus_pending_call_steal_reply (pending_call);
   async_data = (StbDispatcherAsyncData *) data;
   priv = async_data->dispatcher->_priv;
+  dbus_error_init (&error);
 
   DEBUG (async_data->dispatcher, "sending reply from: %s", dbus_message_get_path (reply));
 
-  /* get the platform if necessary */
+  if (dbus_set_error_from_message (&error, reply))
+    {
+      g_warning (error.message);
+      dbus_error_free (&error);
+    }
+
   if (dbus_message_has_interface (reply, DBUS_INTERFACE_STB_PLATFORM) &&
       dbus_message_has_member (reply, "getPlatform") && !priv->platform)
     {
@@ -455,7 +398,7 @@ dispatch_stb_message (StbDispatcher *dispatcher,
 
   /* forward the message to the corresponding service */
   dbus_message_set_destination (copy, destination);
-  dbus_connection_send_with_reply (priv->session_connection, copy, &pending_call, -1);
+  dbus_connection_send_with_reply (priv->connection, copy, &pending_call, -1);
 
   if (pending_call)
     {
@@ -670,11 +613,9 @@ stb_dispatcher_init (StbDispatcher *dispatcher)
   priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
   dispatcher->_priv = priv;
 
-  setup_private_bus (dispatcher);
   setup_connection (dispatcher);
 
-  /* we're screwed if we don't have these */
-  g_assert (priv->session_connection != NULL);
+  /* we're screwed if we don't have this */
   g_assert (priv->connection != NULL);
 
 #ifdef HAVE_POLKIT
@@ -731,7 +672,6 @@ stb_dispatcher_finalize (GObject *object)
 
   priv = STB_DISPATCHER_GET_PRIVATE (object);
 
-  dbus_connection_unref (priv->session_connection);
   dbus_connection_unref (priv->connection);
 
 #ifdef HAVE_POLKIT
@@ -741,16 +681,6 @@ stb_dispatcher_finalize (GObject *object)
 #ifdef HAVE_GIO
   g_object_unref (priv->file_monitor);
 #endif
-
-  /* terminate the private bus */
-  if (priv->bus_pid)
-    {
-      g_source_remove (priv->watch_id);
-      priv->watch_id = 0;
-
-      kill (priv->bus_pid, SIGTERM);
-      priv->bus_pid = 0;
-    }
 
   g_free (priv->platform);
 
