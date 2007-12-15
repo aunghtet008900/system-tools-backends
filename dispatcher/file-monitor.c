@@ -19,8 +19,7 @@
  */
 
 #include <glib.h>
-#include <gio/gvfs.h>
-#include <gio/gfilemonitor.h>
+#include <gio/gio.h>
 #include "file-monitor.h"
 
 #define STB_FILE_MONITOR_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), STB_TYPE_FILE_MONITOR, StbFileMonitorPrivate))
@@ -151,7 +150,7 @@ stb_file_monitor_add_files (StbFileMonitor  *file_monitor,
       GFile *file;
 
       file = g_file_new_for_path (files[f]);
-      monitor = g_file_monitor_file (file, G_FILE_MONITOR_FLAGS_NONE, NULL);
+      monitor = g_file_monitor_file (file, G_FILE_MONITOR_NONE, NULL);
       g_object_set_qdata (G_OBJECT (monitor), file_monitor_qdata, key);
 
       g_signal_connect (monitor, "changed",
