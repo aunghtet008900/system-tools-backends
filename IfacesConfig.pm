@@ -32,8 +32,8 @@ my $format = [[ "array", [ "struct", "string", "int32", "int32", "int32", "strin
               [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string", "string", "int32", "string", "string", "string" ]],
               [ "array", [ "struct", "string", "int32", "int32", "int32", "string", "string", "string", "string", "string", "string" ]],
               [ "array", [ "struct", "string", "int32", "int32", "string", "string" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "int32", "int32", "string", "string", "int32", "int32", "int32", "int32" ]],
-              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string", "int32", "int32", "int32", "int32"]],
+              [ "array", [ "struct", "string", "int32", "int32", "string", "string", "string", "string", "int32", "int32", "string", "string", "int32", "int32", "int32", "int32" ]],
+              [ "array", "string" ],
               [ "array", "string" ],
               [ "array", "string" ]];
 
@@ -68,7 +68,7 @@ sub set
   $self->SUPER::reset_counter ();
 
   &Network::Ifaces::set ($config[0], $config[1], $config[2],
-                         $config[3], $config[4], $config[5]);
+                         $config[3], $config[4]);
 }
 
 sub getFiles

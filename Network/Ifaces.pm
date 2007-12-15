@@ -3635,11 +3635,20 @@ sub get_available_encryptions
   return $default;
 }
 
+sub get_available_ppp_types
+{
+  my $options = [ "modem" ];
+
+  push @$options, "isdn" if &check_capi ();
+
+  return $options;
+}
+
 sub get
 {
   my ($config, $iface, $type);
   my ($ethernet, $wireless, $irlan);
-  my ($plip, $modem, $isdn);
+  my ($plip, $modem);
   my ($config_methods, $encryptions);
 
   $config = &get_interfaces_config ();
@@ -3686,6 +3695,7 @@ sub get
     elsif ($type eq "modem")
     {
       push @$modem, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
+                      $$iface{"ppp_type"},
                       $$iface{"phone_number"}, $$iface{"external_line"},
                       $$iface{"serial_port"}, $$iface{"volume"},
                       ($$iface{"dial_command"} eq "atdp") ? 1 : 0,
@@ -3693,19 +3703,12 @@ sub get
                       $$iface{"set_default_gw"}, $$iface{"update_dns"},
                       $$iface{"persist"}, $$iface{"noauth"} ];
     }
-    elsif ($type eq "isdn")
-    {
-      push @$isdn, [ $$iface{"dev"}, $$iface{"enabled"}, $$iface{"auto"},
-                      $$iface{"phone_number"}, $$iface{"external_line"},
-                      $$iface{"login"}, $$iface{"password"},
-                      $$iface{"set_default_gw"}, $$iface{"update_dns"},
-                      $$iface{"persist"}, $$iface{"noauth"} ];
-    }
   }
 
   return ($ethernet, $wireless, $irlan,
-          $plip, $modem, $isdn,
-          $config_methods, $encryptions);
+          $plip, $modem,
+          $config_methods, $encryptions,
+          &get_available_ppp_types ());
 }
 
 sub set
@@ -3763,25 +3766,17 @@ sub set
 
   foreach $iface (@$modem)
   {
-    $dial_command = ($$iface[7] == 0) ? "ATDT" : "ATDP";
+    $dial_command = ($$iface[8] == 0) ? "ATDT" : "ATDP";
     $hash{$$iface[0]} = { "dev" => $$iface[0], "section" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
-                          "phone_number" => $$iface[3], "external_line" => $$iface[4],
-                          "serial_port" => $$iface[5], "volume" => $$iface[6],
+                          "ppp_type" => $$iface[3],
+                          "phone_number" => $$iface[4], "external_line" => $$iface[5],
+                          "serial_port" => $$iface[6], "volume" => $$iface[7],
                           "dial_command" => $dial_command,
-                          "login" => $$iface[8], "password" => $$iface[9],
-                          "set_default_gw" => $$iface[10], "update_dns"=> $$iface[11],
-                          "persist" => $$iface[12], "noauth" => $$iface[13],
+                          "login" => $$iface[9], "password" => $$iface[10],
+                          "set_default_gw" => $$iface[11], "update_dns"=> $$iface[12],
+                          "persist" => $$iface[13], "noauth" => $$iface[14],
                           # FIXME: hardcoded serial speed ATM
                           "serial_speed" => "115200"};
-  }
-
-  foreach $iface (@$isdn)
-  {
-    $hash{$$iface[0]} = { "dev" => $$iface[0], "section" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
-                          "phone_number" => $$iface[3], "external_line" => $$iface[4],
-                          "login" => $$iface[5], "password" => $$iface[6],
-                          "set_default_gw" => $$iface[7], "update_dns"=> $$iface[8],
-                          "persist" => $$iface[9], "noauth" => $$iface[10] };
   }
 
   &set_interfaces_config (\%hash);
