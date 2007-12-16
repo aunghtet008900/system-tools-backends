@@ -116,6 +116,7 @@ sub get_ppp_type
   $plugin = &Utils::Parse::split_first_str ($ppp_options, "plugin", "[ \t]+");
 
   return "isdn" if ($plugin =~ /^capiplugin/);
+  return "pppoe" if ($plugin =~ /^rp-pppoe/);
   return "modem"
 }
 
@@ -1788,7 +1789,7 @@ sub delete_sunos_interface
 }
 
 # FIXME: should move to external file!!!
-sub create_pppscript
+sub create_chatscript
 {
   my ($pppscript) = @_;
   my ($contents);
@@ -1878,13 +1879,21 @@ sub create_ppp_startif
   }
 }
 
-sub create_isdn_options
+sub create_ppp_configuration
 {
-  my ($file) = @_;
+  my ($options, $chatscript, $type) = @_;
 
-  if (!&Utils::File::exists ($file))
+  if ($type eq "modem")
   {
-    &Utils::File::copy_file_from_stock ("general_isdn_ppp_options", $file);
+    &create_chatscript ($chatscript);
+  }
+  elsif ($type eq "isdn")
+  {
+    &Utils::File::copy_file_from_stock ("general_isdn_ppp_options", $options);
+  }
+  elsif ($type eq "pppoe")
+  {
+    &Utils::File::copy_file_from_stock ("general_pppoe_ppp_options", $options);
   }
 }
 
@@ -2425,18 +2434,19 @@ sub get_interface_parse_table
         [ "remote_address",     \&get_debian_remote_address, [INTERFACES, IFACE]],
         [ "section",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "provider" ],
         [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&get_ppp_type, PPP_OPTIONS ]],
-        [ "update_dns",         \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
-        [ "noauth",             \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
-        [ "mtu",                \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
-        [ "mru",                \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
+        [ "update_dns",         \&check_type, [TYPE, ".+", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
+        [ "noauth",             \&check_type, [TYPE, ".+", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
+        [ "mtu",                \&check_type, [TYPE, ".+", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
+        [ "mru",                \&check_type, [TYPE, ".+", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
         [ "serial_port",        \&check_type, [TYPE, "modem", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
         [ "serial_speed",       \&check_type, [TYPE, "modem", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
-        [ "login",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^user \"?([^\"]*)\"?" ]],
-        [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&get_pap_passwd, PAP, "%login%" ]],
-        [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&get_pap_passwd, CHAP, "%login%" ]],
-        [ "set_default_gw",     \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "defaultroute" ]],
-        [ "debug",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "debug" ]],
-        [ "persist",            \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "persist" ]],
+        [ "serial_port",        \&check_type, [TYPE, "pppoe", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^plugin[ \t]+rp-pppoe.so[ \t]+(.*)" ]],
+        [ "login",              \&check_type, [TYPE, ".+", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^user \"?([^\"]*)\"?" ]],
+        [ "password",           \&check_type, [TYPE, ".+", \&get_pap_passwd, PAP, "%login%" ]],
+        [ "password",           \&check_type, [TYPE, ".+", \&get_pap_passwd, CHAP, "%login%" ]],
+        [ "set_default_gw",     \&check_type, [TYPE, ".+", \&Utils::Parse::get_kw, PPP_OPTIONS, "defaultroute" ]],
+        [ "debug",              \&check_type, [TYPE, ".+", \&Utils::Parse::get_kw, PPP_OPTIONS, "debug" ]],
+        [ "persist",            \&check_type, [TYPE, ".+", \&Utils::Parse::get_kw, PPP_OPTIONS, "persist" ]],
         [ "serial_escapechars", \&check_type, [TYPE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
         [ "serial_hwctl",       \&check_type, [TYPE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "crtscts" ]],
         [ "external_line",      \&check_type, [TYPE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "atd[^0-9]([0-9*#]*)[wW]" ]],
@@ -2717,18 +2727,19 @@ sub get_interface_parse_table
       [ "key_type",           \&get_sunos_wireless, [IFACE, "encryption" ]],
       [ "key",                \&get_sunos_wireless_key, [SECRET, IFACE ]],
       [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", get_ppp_type, PPP_OPTIONS ]],
-      [ "update_dns",         \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
-      [ "noauth",             \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
-      [ "mtu",                \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
-      [ "mru",                \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
+      [ "update_dns",         \&check_type, [TYPE, ".+", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
+      [ "noauth",             \&check_type, [TYPE, ".+", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
+      [ "mtu",                \&check_type, [TYPE, ".+", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
+      [ "mru",                \&check_type, [TYPE, ".+", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mru", "[ \t]+" ]],
       [ "serial_port",        \&check_type, [TYPE, "modem", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
       [ "serial_speed",       \&check_type, [TYPE, "modem", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
-      [ "login",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^user \"?([^\"]*)\"?" ]],
-      [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&get_pap_passwd, PAP, "%login%" ]],
-      [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&get_pap_passwd, CHAP, "%login%" ]],
-      [ "set_default_gw",     \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "defaultroute" ]],
-      [ "debug",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "debug" ]],
-      [ "persist",            \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "persist" ]],
+      [ "serial_port",        \&check_type, [TYPE, "pppoe", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^plugin[ \t]+rp-pppoe.so[ \t]+(.*)" ]],
+      [ "login",              \&check_type, [TYPE, ".+", \&Utils::Parse::get_ppp_options_re, PPP_OPTIONS, "^user \"?([^\"]*)\"?" ]],
+      [ "password",           \&check_type, [TYPE, ".+", \&get_pap_passwd, PAP, "%login%" ]],
+      [ "password",           \&check_type, [TYPE, ".+", \&get_pap_passwd, CHAP, "%login%" ]],
+      [ "set_default_gw",     \&check_type, [TYPE, ".+", \&Utils::Parse::get_kw, PPP_OPTIONS, "defaultroute" ]],
+      [ "debug",              \&check_type, [TYPE, ".+", \&Utils::Parse::get_kw, PPP_OPTIONS, "debug" ]],
+      [ "persist",            \&check_type, [TYPE, ".+", \&Utils::Parse::get_kw, PPP_OPTIONS, "persist" ]],
       [ "serial_escapechars", \&check_type, [TYPE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "escape", "[ \t]+" ]],
       [ "serial_hwctl",       \&check_type, [TYPE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "crtscts" ]],
       [ "external_line",      \&check_type, [TYPE, "modem", \&Utils::Parse::get_from_chatfile, CHAT, "atd[^0-9]([0-9*#]*)[wW]" ]],
@@ -3145,18 +3156,18 @@ sub get_interface_replace_table
       [ "section",            \&Utils::Replace::set_interfaces_option_str, [INTERFACES, IFACE], "provider" ],
       [ "remote_address",     \&set_debian_remote_address, [INTERFACES, IFACE]],
       # Modem stuff
+      [ "ppp_type",           \&create_ppp_configuration, [ PPP_OPTIONS, CHAT ]],
       [ "section",            \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_connect, PPP_OPTIONS ]],
-      [ "phone_number",       \&check_type, [TYPE, "modem", \&create_pppscript, CHAT ]],
-      [ "phone_number",       \&check_type, [TYPE, "isdn", \&create_isdn_options, PPP_OPTIONS ]],
-      [ "update_dns",         \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "usepeerdns" ]],
-      [ "noauth",             \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "noauth" ]],
-      [ "set_default_gw",     \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "defaultroute" ]],
-      [ "persist",            \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "persist" ]],
+      [ "update_dns",         \&check_type, [TYPE, ".+", \&Utils::Replace::set_kw, PPP_OPTIONS, "usepeerdns" ]],
+      [ "noauth",             \&check_type, [TYPE, ".+", \&Utils::Replace::set_kw, PPP_OPTIONS, "noauth" ]],
+      [ "set_default_gw",     \&check_type, [TYPE, ".+", \&Utils::Replace::set_kw, PPP_OPTIONS, "defaultroute" ]],
+      [ "persist",            \&check_type, [TYPE, ".+", \&Utils::Replace::set_kw, PPP_OPTIONS, "persist" ]],
       [ "serial_port",        \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
       [ "serial_speed",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
-      [ "login",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^user (.*)", "user \"%login%\"" ]],
-      [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&set_pap_passwd, PAP, "%login%" ]],
-      [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&set_pap_passwd, CHAP, "%login%" ]],
+      [ "serial_port",        \&check_type, [TYPE, "pppoe", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^plugin[ \t]+rp-pppoe\.so[ \t]+(.*)", "plugin rp-pppoe.so %serial_port%" ]],
+      [ "login",              \&check_type, [TYPE, ".+", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^user (.*)", "user \"%login%\"" ]],
+      [ "password",           \&check_type, [TYPE, ".+", \&set_pap_passwd, PAP, "%login%" ]],
+      [ "password",           \&check_type, [TYPE, ".+", \&set_pap_passwd, CHAP, "%login%" ]],
       [ "dial_command",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "(atd[tp])[w#\*0-9, \-]+" ]],
       [ "phone_number",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([w#\*0-9, \-]+)" ]],
       [ "external_line",      \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([w#\*0-9, \-]+)", "%external_line%W%phone_number%" ]],
@@ -3290,7 +3301,7 @@ sub get_interface_replace_table
       [ "key",                \&Utils::Replace::set_wireless_opts, [ WIRELESS, IFACE ], \&get_wireless_ifaces, KEY   ],
       [ "key_type",           \&set_wep_key_full, [ \&Utils::Replace::set_wireless_opts, WIRELESS, IFACE, \&get_wireless_ifaces, KEY, "%key%" ]],
       # Modem stuff
-      [ "phone_number",       \&check_type, [TYPE, "modem", \&create_pppscript, CHAT ]],
+      [ "phone_number",       \&check_type, [TYPE, "modem", \&create_chatscript, CHAT ]],
       [ "phone_number",       \&check_type, [TYPE, "modem", \&create_pppgo ]],
       [ "update_dns",         \&check_type, [TYPE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "usepeerdns" ]],
       [ "noauth",             \&check_type, [TYPE, "modem", \&Utils::Replace::set_kw, PPP_OPTIONS, "noauth" ]],
@@ -3433,19 +3444,19 @@ sub get_interface_replace_table
        [ "key",                \&set_sunos_wireless, [IFACE], "key" ],
        [ "key_type",           \&set_sunos_wireless, [IFACE], "key_type" ],
        # Modem stuff
+       [ "ppp_type",           \&create_ppp_configuration, [ PPP_OPTIONS, CHAT ]],
        [ "section",            \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_connect,  PPP_OPTIONS ]],
-       [ "phone_number",       \&check_type, [TYPE, "modem", \&create_pppscript, CHAT ]],
-       [ "phone_number",       \&check_type, [TYPE, "isdn", \&create_isdn_options, PPP_OPTIONS ]],
-       [ "update_dns",         \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "usepeerdns" ]],
-       [ "noauth",             \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "noauth" ]],
-       [ "set_default_gw",     \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "defaultroute" ]],
-       [ "debug",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "debug" ]],
-       [ "persist",            \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_kw, PPP_OPTIONS, "persist" ]],
+       [ "update_dns",         \&check_type, [TYPE, ".+", \&Utils::Replace::set_kw, PPP_OPTIONS, "usepeerdns" ]],
+       [ "noauth",             \&check_type, [TYPE, ".+", \&Utils::Replace::set_kw, PPP_OPTIONS, "noauth" ]],
+       [ "set_default_gw",     \&check_type, [TYPE, ".+", \&Utils::Replace::set_kw, PPP_OPTIONS, "defaultroute" ]],
+       [ "debug",              \&check_type, [TYPE, ".+", \&Utils::Replace::set_kw, PPP_OPTIONS, "debug" ]],
+       [ "persist",            \&check_type, [TYPE, ".+", \&Utils::Replace::set_kw, PPP_OPTIONS, "persist" ]],
        [ "serial_port",        \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^(/dev/[^ \t]+)" ]],
        [ "serial_speed",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^([0-9]+)" ]],
-       [ "login",              \&check_type, [TYPE, "(modem|isdn)", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^user (.*)", "user \"%login%\"" ]],
-       [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&set_pap_passwd, PAP, "%login%" ]],
-       [ "password",           \&check_type, [TYPE, "(modem|isdn)", \&set_pap_passwd, CHAP, "%login%" ]],
+       [ "serial_port",        \&check_type, [TYPE, "pppoe", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^plugin[ \t]+rp-pppoe\.so[ \t]+(.*)", "plugin rp-pppoe.so %serial_port%" ]],
+       [ "login",              \&check_type, [TYPE, ".+", \&Utils::Replace::set_ppp_options_re, PPP_OPTIONS, "^user (.*)", "user \"%login%\"" ]],
+       [ "password",           \&check_type, [TYPE, ".+", \&set_pap_passwd, PAP, "%login%" ]],
+       [ "password",           \&check_type, [TYPE, ".+", \&set_pap_passwd, CHAP, "%login%" ]],
        [ "dial_command",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "(atd[tp])[w#\*0-9, \-]+" ]],
        [ "phone_number",       \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([w#\*0-9, \-]+)" ]],
        [ "external_line",      \&check_type, [TYPE, "modem", \&Utils::Replace::set_chat, CHAT, "atd[tp]([w#\*0-9, \-]+)", "%external_line%W%phone_number%" ]],
@@ -3682,6 +3693,7 @@ sub get_available_ppp_types
   my $options = [ "modem" ];
 
   push @$options, "isdn" if &check_capi ();
+  push @$options, "pppoe" if &check_pppd_plugin ("rp-pppoe");
 
   return $options;
 }
