@@ -108,6 +108,17 @@ sub check_capi
   return ($i > 0) ? &check_pppd_plugin("capiplugin") : 0;
 }
 
+sub get_ppp_type
+{
+  my ($ppp_options) = @_;
+  my ($plugin);
+
+  $plugin = &Utils::Parse::split_first_str ($ppp_options, "plugin", "[ \t]+");
+
+  return "isdn" if ($plugin =~ /^capiplugin/);
+  return "modem"
+}
+
 sub get_linux_wireless_ifaces
 {
   my ($fd, $line);
@@ -190,15 +201,7 @@ sub get_interface_type
 
   if ($dev =~ /^(ppp|tun)/)
   {
-    # check whether the proper plugin exists
-    if (&check_capi ())
-    {
-      $types_cache{$dev} = "isdn";
-    }
-    else
-    {
-      $types_cache{$dev} = "modem";
-    }
+    $types_cache{$dev} = "modem";
   }
   elsif ($dev =~ /(eth|dc|ed|bfe|em|fxp|bge|de|xl|ixgb|txp|vx|lge|nge|pcn|re|rl|sf|sis|sk|ste|ti|tl|tx|vge|vr|wb|cs|ex|ep|fe|ie|lnc|sn|xe|le|an|awi|wi|ndis|wl|aue|axe|cue|kue|rue|fwe|nve|hme|ath|iwi|ipw|ral|ural|my)[0-9]/)
   {
@@ -2016,7 +2019,8 @@ sub get_interface_parse_table
          IFCFG   => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
          CHAT    => "/etc/sysconfig/network-scripts/chat-#iface#",
          IFACE   => "#iface#",
-         TYPE    => "#type#",
+         IFACE_TYPE => "#type#",
+         TYPE    => "%ppp_type%",
          PAP     => "/etc/ppp/pap-secrets",
          CHAP    => "/etc/ppp/chap-secrets",
          PUMP    => "/etc/pump.conf",
@@ -2033,6 +2037,7 @@ sub get_interface_parse_table
         [ "network",            \&Utils::Parse::get_sh,      IFCFG, NETWORK ],
         [ "gateway",            \&Utils::Parse::get_sh,      IFCFG, GATEWAY ],
         [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
+        [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "section",            \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,       IFCFG, WVDIALSECT ]],
         [ "update_dns",         \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh_bool,  IFCFG, PEERDNS ]],
         [ "mtu",                \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,       IFCFG, MTU ]],
@@ -2073,7 +2078,8 @@ sub get_interface_parse_table
                    "/etc/sysconfig/network-scripts/ifcfg-#iface#"],
          CHAT  => "/etc/sysconfig/network-scripts/chat-#iface#",
          IFACE => "#iface#",
-         TYPE  => "#type#",
+         IFACE_TYPE => "#type#",
+         TYPE  => "%ppp_type%",
          PAP   => "/etc/ppp/pap-secrets",
          CHAP  => "/etc/ppp/chap-secrets",
          PUMP  => "/etc/pump.conf",
@@ -2093,6 +2099,7 @@ sub get_interface_parse_table
         [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_sh, IFCFG, KEY ]],
         [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_sh, IFCFG, KEY ]],
         [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
+        [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "section",            \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
         [ "update_dns",         \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
         [ "mtu",                \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
@@ -2137,8 +2144,9 @@ sub get_interface_parse_table
                      "/etc/sysconfig/networking/devices/ifcfg-#iface#",
                      "/etc/sysconfig/network-scripts/ifcfg-#iface#"],
          CHAT    => "/etc/sysconfig/network-scripts/chat-#iface#",
-         TYPE    => "#type#",
          IFACE   => "#iface#",
+         IFACE_TYPE => "#type#",
+         TYPE    => "%ppp_type%",
          PAP     => "/etc/ppp/pap-secrets",
          CHAP    => "/etc/ppp/chap-secrets",
          PUMP    => "/etc/pump.conf",
@@ -2158,6 +2166,7 @@ sub get_interface_parse_table
         [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
         [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
         [ "remote_address",     \&Utils::Parse::get_sh,      IFCFG, REMIP ],
+        [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "section",            \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
         [ "update_dns",         \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
         [ "mtu",                \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
@@ -2200,8 +2209,9 @@ sub get_interface_parse_table
        {
          IFCFG   => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
          CHAT    => "/etc/sysconfig/network-scripts/chat-#iface#",
-         TYPE    => "#type#",
          IFACE   => "#iface#",
+         IFACE_TYPE => "#type#",
+         TYPE    => "%ppp_type%",
          PAP     => "/etc/ppp/pap-secrets",
          CHAP    => "/etc/ppp/chap-secrets",
          PUMP    => "/etc/pump.conf",
@@ -2221,6 +2231,7 @@ sub get_interface_parse_table
         [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_sh, IFCFG, KEY ]],
         [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_sh, IFCFG, KEY ]],
         [ "remote_address",     \&Utils::Parse::get_sh, IFCFG, REMIP ],
+        [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "section",            \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
         [ "update_dns",         \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
         [ "mtu",                \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
@@ -2262,8 +2273,9 @@ sub get_interface_parse_table
        {
          IFCFG   => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
          CHAT    => "/etc/sysconfig/network-scripts/chat-#iface#",
-         TYPE    => "#type#",
          IFACE   => "#iface#",
+         IFACE_TYPE => "#type#",
+         TYPE    => "%ppp_type%",
          PAP     => "/etc/ppp/pap-secrets",
          CHAP    => "/etc/ppp/chap-secrets",
          PUMP    => "/etc/pump.conf",
@@ -2283,6 +2295,7 @@ sub get_interface_parse_table
         [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
         [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
         [ "remote_address",     \&Utils::Parse::get_sh, IFCFG, REMIP ],
+        [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "section",            \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
         [ "update_dns",         \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
         [ "mtu",                \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
@@ -2324,8 +2337,9 @@ sub get_interface_parse_table
        {
          IFCFG   => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
          CHAT    => "/etc/sysconfig/network-scripts/chat-#iface#",
-         TYPE    => "#type#",
          IFACE   => "#iface#",
+         IFACE_TYPE => "#type#",
+         TYPE    => "%ppp_type%",
          PAP     => "/etc/ppp/pap-secrets",
          CHAP    => "/etc/ppp/chap-secrets",
          PUMP    => "/etc/pump.conf",
@@ -2345,6 +2359,7 @@ sub get_interface_parse_table
         [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
         [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_sh, IFCFG, WIRELESS_KEY ]],
         [ "remote_address",     \&Utils::Parse::get_sh, IFCFG, REMIP ],
+        [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "section",            \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,      IFCFG, WVDIALSECT ]],
         [ "update_dns",         \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh_bool, IFCFG, PEERDNS ]],
         [ "mtu",                \&check_type, [TYPE, "modem", \&Utils::Parse::get_sh,      IFCFG, MTU ]],
@@ -2385,7 +2400,8 @@ sub get_interface_parse_table
        {
          INTERFACES  => "/etc/network/interfaces",
          IFACE       => "#iface#",
-         TYPE        => "#type#",
+         IFACE_TYPE  => "#type#",
+         TYPE        => "%ppp_type%",
          CHAT        => "/etc/chatscripts/%section%",
          PPP_OPTIONS => "/etc/ppp/peers/%section%",
          PAP         => "/etc/ppp/pap-secrets",
@@ -2408,6 +2424,7 @@ sub get_interface_parse_table
         [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_interfaces_option_str, INTERFACES, IFACE, "wpa-psk" ]],
         [ "remote_address",     \&get_debian_remote_address, [INTERFACES, IFACE]],
         [ "section",            \&Utils::Parse::get_interfaces_option_str,    [INTERFACES, IFACE], "provider" ],
+        [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&get_ppp_type, PPP_OPTIONS ]],
         [ "update_dns",         \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
         [ "noauth",             \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
         [ "mtu",                \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
@@ -2441,7 +2458,8 @@ sub get_interface_parse_table
          ROUTES_CONF => "/etc/sysconfig/network/routes",
          PROVIDERS  => "/etc/sysconfig/network/providers/%section%",
          IFACE      => "#iface#",
-         TYPE       => "#type#",
+         IFACE_TYPE => "#type#",
+         TYPE       => "%ppp_type%",
        },
        table =>
        [
@@ -2457,6 +2475,7 @@ sub get_interface_parse_table
         [ "gateway",        \&get_suse_gateway,     ROUTES_CONF, "%address%", "%netmask%" ],
         [ "gateway",        \&get_suse_gateway,     ROUTES_CONF, "%remote_address%", "255.255.255.255" ],
         # Modem stuff goes here
+        [ "ppp_type",       \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "serial_port",    \&Utils::Parse::get_sh, IFCFG, MODEM_DEVICE ],
         [ "serial_speed",   \&Utils::Parse::get_sh, IFCFG, SPEED ],
         [ "mtu",            \&Utils::Parse::get_sh, IFCFG, MTU ],
@@ -2485,8 +2504,9 @@ sub get_interface_parse_table
        {
          IFCFG => "/etc/sysconfig/interfaces/ifcfg-#iface#",
          CHAT  => "/etc/sysconfig/interfaces/data/chat-#iface#",
-         TYPE  => "#type#",
          IFACE => "#iface#",
+         IFACE_TYPE => "#type#",
+         TYPE  => "%ppp_type%",
          PAP   => "/etc/ppp/pap-secrets",
          CHAP  => "/etc/ppp/chap-secrets",
          PUMP  => "/etc/pump.conf"
@@ -2504,6 +2524,7 @@ sub get_interface_parse_table
         [ "mtu",                \&Utils::Parse::get_sh,      IFCFG, MTU ],
         [ "mru",                \&Utils::Parse::get_sh,      IFCFG, MRU ],
         [ "login",              \&Utils::Parse::get_sh,      IFCFG, PAPNAME ],
+        [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "password",           \&get_pap_passwd,            PAP,  "%login%" ],
         [ "password",           \&get_pap_passwd,            CHAP, "%login%" ],
         [ "serial_port",        \&Utils::Parse::get_sh,      IFCFG, MODEMPORT ],
@@ -2531,8 +2552,9 @@ sub get_interface_parse_table
        {
          RC_INET_CONF => "/etc/rc.d/rc.inet1.conf",
          RC_LOCAL     => "/etc/rc.d/rc.local",
-         TYPE         => "#type#",
          IFACE        => "#iface#",
+         IFACE_TYPE   => "#type#",
+         TYPE         => "%ppp_type%",
          WIRELESS     => "/etc/pcmcia/wireless.opts",
          PPP_OPTIONS  => "/etc/ppp/options",
          PAP          => "/etc/ppp/pap-secrets",
@@ -2551,6 +2573,7 @@ sub get_interface_parse_table
         [ "key_type",           \&get_wep_key_type, [ \&Utils::Parse::get_wireless_opts, WIRELESS, IFACE, \&get_wireless_ifaces, KEY ]],
         [ "key",                \&get_wep_key,      [ \&Utils::Parse::get_wireless_opts, WIRELESS, IFACE, \&get_wireless_ifaces, KEY ]],
         # Modem stuff
+        [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "update_dns",         \&check_type, [TYPE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
         [ "noauth",             \&check_type, [TYPE, "modem", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
         [ "mtu",                \&check_type, [TYPE, "modem", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
@@ -2580,7 +2603,8 @@ sub get_interface_parse_table
          NET          => "/etc/conf.d/net",
          PPPNET       => "/etc/conf.d/net.#iface#",
          INIT         => "net.#iface#",
-         TYPE         => "#type#",
+         IFACE_TYPE   => "#type#",
+         TYPE         => "%ppp_type%",
          IFACE        => "#iface#",
          WIRELESS     => "/etc/conf.d/wireless",
        },
@@ -2597,6 +2621,7 @@ sub get_interface_parse_table
         [ "key_type",           \&get_wep_key_type,      [ \&Utils::Parse::get_sh, WIRELESS, "key_%essid%" ]],
         [ "key",                \&get_wep_key,           [ \&Utils::Parse::get_sh, WIRELESS, "key_%essid%" ]],
         # modem stuff
+        [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "update_dns",         \&Utils::Parse::get_sh_bool, PPPNET, PEERDNS ],
         [ "mtu",                \&Utils::Parse::get_sh,      PPPNET, MTU ],
         [ "mru",                \&Utils::Parse::get_sh,      PPPNET, MRU ],
@@ -2624,8 +2649,9 @@ sub get_interface_parse_table
          RC_CONF_DEFAULT => "/etc/defaults/rc.conf",
          STARTIF         => "/etc/start_if.#iface#",
          PPPCONF         => "/etc/ppp/ppp.conf",
-         TYPE            => "#type#",
          IFACE           => "#iface#",
+         IFACE_TYPE      => "#type#",
+         TYPE            => "%ppp_type%",
        },
        table =>
        [
@@ -2645,6 +2671,7 @@ sub get_interface_parse_table
         [ "gateway",        \&get_gateway,                    RC_CONF, "defaultrouter", "%address%", "%netmask%" ],
         [ "bootproto",      \&get_bootproto,                  RC_CONF, "ifconfig_%dev%" ],
         # Modem stuff
+        [ "ppp_type",       \&check_type, [IFACE_TYPE, "modem", \&Utils::Parse::get_trivial, "modem" ]],
         [ "serial_port",    \&Utils::Parse::get_pppconf,      [ PPPCONF, STARTIF, IFACE ], "device"   ],
         [ "serial_speed",   \&Utils::Parse::get_pppconf,      [ PPPCONF, STARTIF, IFACE ], "speed"    ],
         [ "mtu",            \&Utils::Parse::get_pppconf,      [ PPPCONF, STARTIF, IFACE ], "mtu"      ],
@@ -2670,7 +2697,8 @@ sub get_interface_parse_table
          SECRET      => "/etc/inet/secret/wifiwepkey",
          DEFAULTROUTER => "/etc/defaultrouter",
          IFACE       => "#iface#",
-         TYPE        => "#type#",
+         IFACE_TYPE  => "#type#",
+         TYPE        => "%ppp_type%",
          CHAT        => "/etc/chatscripts/%section%",
          PPP_OPTIONS => "/etc/ppp/peers/%section%",
          PAP         => "/etc/ppp/pap-secrets",
@@ -2688,6 +2716,7 @@ sub get_interface_parse_table
       [ "essid",              \&get_sunos_wireless, [IFACE, "essid" ]],
       [ "key_type",           \&get_sunos_wireless, [IFACE, "encryption" ]],
       [ "key",                \&get_sunos_wireless_key, [SECRET, IFACE ]],
+      [ "ppp_type",           \&check_type, [IFACE_TYPE, "modem", get_ppp_type, PPP_OPTIONS ]],
       [ "update_dns",         \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "usepeerdns" ]],
       [ "noauth",             \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::get_kw, PPP_OPTIONS, "noauth" ]],
       [ "mtu",                \&check_type, [TYPE, "(modem|isdn)", \&Utils::Parse::split_first_str, PPP_OPTIONS, "mtu", "[ \t]+" ]],
@@ -2732,7 +2761,8 @@ sub get_interface_replace_table
        IFCFG  => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
-       TYPE   => "#type#",
+       IFACE_TYPE => "#type#",
+       TYPE   => "%ppp_type%",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2790,7 +2820,8 @@ sub get_interface_replace_table
                  "/etc/sysconfig/networking/devices/ifcfg-#iface#"],
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
-       TYPE   => "#type#",
+       IFACE_TYPE => "#type#",
+       TYPE   => "%ppp_type%",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2851,7 +2882,8 @@ sub get_interface_replace_table
                  "/etc/sysconfig/networking/devices/ifcfg-#iface#"],
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
-       TYPE   => "#type#",
+       IFACE_TYPE => "#type#",
+       TYPE   => "%ppp_type%",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2910,7 +2942,8 @@ sub get_interface_replace_table
        IFCFG  => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
-       TYPE   => "#type#",
+       IFACE_TYPE => "#type#",
+       TYPE   => "%ppp_type%",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -2970,7 +3003,8 @@ sub get_interface_replace_table
        IFCFG  => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
-       TYPE   => "#type#",
+       IFACE_TYPE => "#type#",
+       TYPE   => "%ppp_type%",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -3029,7 +3063,8 @@ sub get_interface_replace_table
        IFCFG  => "/etc/sysconfig/network-scripts/ifcfg-#iface#",
        CHAT   => "/etc/sysconfig/network-scripts/chat-#iface#",
        IFACE  => "#iface#",
-       TYPE   => "#type#",
+       IFACE_TYPE => "#type#",
+       TYPE   => "%ppp_type%",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -3087,7 +3122,8 @@ sub get_interface_replace_table
      {
        INTERFACES  => "/etc/network/interfaces",
        IFACE       => "#iface#",
-       TYPE        => "#type#",
+       IFACE_TYPE  => "#type#",
+       TYPE        => "%ppp_type%",
        CHAT        => "/etc/chatscripts/%section%",
        PPP_OPTIONS => "/etc/ppp/peers/%section%",
        PAP         => "/etc/ppp/pap-secrets",
@@ -3145,7 +3181,8 @@ sub get_interface_replace_table
        PROVIDERS   => "/etc/sysconfig/network/providers/%section%",
        ROUTE_CONF  => "/etc/sysconfig/network/routes",
        IFACE       => "#iface#",
-       TYPE        => "#type#",
+       IFACE_TYPE  => "#type#",
+       TYPE        => "%ppp_type%",
        PPP_OPTIONS => "/etc/ppp/options"
      },
      table =>
@@ -3189,7 +3226,8 @@ sub get_interface_replace_table
        IFCFG  => "/etc/sysconfig/interfaces/ifcfg-#iface#",
        CHAT   => "/etc/sysconfig/interfaces/data/chat-#iface#",
        IFACE  => "#iface#",
-       TYPE   => "#type#",
+       IFACE_TYPE => "#type#",
+       TYPE   => "%ppp_type%",
        WVDIAL => "/etc/wvdial.conf",
        PUMP   => "/etc/pump.conf"
      },
@@ -3234,7 +3272,8 @@ sub get_interface_replace_table
        RC_INET_CONF => "/etc/rc.d/rc.inet1.conf",
        RC_LOCAL     => "/etc/rc.d/rc.local",
        IFACE        => "#iface#",
-       TYPE         => "#type#",
+       IFACE_TYPE   => "#type#",
+       TYPE         => "%ppp_type%",
        WIRELESS     => "/etc/pcmcia/wireless.opts",
        PPP_OPTIONS  => "/etc/ppp/options",
        PAP          => "/etc/ppp/pap-secrets",
@@ -3285,7 +3324,8 @@ sub get_interface_replace_table
        PPPNET       => "/etc/conf.d/net.#iface#",
        INIT         => "net.#iface#",
        IFACE        => "#iface#",
-       TYPE         => "#type#",
+       IFACE_TYPE   => "#type#",
+       TYPE         => "%ppp_type%",
        WIRELESS     => "/etc/conf.d/wireless",
      },
      table =>
@@ -3332,7 +3372,8 @@ sub get_interface_replace_table
         STARTIF => "/etc/start_if.#iface#",
         PPPCONF => "/etc/ppp/ppp.conf",
         IFACE   => "#iface#",
-        TYPE    => "#type#",
+        IFACE_TYPE => "#type#",
+        TYPE    => "%ppp_type%",
       },
       table =>
       [
@@ -3372,7 +3413,8 @@ sub get_interface_replace_table
         DHCP_FILE   => "/etc/dhcp.#iface#",
         MASKS_FILE  => "/etc/netmasks",
         IFACE       => "#iface#",
-        TYPE        => "#type#",
+        IFACE_TYPE  => "#type#",
+        TYPE        => "%ppp_type%",
         DEFAULTROUTER => "/etc/defaultrouter",
         CHAT        => "/etc/chatscripts/%section%",
         PPP_OPTIONS => "/etc/ppp/peers/%section%",
@@ -3713,7 +3755,7 @@ sub get
 
 sub set
 {
-  my ($ethernet, $wireless, $irlan, $plip, $modem, $isdn) = @_;
+  my ($ethernet, $wireless, $irlan, $plip, $ppp) = @_;
   my (%hash, $iface, $bootproto, $key_type, $dial_command);
 
   foreach $iface (@$ethernet)
@@ -3764,7 +3806,7 @@ sub set
                           "address" => $$iface[3], "remote_address" => $$iface[4] };
   }
 
-  foreach $iface (@$modem)
+  foreach $iface (@$ppp)
   {
     $dial_command = ($$iface[8] == 0) ? "ATDT" : "ATDP";
     $hash{$$iface[0]} = { "dev" => $$iface[0], "section" => $$iface[0], "enabled" => $$iface[1], "auto" => $$iface[2],
