@@ -25,6 +25,7 @@ use lib "@scriptsdir@";
 use lib "@netdbusdir@";
 
 our $localstatedir = "@localstatedir@";
+our $filesdir = "@filesdir@";
 
 BEGIN {
   my $i = 0;

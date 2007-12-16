@@ -910,9 +910,9 @@ sub copy_file_from_stock
 {
   my ($orig, $dest) = @_;
 
-  if (!copy ("$FILESDIR/$orig", $dest))
+  if (!copy ("$main::filesdir/$orig", $dest))
   {
-    &Utils::Report::do_report ("file_copy_failed", "$FILESDIR/$orig", $dest);
+    &Utils::Report::do_report ("file_copy_failed", "$main::filesdir/$orig", $dest);
     return -1;
   }
 
