@@ -1,3 +1,30 @@
+System Tools Backends Version 2.5.4, 2007-12-18
+-----------------------------------------------
+
+The System Tools Backends version 2.5.4 "Will come back tomorrow" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+- Added logging messages to the dispatcher (available through -d) (garnacho)
+- Add password management to SMBConfig (garnacho)
+- Add file monitoring to configuration files, emit "changed" when the configuration has potentially changed, this requires gio (garnacho)
+- Fix services configuration saving for ArchLinux (Hugo Doria)
+- Set gateway for static interfaces in Slackware, do not try to set auto (garnacho)
+- Use DBus system bus activation (garnacho)
+- Add PPPoE support for distros that use pppd (garnacho)
+- Add basic GPRS/UMTS support for distros that use pppd (garnacho)
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.5/
+
+
 System Tools Backends Version 2.5.3, 2007-11-12
 -----------------------------------------------
 
