@@ -753,7 +753,7 @@ sub get_from_chatfile
         s/(\S*)\s?//;
         $found = $1;
       }
-      
+
       # If it looks like what we're looking for, return what matched the parens.
       if ($found =~ /$re/i)
       {
