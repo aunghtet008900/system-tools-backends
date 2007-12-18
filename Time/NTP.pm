@@ -151,6 +151,11 @@ sub apply_ntp_date
       $servers .= " $server";
   }
 
+  if ($server eq "") {
+      # There are no servers, pick them from the ntp.org pool
+      $server = "0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org";
+  }
+
   # run ntpdate, this will only be effective
   # when there isn't any NTP server running
   &Utils::File::run ("ntpdate -b $servers") if ($servers);
