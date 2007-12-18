@@ -1426,50 +1426,25 @@ sub activate_suse_interface
 sub activate_slackware_interface_by_dev
 {
   my ($dev, $enabled) = @_;
-  my ($address, $netmask, $gateway);
-  my ($file) = "/etc/rc.d/rc.inet1.conf";
-  my ($ret) = 0;
+  my ($command, $ret);
 
   &Utils::Report::enter ();
+
+  $command = "/etc/rc.d/rc.inet1 ";
+  $command .= $dev;
 
   if ($enabled)
   {
     &Utils::Report::do_report ("network_iface_activate", $dev);
-
-    if ($dev =~ /^ppp/)
-    {
-      $ret = &Utils::File::run ("ppp-go");
-    }
-    else
-    {
-      if (&Utils::Parse::get_rcinet1conf_bool ($file, $dev, USE_DHCP))
-      {
-        # Use DHCP
-        $ret = &Utils::File::run ("dhclient $dev");
-      }
-      else
-      {
-        $address = &Utils::Parse::get_rcinet1conf ($file, $dev, "IPADDR");
-        $netmask = &Utils::Parse::get_rcinet1conf ($file, $dev, "NETMASK");
-        $gateway = &get_gateway ($file, "GATEWAY", $address, $netmask);
-
-        $ret = &Utils::File::run ("ifconfig $dev $address netmask $netmask up");
-
-        # Add the gateway if necessary
-        if ($gateway ne undef)
-        {
-          &Utils::File::run ("route add default gw $gateway");
-        }
-      }
-    }
+    $command .= "_start";
   }
   else
   {
     &Utils::Report::do_report ("network_iface_deactivate", $dev);
-
-    $ret = &Utils::File::run ("ifconfig $dev down") if ($dev =~ /^eth/);
-    $ret = &Utils::File::run ("ppp-off") if ($dev =~ /^ppp/);
+    $command .= "_stop";
   }
+
+  $ret = &Utils::File::run ($command);
 
   &Utils::Report::leave ();
   return -1 if ($ret != 0);
