@@ -45,10 +45,7 @@ sub new
     &Utils::Backend::set_dist (\%Utils::Backend::tool, $platform) if ($platform);
   }
 
-  if (!$Utils::Backend::tool{"no-shutdown"})
-  {
-    &set_counter ();
-  }
+  &set_counter ();
 
   return $self;
 }
@@ -56,7 +53,10 @@ sub new
 sub set_counter
 {
   #wait three minutes until shutdown
-  $Utils::Backend::tool{"timer"} = &Utils::DBus::add_timeout (180000, \&Utils::DBus::shutdown);
+  if (!$Utils::Backend::tool{"no-shutdown"})
+  {
+    $Utils::Backend::tool{"timer"} = &Utils::DBus::add_timeout (180000, \&Utils::DBus::shutdown);
+  }
 }
 
 sub reset_counter
