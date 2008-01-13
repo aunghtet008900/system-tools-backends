@@ -1625,15 +1625,15 @@ sub delete_rh72_interface
 sub delete_debian_interface
 {
   my ($old_hash) = @_;
-  my ($dev, $login);
+  my ($dev, $ppp_type);
 
   $dev = $$old_hash{"dev"};
-  $login = $old_hash{"login"};
+  $ppp_type = $old_hash{"ppp_type"};
 
   &activate_interface_by_dev ($dev, 0);
   &Utils::Replace::interfaces_iface_stanza_delete ("/etc/network/interfaces", $dev);
-  
-  if ($login)
+
+  if ($ppp_type)
   {
     &remove_pap_entry ("/etc/ppp/pap-secrets", $login);
     &remove_pap_entry ("/etc/ppp/chap-secrets", $login);
@@ -3558,9 +3558,9 @@ sub interface_configured
   {
     return 1 if ($$iface{"address"} && $$iface{"remote_address"});
   }
-  elsif ($type eq "modem" || $type eq "isdn")
+  elsif ($type eq "modem")
   {
-    return 1 if ($$iface{"phone_number"} && $$iface{"login"});
+    return 1 if ($$iface{"ppp_type"});
   }
 
   return 0;  
