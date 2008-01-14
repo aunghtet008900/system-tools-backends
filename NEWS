@@ -1,3 +1,27 @@
+System Tools Backends Version 2.5.5, 2008-01-14
+-----------------------------------------------
+
+The System Tools Backends version 2.5.5 "Blue moon" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+- Use /etc/rc.d/rc.inet1 to start/stop network interfaces for slackware (garnacho)
+- Make sure there are time servers when using ntpdate (garnacho)
+- Do call reset_counter() when the configuration has been set (garnacho)
+- Check correctly whether PPP interfaces are configured or not (garnacho)
+- Add Ubuntu 8.04 (garnacho)
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.5/
+
+
 System Tools Backends Version 2.5.4, 2007-12-18
 -----------------------------------------------
 
