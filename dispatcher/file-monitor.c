@@ -150,7 +150,7 @@ stb_file_monitor_add_files (StbFileMonitor  *file_monitor,
       GFile *file;
 
       file = g_file_new_for_path (files[f]);
-      monitor = g_file_monitor_file (file, G_FILE_MONITOR_NONE, NULL);
+      monitor = g_file_monitor_file (file, G_FILE_MONITOR_NONE, NULL, NULL);
       g_object_set_qdata (G_OBJECT (monitor), file_monitor_qdata, key);
 
       g_signal_connect (monitor, "changed",
