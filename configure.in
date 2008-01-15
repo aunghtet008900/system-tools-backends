@@ -2,7 +2,7 @@ AC_PREREQ(2.52)
 dnl ==============================================================
 dnl Process this file with autoconf to produce a configure script.
 dnl ==============================================================
-AC_INIT(system-tools-backends,2.5.5)
+AC_INIT(system-tools-backends,2.5.6)
 AC_CONFIG_AUX_DIR(.)
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
@@ -12,7 +12,7 @@ DBUS_REQUIRED=1.1.2
 DBUS_GLIB_REQUIRED=0.74
 GLIB_REQUIRED=2.4.0
 POLICYKIT_REQUIRED=0.5
-GIO_REQUIRED=2.15.3
+GIO_REQUIRED=2.15.2
 
 dnl get prefix in $prefix, yes, this sucks
 if test "x$prefix" = "xNONE"; then
