@@ -1,3 +1,31 @@
+System Tools Backends Version 2.4.2, 2008-01-14
+-----------------------------------------------
+
+The System Tools Backends version 2.4.2 "Waiting room" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+- Make Redhat derived distros use useradd (garnacho)
+- Make --verbose work again (garnacho)
+- Do not try to set auto on slackware, it's not really supported (garnacho)
+- Set gateway address for slackware (garnacho)
+- Fix services saving in Archlinux (Hugo Doria)
+- Use /etc/rc.d/rc.inet1 to start/stop interfaces in slackware (garnacho)
+- Make sure there are time servers when using ntpdate (garnacho)
+
+Thanks to anyone involved!
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.4/
+
+
 System Tools Backends Version 2.4.1, 2007-10-04
 -----------------------------------------------
 
