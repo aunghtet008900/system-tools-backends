@@ -502,7 +502,7 @@ dispatch_user_config (StbDispatcher *dispatcher,
       if (dbus_message_get_args (message, NULL,
 				 DBUS_TYPE_UINT32, &message_uid,
 				 DBUS_TYPE_STRING, &passwd,
-				 DBUS_TYPE_ARRAY, &gecos, &gecos_elements,
+				 DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &gecos, &gecos_elements,
 				 DBUS_TYPE_INVALID))
 	{
 	  user_message = dbus_message_new_method_call (DBUS_INTERFACE_STB ".UserConfig",
@@ -536,6 +536,8 @@ dispatch_user_config (StbDispatcher *dispatcher,
       dispatch_stb_message (dispatcher, user_message, dbus_message_get_serial (message));
       dbus_message_unref (user_message);
     }
+  else
+    return_error (dispatcher, message, DBUS_ERROR_UNKNOWN_METHOD);
 }
 
 static DBusHandlerResult
