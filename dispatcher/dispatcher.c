@@ -325,6 +325,7 @@ can_caller_do_action (StbDispatcher *dispatcher,
   PolKitResult result;
   const gchar *member;
   gchar *action_id;
+  gboolean retval;
 
   /* Allow getting information */
   if (dbus_message_has_member (message, "get"))
@@ -347,7 +348,6 @@ can_caller_do_action (StbDispatcher *dispatcher,
     action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s", member);
 
   polkit_action_set_action_id (action, action_id);
-  g_free (action_id);
 
   dbus_error_init (&error);
   caller = polkit_caller_new_from_dbus_name (priv->connection, dbus_message_get_sender (message), &error);
@@ -365,7 +365,16 @@ can_caller_do_action (StbDispatcher *dispatcher,
   polkit_caller_unref (caller);
   polkit_action_unref (action);
 
-  return (result == POLKIT_RESULT_YES);
+  retval = (result == POLKIT_RESULT_YES);
+
+  if (retval)
+    g_message ("caller is allowed to do action '%s'\n", action_id);
+  else
+    g_message ("caller can't do action '%s'\n", action_id);
+
+  g_free (action_id);
+
+  return retval;
 #else
   return TRUE;
 #endif /* HAVE_POLKIT */
