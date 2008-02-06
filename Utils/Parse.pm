@@ -1159,14 +1159,16 @@ sub get_fq_domain
 sub get_rcinet1conf
 {
   my ($file, $iface, $kw) = @_;
-  my ($line);
+  my ($line, $val);
 
   $iface =~ s/eth//;
 
   #we must double escape those []
   $line = "$kw\\[$iface\\]";
+  $val = &get_sh ($file, $line);
 
-  return &get_sh ($file, $line);
+  return undef if ($val eq "");
+  return $val;
 }
 
 sub get_rcinet1conf_bool
@@ -1178,54 +1180,6 @@ sub get_rcinet1conf_bool
   
   return undef if ($ret eq undef);
   return (&Utils::Util::read_boolean ($ret)? 1: 0);
-}
-
-sub get_wireless_opts
-{
-  my ($file, $iface, $proc, $kw) = @_;
-  my $ifaces = &$proc ();
-  my $found = 0;
-  my $search = 1;
-  my $val = "";
-  my $fd;
-  
-  foreach $i (@$ifaces)
-  {
-    $found = 1 if ($iface eq $i);
-  }
-
-  return undef if (!$found);
-
-  $fd = &Utils::File::open_read_from_names ($file);
-  while (<$fd>)
-  {
-    $line = $_;
-
-    if ($line =~ /^case/)
-    {
-      # we don't want to search inside the case
-      $search = 0;
-    }
-    elsif ($line =~ /^esac/)
-    {
-      # continue searching
-      $search = 1;
-    }
-    elsif (($line =~ /^[ \t]*$kw/ ) && ($search))
-    {
-      $line =~ s/.*=//;
-
-      if ($line =~ /"(.*)"/)
-      {
-        $line = $1;
-      }
-
-      $val = $line;
-    }
-  }
-
-  &Utils::File::close_file ($fd);
-  return $val;
 }
 
 # function for parsing /etc/start_if.$iface files in FreeBSD

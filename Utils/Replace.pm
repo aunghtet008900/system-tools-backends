@@ -1205,49 +1205,6 @@ sub set_rcinet1conf_global
   return &split ($file, $kw, "[ \t]*=[ \t]*", $val)
 }
 
-sub set_wireless_opts
-{
-  my ($file, $iface, $proc, $kw, $value) = @_;
-  my $ifaces = &$proc ();
-  my $found = 0;
-  my $search = 1;
-  my $buff;
-  
-  foreach $i (@$ifaces)
-  {
-    $found = 1 if ($iface eq $i);
-  }
-
-  $buff = &Utils::File::load_buffer ($file);
-
-  foreach $i (@$buff)
-  {
-    if (/^case/)
-    {
-      # we don't want to search inside the case
-      $search = 0;
-    }
-    elsif (/^esac/)
-    {
-      # we want to continue searching
-      $search = 1;
-    }
-    if ((/^[ \t]*$kw/) && ($search))
-    {
-      $_ = "$kw=\"$value\"";
-      $found = 1;
-    }
-  }
-
-  if (!$found)
-  {
-    push @$buff, "$kw=\"$value\"";
-  }
-
-  &Utils::File::clean_buffer ($buff);
-  return &Utils::File::save_buffer ($buff, $file);
-}
-
 # Functions for replacing in FreeBSD's /etc/ppp/ppp.conf
 sub set_pppconf_common
 {
