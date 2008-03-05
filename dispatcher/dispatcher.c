@@ -367,10 +367,9 @@ can_caller_do_action (StbDispatcher *dispatcher,
 
   retval = (result == POLKIT_RESULT_YES);
 
-  if (retval)
-    g_message ("caller is allowed to do action '%s'\n", action_id);
-  else
-    g_message ("caller can't do action '%s'\n", action_id);
+  DEBUG (dispatcher,
+	 (retval) ? "caller is allowed to do action '%s'" : "caller can't do action '%s'",
+	 action_id);
 
   g_free (action_id);
 
@@ -616,6 +615,48 @@ setup_connection (StbDispatcher *dispatcher)
   dbus_connection_setup_with_g_main (priv->connection, NULL);
 }
 
+#ifdef HAVE_POLKIT
+static gboolean
+stb_polkit_io_watch_func (GIOChannel   *channel,
+			  GIOCondition  condition,
+			  gpointer      user_data)
+{
+  int fd;
+  PolKitContext *pk_context;
+
+  pk_context = (PolKitContext *) user_data;
+  fd = g_io_channel_unix_get_fd (channel);
+  polkit_context_io_func (pk_context, fd);
+
+  return TRUE;
+}
+
+static int
+stb_polkit_io_add_watch (PolKitContext *context,
+			 int            fd)
+{
+  guint watch_id = 0;
+  GIOChannel *channel;
+
+  channel = g_io_channel_unix_new (fd);
+
+  if (!channel)
+    return 0;
+
+  watch_id = g_io_add_watch (channel, G_IO_IN, stb_polkit_io_watch_func, context);
+  g_io_channel_unref (channel);
+
+  return watch_id;
+}
+
+static void
+stb_polkit_io_remove_watch (PolKitContext *context,
+			    int            watch_id)
+{
+  g_source_remove (watch_id);
+}
+#endif
+
 static void
 stb_dispatcher_init (StbDispatcher *dispatcher)
 {
@@ -631,6 +672,10 @@ stb_dispatcher_init (StbDispatcher *dispatcher)
 
 #ifdef HAVE_POLKIT
   priv->polkit_context = polkit_context_new ();
+  polkit_context_set_io_watch_functions (priv->polkit_context,
+					 stb_polkit_io_add_watch,
+					 stb_polkit_io_remove_watch);
+
   polkit_context_init (priv->polkit_context, NULL);
 #endif
 
