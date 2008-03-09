@@ -1672,7 +1672,8 @@ sub delete_pld_interface
 sub delete_slackware_interface
 {
   my ($old_hash) = @_;
-  my ($rcinetconf, $rcinet, $pppscript, $dev);
+  my ($rcinetconf, $pppscript, $dev);
+  my ($address, $netmask, $gateway);
 
   $rcinetconf = "/etc/rc.d/rc.inet1.conf";
   $pppscript = "/etc/ppp/pppscript";
@@ -1684,11 +1685,20 @@ sub delete_slackware_interface
   }
   else
   {
+    $address = &Utils::Parse::get_rcinet1conf ($rcinetconf, $dev, "IPADDR");
+    $netmask = &Utils::Parse::get_rcinet1conf ($rcinetconf, $dev, "NETMASK");
+    $gateway = &Utils::Parse::get_sh ($rcinetconf, "GATEWAY");
+
     # empty the values
     &Utils::Replace::set_rcinet1conf ($rcinetconf, $dev, "IPADDR", "");
     &Utils::Replace::set_rcinet1conf ($rcinetconf, $dev, "NETMASK", "");
     &Utils::Replace::set_rcinet1conf ($rcinetconf, $dev, "USE_DHCP", "");
     &Utils::Replace::set_rcinet1conf ($rcinetconf, $dev, "DHCP_HOSTNAME", "");
+
+    if (&is_ip_in_same_network ($address, $gateway, $netmask))
+    {
+      &Utils::Replace::set_rcinet1conf_global ($rcinetconf, "GATEWAY", "");
+    }
   }
 }
 
