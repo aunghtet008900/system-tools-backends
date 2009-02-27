@@ -6,8 +6,8 @@
 <policyconfig>
 
   <action id="org.freedesktop.systemtoolsbackends.set">
-    <description>Manage system configuration</description>
-    <message>System policy prevents modifying the configuration</message>
+    <_description>Manage system configuration</_description>
+    <_message>System policy prevents modifying the configuration</_message>
     <defaults>
       <allow_inactive>no</allow_inactive>
       <allow_active>auth_admin</allow_active>
@@ -15,8 +15,8 @@
   </action>
 
   <action id="org.freedesktop.systemtoolsbackends.self.set">
-    <description>Change user configuration</description>
-    <message>System policy prevents modifying the user configuration</message>
+    <_description>Change user configuration</_description>
+    <_message>System policy prevents modifying the user configuration</_message>
     <defaults>
       <allow_inactive>no</allow_inactive>
       <allow_active>auth_self</allow_active>

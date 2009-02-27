@@ -44,6 +44,13 @@ ACLOCAL=aclocal-1.7
 	DIE=1
 }
 
+(intltoolize --version) < /dev/null > /dev/null 2>&1 || {
+	echo
+	echo "You must have intltoolize installed to compile $PROJECT."
+	echo "Install the intltool package from ftp.gnome.org or a mirror."
+	DIE=1
+}
+
 if test "$DIE" -eq 1; then
 	exit 1
 fi
@@ -59,6 +66,9 @@ if test -z "$*"; then
 fi
 
 libtoolize --copy --force
+
+echo "Running intltoolize..."
+intltoolize --copy --force --automake || exit 1
 
 echo $ACLOCAL $ACLOCAL_FLAGS
 $ACLOCAL $ACLOCAL_FLAGS

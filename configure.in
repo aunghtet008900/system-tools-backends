@@ -7,6 +7,7 @@ AC_CONFIG_AUX_DIR(.)
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AC_PROG_LIBTOOL
+IT_PROG_INTLTOOL([0.40.0])
 
 DBUS_REQUIRED=1.1.2
 DBUS_GLIB_REQUIRED=0.74
@@ -189,6 +190,7 @@ Net-DBus/lib/Net/Makefile
 Net-DBus/lib/Net/DBus/Makefile
 Net-DBus/lib/Net/DBus/Binding/Makefile
 Net-DBus/lib/Net/DBus/Binding/Message/Makefile
+po/Makefile.in
 ])
 
 echo "

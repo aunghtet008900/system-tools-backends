@@ -27,7 +27,7 @@ scripts_SCRIPTS = $(scripts)
 EXTRA_DIST = \
 	system-tools-backends-2.0.pc.in \
 	system-tools-backends.conf \
-	system-tools-backends.policy \
+	$(policy_in_files) \
 	org.freedesktop.SystemToolsBackends.service.in \
 	test-backends.in \
 	diagnostics.pl \
@@ -40,7 +40,8 @@ CLEANFILES = \
 	test-backends			\
 	SystemToolsBackends.pl		\
 	system-tools-backends-2.0.pc	\
-	org.freedesktop.SystemToolsBackends.service
+	org.freedesktop.SystemToolsBackends.service \
+	$(policy_DATA)
 
 #DISTCLEANFILES =
 
@@ -57,5 +58,9 @@ systemd_DATA = system-tools-backends.conf
 
 if HAVE_POLKIT
 policydir = $(POLKIT_POLICY_DIR)
-policy_DATA = system-tools-backends.policy
+policy_in_files = system-tools-backends.policy.in
+policy_DATA = $(policy_in_files:.policy.in=.policy)
+
+@INTLTOOL_POLICY_RULE@
+
 endif
