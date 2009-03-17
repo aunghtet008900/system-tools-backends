@@ -47,7 +47,9 @@ daemonize (void)
 
   setsid ();
 
-  if ((pidfile_fd = open (LOCALSTATEDIR "/run/system-tools-backends.pid", O_CREAT | O_WRONLY)) != -1)
+  if ((pidfile_fd = open (LOCALSTATEDIR "/run/system-tools-backends.pid",
+                          O_CREAT | O_WRONLY,
+                          S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) != -1)
     {
       str = g_strdup_printf ("%d", getpid ());
       write (pidfile_fd, str, strlen (str));

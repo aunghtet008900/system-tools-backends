@@ -167,7 +167,7 @@ dispatch_file_list (DBusPendingCall *pending_call,
 
   if (dbus_set_error_from_message (&error, reply))
     {
-      g_critical (error.message);
+      g_critical ("%s", error.message);
       dbus_error_free (&error);
       dbus_message_unref (reply);
       return;
@@ -184,7 +184,7 @@ dispatch_file_list (DBusPendingCall *pending_call,
     }
   else
     {
-      g_critical (error.message);
+      g_critical ("%s", error.message);
     }
 
   dbus_message_unref (reply);
@@ -264,7 +264,7 @@ dispatch_reply (DBusPendingCall *pending_call,
 
   if (dbus_set_error_from_message (&error, reply))
     {
-      g_warning (error.message);
+      g_warning ("%s", error.message);
       dbus_error_free (&error);
     }
 
@@ -354,7 +354,7 @@ can_caller_do_action (StbDispatcher *dispatcher,
 
   if (dbus_error_is_set (&error))
     {
-      g_critical (error.message);
+      g_critical ("%s", error.message);
       dbus_error_free (&error);
 
       return FALSE;
@@ -598,7 +598,7 @@ setup_connection (StbDispatcher *dispatcher)
 
   if (dbus_error_is_set (&error))
     {
-      g_critical (error.message);
+      g_critical ("%s", error.message);
       dbus_error_free (&error);
     }
 
@@ -608,7 +608,7 @@ setup_connection (StbDispatcher *dispatcher)
 
   if (dbus_error_is_set (&error))
     {
-      g_critical (error.message);
+      g_critical ("%s", error.message);
       dbus_error_free (&error);
     }
 
