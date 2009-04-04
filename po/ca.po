@@ -1,0 +1,34 @@
+# Catalan translation for system-tools-backends package
+# Traducció del system-tools-backends de l'equip de Softcatalà.
+# Copyright © 2009 Free Software Foundation, Inc.
+# This file is distributed under the same license as the system-tools-backends package.
+# David Planella <david.planella@gmail.com>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: system-tools-backends\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-"
+"system-tools&component=s-t-b\n"
+"POT-Creation-Date: 2009-04-02 08:40+0000\n"
+"PO-Revision-Date: 2009-04-03 21:38+0200\n"
+"Last-Translator: David Planella <david.planella@gmail.com>\n"
+"Language-Team: Catalan <tradgnome@softcatala.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../system-tools-backends.policy.in.h:1
+msgid "Change user configuration"
+msgstr "Canvia la configuració d'usuari"
+
+#: ../system-tools-backends.policy.in.h:2
+msgid "Manage system configuration"
+msgstr "Gestiona la configuració del sistema"
+
+#: ../system-tools-backends.policy.in.h:3
+msgid "System policy prevents modifying the configuration"
+msgstr "La política del sistema no permet modificar la configuració"
+
+#: ../system-tools-backends.policy.in.h:4
+msgid "System policy prevents modifying the user configuration"
+msgstr "La política del sistema no permet modificar la configuració d'usuari"
