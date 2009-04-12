@@ -1,0 +1,32 @@
+# Danish translation of system-tools-backends copy i gnome git
+# Copyright (C) 2009
+# This file is distributed under the same license as the system-tools.backends package.
+# Kenneth Nielsen <k.nielsen81@gmail.com>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-04-12 15:30+0200\n"
+"PO-Revision-Date: 2009-04-12 15:34+0200\n"
+"Last-Translator: Kenneth Nielsen <k.nielsen81@gmail.com>\n"
+"Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../system-tools-backends.policy.in.h:1
+msgid "Change user configuration"
+msgstr "Ændr brugerkonfiguration"
+
+#: ../system-tools-backends.policy.in.h:2
+msgid "Manage system configuration"
+msgstr "Håndtér systemkonfiguration"
+
+#: ../system-tools-backends.policy.in.h:3
+msgid "System policy prevents modifying the configuration"
+msgstr "Systemopsætning forhindrer at ændre konfigurationen"
+
+#: ../system-tools-backends.policy.in.h:4
+msgid "System policy prevents modifying the user configuration"
+msgstr "Systemopsætning forhindrer at ændre brugerkonfigurationen"
