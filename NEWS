@@ -1,3 +1,39 @@
+System Tools Backends Version 2.6.1, 2009-04-15
+-----------------------------------------------
+
+The System Tools Backends version 2.6.1 have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+- Added infrastructure for translations (David Planella)
+- Fixed some compiler warnings (Carlos Garnacho)
+
+Translations
+============
+- fr (Claude Paroz)
+- it (Luca Ferreti)
+- es (Jorge Gonzalez)
+- pt_BR (Leonardo Ferreira Fontenelle)
+- ca (David Planella)
+- el (Fotis Samis, Simos Xenitellis)
+- hu (Kelemen Gábor)
+- sl (studko)
+- zh_CN (Ray Wang)
+- da (Kenneth Nielsen)
+- he (Marik Krapivner)
+- plus a bunch from rossetta...
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.6/
+
+
 System Tools Backends Version 2.6.0, 2008-03-09
 -----------------------------------------------
 
