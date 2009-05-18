@@ -1,0 +1,38 @@
+# Galician translations for PACKAGE package.
+# Copyright (C) 2009 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Francisco Diéguez Souto <fran.dieguez@mabishu.com>, 2009.
+# Fran Diéguez <fran.dieguez@glug.es>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: system-tools-backends.master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug."
+"cgi?product=gnome-system-tools&component=s-t-b\n"
+"POT-Creation-Date: 2009-04-16 03:30+0000\n"
+"PO-Revision-Date: 2009-04-20 17:53+0200\n"
+"Last-Translator: Fran Diéguez <fran.dieguez@glug.es>\n"
+"Language-Team: gl <kde-i18n-doc@kde.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 0.3\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: ../system-tools-backends.policy.in.h:1
+msgid "Change user configuration"
+msgstr "Cambiar a configuración do usuario"
+
+#: ../system-tools-backends.policy.in.h:2
+msgid "Manage system configuration"
+msgstr "Xestionar a configuración do sistema"
+
+#: ../system-tools-backends.policy.in.h:3
+msgid "System policy prevents modifying the configuration"
+msgstr "A política de sistema evita a modificación da configuración"
+
+#: ../system-tools-backends.policy.in.h:4
+msgid "System policy prevents modifying the user configuration"
+msgstr ""
+"A política de sistema evita a modificación da configuración do usuario"
+
