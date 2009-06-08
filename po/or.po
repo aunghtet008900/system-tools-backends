@@ -1,0 +1,36 @@
+# translation of or.po to Oriya
+# Oriya translation of system-tools-backends-clone.
+# Copyright (C) 2009 system-tools-backends-clone's COPYRIGHT HOLDER
+# This file is distributed under the same license as the system-tools-backends-clone package.
+#
+# Manoj Kumar Giri <mgiri@redhat.com>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: or\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-system-tools&component=s-t-b\n"
+"POT-Creation-Date: 2009-05-23 15:28+0000\n"
+"PO-Revision-Date: 2009-06-08 18:26+0530\n"
+"Last-Translator: Manoj Kumar Giri <mgiri@redhat.com>\n"
+"Language-Team: Oriya <oriya-it@googlegroups.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms:  nplurals=2; plural=(n!=1);\n\n"
+
+#: ../system-tools-backends.policy.in.h:1
+msgid "Change user configuration"
+msgstr "ଚାଳକ ସଂରଚନାକୁ ପରିବର୍ତ୍ତନ କରନ୍ତୁ"
+
+#: ../system-tools-backends.policy.in.h:2
+msgid "Manage system configuration"
+msgstr "ତନ୍ତ୍ର ସଂରଚନାକୁ ପରିଚାଳନ କରନ୍ତୁ"
+
+#: ../system-tools-backends.policy.in.h:3
+msgid "System policy prevents modifying the configuration"
+msgstr "ସଂରଚନା ପରିବର୍ତ୍ତନକୁ ତନ୍ତ୍ର ନୀତି ବାରଣ କରିଥାଏ"
+
+#: ../system-tools-backends.policy.in.h:4
+msgid "System policy prevents modifying the user configuration"
+msgstr "ଚାଳକ ସଂରଚନା ପରିବର୍ତ୍ତନକୁ ତନ୍ତ୍ର ନୀତି ବାରଣ କରିଥାଏ"
+
