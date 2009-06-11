@@ -1,0 +1,36 @@
+# translation of system-tools-backends-clone.po.master.te.po to Telugu
+# Telugu translation of system-tools-backends-clone.
+# Copyright (C) 2009 system-tools-backends-clone's COPYRIGHT HOLDER
+# This file is distributed under the same license as the system-tools-backends-clone package.
+#
+# Krishna Babu K <kkrothap@redhat.com>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: system-tools-backends-clone.po.master.te\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-system-tools&component=s-t-b\n"
+"POT-Creation-Date: 2009-06-08 13:07+0000\n"
+"PO-Revision-Date: 2009-06-11 15:47+0530\n"
+"Last-Translator: Krishna Babu K <kkrothap@redhat.com>\n"
+"Language-Team: Telugu <en@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n\n"
+
+#: ../system-tools-backends.policy.in.h:1
+msgid "Change user configuration"
+msgstr "వినియోగదారి ఆకృతీకరణను మార్చుము"
+
+#: ../system-tools-backends.policy.in.h:2
+msgid "Manage system configuration"
+msgstr "సిస్టమ్ ఆకృతీకరణను నిర్వహించుము"
+
+#: ../system-tools-backends.policy.in.h:3
+msgid "System policy prevents modifying the configuration"
+msgstr "సిస్టమ్ విధానము ఆకృతీకరణను మార్చుట నిరోధిస్తుంది"
+
+#: ../system-tools-backends.policy.in.h:4
+msgid "System policy prevents modifying the user configuration"
+msgstr "సిస్టమ్ విధానము వినియోగదారి ఆకృతీకరణను మార్చుట నిరోధిస్తుంది"
+
