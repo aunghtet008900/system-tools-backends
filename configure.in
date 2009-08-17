@@ -12,7 +12,7 @@ IT_PROG_INTLTOOL([0.40.0])
 DBUS_REQUIRED=1.1.2
 DBUS_GLIB_REQUIRED=0.74
 GLIB_REQUIRED=2.4.0
-POLICYKIT_REQUIRED=0.5
+POLICYKIT_REQUIRED=0.92
 GIO_REQUIRED=2.15.2
 
 dnl get prefix in $prefix, yes, this sucks
@@ -66,7 +66,7 @@ DBUS_SERVICES_DIR="${prefix}/share/dbus-1/system-services"
 AC_SUBST(DBUS_SERVICES_DIR)
 
 dnl PolicyKit policy files dir
-POLKIT_POLICY_DIR="${prefix}/share/PolicyKit/policy/"
+POLKIT_POLICY_DIR="${datadir}/polkit-1/actions/"
 AC_SUBST(POLKIT_POLICY_DIR)
 
 dnl where is DBus system.d directory?
@@ -123,7 +123,7 @@ AC_SUBST(DISPATCHER_LIBS)
 AC_SUBST(DISPATCHER_CFLAGS)
 
 dnl check for PolicyKit
-PKG_CHECK_MODULES(POLKIT, polkit-dbus >= $POLICYKIT_REQUIRED, have_polkit=yes, have_polkit=no)
+PKG_CHECK_MODULES(POLKIT, polkit-gobject-1 >= $POLICYKIT_REQUIRED, have_polkit=yes, have_polkit=no)
 
 if test "$have_polkit" = "yes"; then
   AC_DEFINE(HAVE_POLKIT, [1], [whether PolicyKit was found])

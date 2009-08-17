@@ -32,7 +32,6 @@
 
 #ifdef HAVE_POLKIT
 #include <polkit/polkit.h>
-#include <polkit-dbus/polkit-dbus.h>
 #endif
 
 #ifdef HAVE_GIO
@@ -67,7 +66,7 @@ struct StbDispatcherPrivate
   gchar *platform;
 
 #ifdef HAVE_POLKIT
-  PolKitContext *polkit_context;
+  PolkitAuthority *polkit_authority;
 #endif
 
 #ifdef HAVE_GIO
@@ -319,10 +318,8 @@ can_caller_do_action (StbDispatcher *dispatcher,
 {
 #ifdef HAVE_POLKIT
   StbDispatcherPrivate *priv;
-  PolKitAction *action;
-  PolKitCaller *caller;
-  DBusError error;
-  PolKitResult result;
+  PolkitSubject *subject;
+  PolkitAuthorizationResult *result;
   const gchar *member;
   gchar *action_id;
   gboolean retval;
@@ -340,35 +337,23 @@ can_caller_do_action (StbDispatcher *dispatcher,
 
   g_return_val_if_fail (member != NULL, FALSE);
 
-  action = polkit_action_new ();
-
   if (name)
     action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s.%s", name, member);
   else
     action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s", member);
 
-  polkit_action_set_action_id (action, action_id);
+  subject = polkit_system_bus_name_new  (dbus_message_get_sender (message));
 
-  dbus_error_init (&error);
-  caller = polkit_caller_new_from_dbus_name (priv->connection, dbus_message_get_sender (message), &error);
+  result = polkit_authority_check_authorization_sync (priv->polkit_authority, subject, action_id, NULL,
+                                                      POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
+                                                      NULL, NULL);
 
-  if (dbus_error_is_set (&error))
-    {
-      g_critical ("%s", error.message);
-      dbus_error_free (&error);
+  g_object_unref (subject);
 
-      return FALSE;
-    }
-
-  result = polkit_context_can_caller_do_action (priv->polkit_context, action, caller);
-
-  polkit_caller_unref (caller);
-  polkit_action_unref (action);
-
-  retval = (result == POLKIT_RESULT_YES);
+  retval = polkit_authorization_result_get_is_authorized (result);
 
   DEBUG (dispatcher,
-	 (retval) ? "caller is allowed to do action '%s'" : "caller can't do action '%s'",
+	 (retval) ? "subject is allowed to do action '%s'" : "subject can't do action '%s'",
 	 action_id);
 
   g_free (action_id);
@@ -615,48 +600,6 @@ setup_connection (StbDispatcher *dispatcher)
   dbus_connection_setup_with_g_main (priv->connection, NULL);
 }
 
-#ifdef HAVE_POLKIT
-static gboolean
-stb_polkit_io_watch_func (GIOChannel   *channel,
-			  GIOCondition  condition,
-			  gpointer      user_data)
-{
-  int fd;
-  PolKitContext *pk_context;
-
-  pk_context = (PolKitContext *) user_data;
-  fd = g_io_channel_unix_get_fd (channel);
-  polkit_context_io_func (pk_context, fd);
-
-  return TRUE;
-}
-
-static int
-stb_polkit_io_add_watch (PolKitContext *context,
-			 int            fd)
-{
-  guint watch_id = 0;
-  GIOChannel *channel;
-
-  channel = g_io_channel_unix_new (fd);
-
-  if (!channel)
-    return 0;
-
-  watch_id = g_io_add_watch (channel, G_IO_IN, stb_polkit_io_watch_func, context);
-  g_io_channel_unref (channel);
-
-  return watch_id;
-}
-
-static void
-stb_polkit_io_remove_watch (PolKitContext *context,
-			    int            watch_id)
-{
-  g_source_remove (watch_id);
-}
-#endif
-
 static void
 stb_dispatcher_init (StbDispatcher *dispatcher)
 {
@@ -671,12 +614,7 @@ stb_dispatcher_init (StbDispatcher *dispatcher)
   g_assert (priv->connection != NULL);
 
 #ifdef HAVE_POLKIT
-  priv->polkit_context = polkit_context_new ();
-  polkit_context_set_io_watch_functions (priv->polkit_context,
-					 stb_polkit_io_add_watch,
-					 stb_polkit_io_remove_watch);
-
-  polkit_context_init (priv->polkit_context, NULL);
+  priv->polkit_authority = polkit_authority_get ();
 #endif
 
 #ifdef HAVE_GIO
@@ -731,7 +669,7 @@ stb_dispatcher_finalize (GObject *object)
   dbus_connection_unref (priv->connection);
 
 #ifdef HAVE_POLKIT
-  polkit_context_unref  (priv->polkit_context);
+  g_object_unref (priv->polkit_authority);
 #endif
 
 #ifdef HAVE_GIO
