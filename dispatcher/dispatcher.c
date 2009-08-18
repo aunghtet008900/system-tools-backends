@@ -379,7 +379,7 @@ can_caller_do_action (StbDispatcher *dispatcher,
 
   if (gerror)
     {
-      g_critical ("Could not get PID of the caller: %s", gerror->message);
+      g_critical ("%s", gerror->message);
       g_error_free (gerror);
       g_free (action_id);
 
