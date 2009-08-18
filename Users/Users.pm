@@ -591,7 +591,8 @@ sub add_user
     if ($cmd_adduser &&
         $Utils::Backend::tool{"platform"} !~ /^slackware/ &&
         $Utils::Backend::tool{"platform"} !~ /^archlinux/ &&
-        $Utils::Backend::tool{"platform"} !~ /^redhat/)
+        $Utils::Backend::tool{"platform"} !~ /^redhat/ &&
+        $Utils::Backend::tool{"platform"} !~ /^gentoo/)
     {
       # use adduser if available and valid (slackware one is b0rk)
       # set empty gecos fields and password, they will be filled out later
