@@ -322,7 +322,12 @@ can_caller_do_action (StbDispatcher *dispatcher,
   PolkitAuthorizationResult *result;
   const gchar *member;
   gchar *action_id;
+  gulong caller_pid;
   gboolean retval;
+  GError *gerror = NULL;
+  DBusError dbus_error;
+  DBusMessage *call, *reply;
+  const gchar *connection_name;
 
   /* Allow getting information */
   if (dbus_message_has_member (message, "get"))
@@ -342,13 +347,44 @@ can_caller_do_action (StbDispatcher *dispatcher,
   else
     action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s", member);
 
-  subject = polkit_system_bus_name_new  (dbus_message_get_sender (message));
+  /* Get the caller's PID using the connection name */
+  call = dbus_message_new_method_call ("org.freedesktop.DBus",
+				       "/org/freedesktop/DBus",
+				       "org.freedesktop.DBus",
+				       "GetConnectionUnixProcessID");
+  connection_name = dbus_message_get_sender (message);
+  dbus_message_append_args (call, DBUS_TYPE_STRING, &connection_name, DBUS_TYPE_INVALID);
 
+  dbus_error_init (&dbus_error);
+
+  reply = dbus_connection_send_with_reply_and_block (priv->connection, call, -1, &dbus_error);
+  if (dbus_error_is_set (&dbus_error))
+    goto dbus_error;
+
+  dbus_message_get_args (reply, &dbus_error, DBUS_TYPE_UINT32, &caller_pid, DBUS_TYPE_INVALID);
+  if (dbus_error_is_set (&dbus_error))
+    goto dbus_error;
+
+  dbus_message_unref (call);
+  dbus_message_unref (reply);
+
+  /* We need to identify the subject using its PID
+   * because it's how PolkitLockButton works on the client side */
+  subject = polkit_unix_process_new (caller_pid);
   result = polkit_authority_check_authorization_sync (priv->polkit_authority, subject, action_id, NULL,
                                                       POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
-                                                      NULL, NULL);
+                                                      NULL, &gerror);
 
   g_object_unref (subject);
+
+  if (gerror)
+    {
+      g_critical ("Could not get PID of the caller: %s", gerror->message);
+      g_error_free (gerror);
+      g_free (action_id);
+
+      return FALSE;
+    }
 
   retval = polkit_authorization_result_get_is_authorized (result);
 
@@ -359,6 +395,13 @@ can_caller_do_action (StbDispatcher *dispatcher,
   g_free (action_id);
 
   return retval;
+
+  dbus_error:
+    g_critical ("Could not get PID of the caller: %s", dbus_error.message);
+    dbus_error_free (&dbus_error);
+    g_free (action_id);
+
+    return FALSE;
 #else
   return TRUE;
 #endif /* HAVE_POLKIT */
