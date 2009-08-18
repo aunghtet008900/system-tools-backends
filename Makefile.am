@@ -26,7 +26,7 @@ scripts_SCRIPTS = $(scripts)
 
 EXTRA_DIST = \
 	system-tools-backends-2.0.pc.in \
-	system-tools-backends.conf \
+	org.freedesktop.SystemToolsBackends.conf \
 	$(policy_in_files) \
 	org.freedesktop.SystemToolsBackends.service.in \
 	test-backends.in \
@@ -54,11 +54,11 @@ service_DATA = org.freedesktop.SystemToolsBackends.service
 
 # DBus system.d file
 systemddir = $(DBUS_SYSTEMD_DIR)
-systemd_DATA = system-tools-backends.conf
+systemd_DATA = org.freedesktop.SystemToolsBackends.conf
 
 if HAVE_POLKIT
 policydir = $(POLKIT_POLICY_DIR)
-policy_in_files = system-tools-backends.policy.in
+policy_in_files = org.freedesktop.SystemToolsBackends.policy.in
 policy_DATA = $(policy_in_files:.policy.in=.policy)
 
 @INTLTOOL_POLICY_RULE@
