@@ -45,8 +45,8 @@ AC_SUBST(EXPANDED_DATADIR)
 AC_EXPAND(sysconfdir,"NONE",EXPANDED_SYSCONFDIR)
 AC_SUBST(EXPANDED_SYSCONFDIR)
 
-AC_EXPAND(bindir,"NONE",bindir)
-AC_SUBST(bindir)
+AC_EXPAND(sbindir,"NONE",sbindir)
+AC_SUBST(sbindir)
 
 AC_EXPAND(localstatedir, "NONE", localstatedir)
 AC_DEFINE_UNQUOTED(LOCALSTATEDIR, "${localstatedir}", [localstatedir])
