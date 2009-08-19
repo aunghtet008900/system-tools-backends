@@ -1,3 +1,57 @@
+System Tools Backends Version 2.8, 2009-O8-20
+-----------------------------------------------
+
+The System Tools Backends version 2.8 "Greetings from Mariehamn" have been released.
+
+The System Tools Backends are a set of cross-platform modules for Linux, FreeBSD, Solaris and other Unix systems. The backends provide an common DBus interface to all distros for modifying or reading the system configuration.
+
+Right now the System Tools Backends fully support various distros/OS such as: Redhat, Mandrake, SuSE, Fedora, Debian (and derivations like Ubuntu, Linex, Guadalinex...), FreeBSD, Solaris, Gentoo, Slackware, OpenNA, PLD, Vine and Specifix.
+
+Changes since last release
+==========================
+
+    - Port to PolicyKit1. This change breaks compatibility with clients that don't support it, namely the gnome-system-tools < 2.28. (Milan Bouchet-Valat)
+    - Fix D-Bus and PolicyKit policy files (Milan Bouchet-Valat, Simon McVittie, Josselin Mouette and Colin Walters)
+    - Move the s-t-b executable to sbindir (Vladimir Lettiev)
+    - Remove stale PID file when terminating (Chris Coulson)
+    - Copy timezone to /etc/localtime instead of symlinking. Packaging tools should take care of updating themselves that file when they update the timezone data. (Steve Langasek)
+    - Fix Gentoo support in several ways (Jeremy Guitton)
+    - Fix translation files being installed with broken name (Götz Waschk)
+    - Fix failure in time-admin when looking up "Europe/Helsinki" as time zone value (Michael Terry)
+
+Translations
+============
+    - ar, courtesy of Khaled Hosny
+    - bn_IN, courtesy of Runa Bhattacharjee
+    - cs, courtesy of Petr Kovar
+    - de, courtesy of Mario Blättermann
+    - en_GB, courtesy of Philip Withnall
+    - et, courtesy of Ivar Smolin
+    - fi, courtesy of Ilkka Tuohela
+    - gl, courtesy of Fran Diéguez
+    - gu, courtesy of Sweta Kothari
+    - he, courtesy of Mark Krapivner
+    - hi, courtesy of Rajesh Ranjan
+    - ja, courtesy of Takeshi AIHANA
+    - kn, courtesy of Shankar Prasad
+    - or, courtesy of Manoj Kumar Giri
+    - pa, courtesy of A S Alam
+    - sr, courtesy of Milan SKOCIC
+    - sr@latin, courtesy of Milan SKOCIC
+    - sv, courtesy of Daniel Nylander
+    - ta, courtesy of Dr.T.Vasudevan
+    - te, courtesy of Krishna Babu K
+    - th, courtesy of Akom C.
+    - uk, courtesy of wanderlust
+    - zh_HK, courtesy of Chao-Hsiung Liao
+    - zh_TW, courtesy of Chao-Hsiung Liao
+
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.6/
+
 System Tools Backends Version 2.6.1, 2009-04-15
 -----------------------------------------------
 
