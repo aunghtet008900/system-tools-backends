@@ -1,3 +1,15 @@
+System Tools Backends Version 2.8.1, 2009-O8-20
+-----------------------------------------------
+
+The System Tools Backends version 2.8.1 "Crunch" have been released. This is a minor release fixing the brown paper bag version 2.8.
+
+Changes since last release
+==========================
+
+    - Fix D-Bus activation to point to $(sbindir) (thanks to Götz Waschk)
+    - Move $policy_in_files out of the HAVE_POLKIT case (Carlos Garnacho)
+
+
 System Tools Backends Version 2.8, 2009-O8-20
 -----------------------------------------------
 
