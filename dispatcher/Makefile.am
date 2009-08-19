@@ -4,7 +4,7 @@ INCLUDES = \
 	$(POLKIT_CFLAGS) \
 	$(GIO_CFLAGS)
 
-bin_PROGRAMS = system-tools-backends
+sbin_PROGRAMS = system-tools-backends
 
 if HAVE_GIO
 file_monitor_sources = file-monitor.c file-monitor.h
