@@ -144,7 +144,7 @@ sub set_timezone
     unlink $localtime;  # Important, since it might be a symlink.
     
     &Utils::Report::enter ();
-    $res = symlink ($tz, $localtime);
+    $res = copy ($tz, $localtime);
     &Utils::Report::leave ();
     return -1 unless $res;
     return 0;
