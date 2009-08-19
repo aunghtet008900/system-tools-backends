@@ -61,6 +61,12 @@ daemonize (void)
   close (dev_null_fd);
 }
 
+static void
+remove_pidfile (void)
+{
+  unlink (LOCALSTATEDIR "/run/system-tools-backends.pid");
+}
+
 void
 signal_received (gint signal)
 {
@@ -69,6 +75,7 @@ signal_received (gint signal)
     case SIGTERM:
     case SIGABRT:
       g_object_unref (dispatcher);
+      remove_pidfile ();
       exit (0);
       break;
     default:
