@@ -1,36 +1,45 @@
 # Brazilian Portuguese translation of system-tools-backends.
 # Copyright (C) 2004-2005 Free Software Foundation, Inc.
 # This file is distributed under the same license as the system-tools-backends package.
+#
 # Raphael Higino <raphaelh@uai.com.br>, 2004-2005.
 # André Gondim <andregondim@ubuntu.com>, 2008?.
 # Leonardo Ferreira Fontenelle <leonardof@gnome.org>, 2009.
+# Rodolfo Ribeiro Gomes <rodolforg@gmail.com>, 2009.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: system-tools-backends\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-"
-"system-tools&component=s-t-b\n"
-"POT-Creation-Date: 2009-04-02 07:54+0000\n"
-"PO-Revision-Date: 2009-03-19 14:38+0000\n"
-"Last-Translator: Leonardo Ferreira Fontenelle <leonardof@gnome.org>\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-08-25 21:44-0400\n"
+"PO-Revision-Date: 2009-08-25 10:37-0300\n"
+"Last-Translator: Rodolfo Ribeiro Gomes <rodolforg@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 0.3\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ../system-tools-backends.policy.in.h:1
-msgid "Change user configuration"
-msgstr "Alterar configuração do usuário"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
+msgid "Change the user's own account configuration"
+msgstr "Alterar a configuração da conta do próprio usuário"
 
-#: ../system-tools-backends.policy.in.h:2
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:2
 msgid "Manage system configuration"
-msgstr "Gerenciar configuração do sistema"
+msgstr "Gerenciar a configuração do sistema"
 
-#: ../system-tools-backends.policy.in.h:3
-msgid "System policy prevents modifying the configuration"
-msgstr "Política do sistema que impede a modificação da configuração"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
+msgid "System policy prevents modifying the system configuration"
+msgstr "A política do sistema impede a modificação da configuração do sistema"
 
-#: ../system-tools-backends.policy.in.h:4
-msgid "System policy prevents modifying the user configuration"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
+msgid ""
+"System policy requires you to authenticate in order to modify your user "
+"account information"
 msgstr ""
-"Política do sistema que impede a modificação da configuração do usuário"
+"A política do sistema requer que você se autentique para modificar as "
+"informações de sua própria conta"
+
+#~ msgid "System policy prevents modifying the configuration"
+#~ msgstr "Política do sistema que impede a modificação da configuração"
