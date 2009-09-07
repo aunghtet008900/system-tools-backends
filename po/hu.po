@@ -1,34 +1,39 @@
 # Hungarian translation of system-tools-backends.
-# Copyright (C) 2005 Free Software Foundation, Inc.
+# Copyright (C) 2005, 2009 Free Software Foundation, Inc.
 # This file is distributed under the same license as the system-tools-backends package.
-# Gabor Kelemen <kelemeng@gnome.hu>, 2009
 #
+# Gabor Kelemen <kelemeng at gnome dot hu>, 2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: system-tools-backends\n"
+"Project-Id-Version: system-tools-backends clone\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-04-08 11:44+0200\n"
-"PO-Revision-Date: 2009-04-08 11:45+0200\n"
-"Last-Translator: Gabor Kelemen <kelemeng@gnome.hu>\n"
-"Language-Team: Hungarian <gnome@mail.fsf.hu>\n"
+"POT-Creation-Date: 2009-09-07 17:35+0200\n"
+"PO-Revision-Date: 2009-09-07 17:35+0200\n"
+"Last-Translator: Gabor Kelemen <kelemeng at gnome dot hu>\n"
+"Language-Team: Hungarian <gnome at fsf dot hu>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Launchpad-Export-Date: 2009-04-01 17:12+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms:  nplurals=2; plural=(n != 1);\n"
 
-#: ../system-tools-backends.policy.in.h:1
-msgid "Change user configuration"
-msgstr "Felhasználói információk módosítása"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
+msgid "Change the user's own account configuration"
+msgstr "A felhasználó saját fiókbeállításainak módosítása"
 
-#: ../system-tools-backends.policy.in.h:2
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:2
 msgid "Manage system configuration"
 msgstr "Rendszerbeállítások kezelése"
 
-#: ../system-tools-backends.policy.in.h:3
-msgid "System policy prevents modifying the configuration"
-msgstr "A rendszer házirendje megakadályozza a beállítások módosítását"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
+msgid "System policy prevents modifying the system configuration"
+msgstr "A rendszer házirendje megakadályozza a rendszerbeállítások módosítását"
 
-#: ../system-tools-backends.policy.in.h:4
-msgid "System policy prevents modifying the user configuration"
-msgstr "A rendszer házirendje megakadályozza a felhasználói beállítások módosítását"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
+msgid ""
+"System policy requires you to authenticate in order to modify your user "
+"account information"
+msgstr ""
+"A rendszer házirendje megköveteli a hitelesítést a felhasználói fiók "
+"információinak módosítását"
