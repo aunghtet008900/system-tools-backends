@@ -5,9 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: systems-tools-backends\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-"
-"system-tools&component=s-t-b\n"
-"POT-Creation-Date: 2009-04-16 03:30+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-09-13 14:06+0100\n"
 "PO-Revision-Date: 2009-04-16 03:30+0000\n"
 "Last-Translator: Philip Withnall <philip@tecnocode.co.uk>\n"
 "Language-Team: British English <en@li.org>\n"
@@ -15,18 +14,25 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../system-tools-backends.policy.in.h:1
-msgid "Change user configuration"
-msgstr "Change user configuration"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
+msgid "Change the user's own account configuration"
+msgstr "Change the user's own account configuration"
 
-#: ../system-tools-backends.policy.in.h:2
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:2
 msgid "Manage system configuration"
 msgstr "Manage system configuration"
 
-#: ../system-tools-backends.policy.in.h:3
-msgid "System policy prevents modifying the configuration"
-msgstr "System policy prevents modifying the configuration"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
+msgid "System policy prevents modifying the system configuration"
+msgstr "System policy prevents modifying the system configuration"
 
-#: ../system-tools-backends.policy.in.h:4
-msgid "System policy prevents modifying the user configuration"
-msgstr "System policy prevents modifying the user configuration"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
+msgid ""
+"System policy requires you to authenticate in order to modify your user "
+"account information"
+msgstr ""
+"System policy requires you to authenticate in order to modify your user "
+"account information"
+
+#~ msgid "System policy prevents modifying the configuration"
+#~ msgstr "System policy prevents modifying the configuration"
