@@ -88,12 +88,15 @@ main (int argc, char *argv[])
 {
   GMainLoop *main_loop;
   gboolean debug = FALSE;
-  gboolean no_daemon = FALSE;
+  gboolean daemon = FALSE;
   GOptionContext *context;
   GOptionEntry entries[] =
     {
       { "debug",     'd', 0, G_OPTION_ARG_NONE, &debug,     "Debug mode",     NULL },
-      { "no-daemon", 'n', 0, G_OPTION_ARG_NONE, &no_daemon, "No daemon mode", NULL },
+      { "daemon",    'D', 0, G_OPTION_ARG_NONE, &daemon, "Daemon mode", NULL },
+      /* Option kept for backward compatibility */
+      { "no-daemon", 'n', G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_REVERSE,
+                             G_OPTION_ARG_NONE, &daemon, "No daemon mode (default)", NULL },
       { NULL }
     };
 
@@ -105,8 +108,7 @@ main (int argc, char *argv[])
   g_option_context_parse (context, &argc, &argv, NULL);
   g_option_context_free (context);
 
-  /* keep the envvar for backwards compat */
-  if (!no_daemon && !getenv ("STB_NO_DAEMON"))
+  if (daemon)
     daemonize ();
 
   signal (SIGTERM, signal_received);
