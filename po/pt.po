@@ -1,0 +1,38 @@
+# Portuguese translation for system-tools-backends-clone.
+# Copyright © 2009 system-tools-backends-clone
+# This file is distributed under the same license as the system-tools-backends-clone package.
+# Duarte Loreto <happyguy_pt@hotmail.com>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: system-tools-backends-clone master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-"
+"system-tools&component=s-t-b\n"
+"POT-Creation-Date: 2009-09-13 13:07+0000\n"
+"PO-Revision-Date: 2009-09-13 13:07+0000\n"
+"Last-Translator: Duarte Loreto <happyguy_pt@hotmail.com>\n"
+"Language-Team: Portuguese <gnome_pt@yahoogroups.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
+msgid "Change the user's own account configuration"
+msgstr "Alterar a configuração da conta do próprio utilizador"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:2
+msgid "Manage system configuration"
+msgstr "Gerir a configuração do sistema"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
+msgid "System policy prevents modifying the system configuration"
+msgstr "A política do sistema impede a alteração da configuração do mesmo"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
+msgid ""
+"System policy requires you to authenticate in order to modify your user "
+"account information"
+msgstr ""
+"A política do sistema requer que se autentique para que possa alterar a "
+"informação da sua conta"
