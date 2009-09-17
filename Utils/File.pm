@@ -55,34 +55,18 @@ sub get_backup_path
   return (&get_base_path () . "/backup");
 }
 
-# Give a command, and it will put in C locale, some sane PATH values and find
+# Give a command, and it will put in C locale and find
 # the program to run in the path. Redirects stderr to null.
-sub do_get_cmd_path
-{
-  my ($cmd) = @_;
-  my ($tool_name, @argline, $command, $tool_path);
-  
-  ($tool_name, @argline) = split("[ \t]+", $cmd);
-
-  $tool_path = &locate_tool ($tool_name);
-  return -1 if ($tool_path eq "");
-
-  $command = "$tool_path @argline";
-  # Do not escape args, it's reasonable
-  # to assume they're already escaped
-  #$command =~ s/\"/\\\"/g;
-
-  return $command;
-}
-
 sub get_cmd_path
 {
    my ($cmd) = @_;
 
-   my $command = &do_get_cmd_path ($cmd);
+   my ($tool_name, @argline) = split("[ \t]+", $cmd);
+   my $tool_path = &locate_tool ($tool_name);
+   return -1 if ($tool_path eq "");
 
-   return -1 if ($command == -1);
-   return ("LC_ALL=C PATH=\$PATH:/sbin:/usr/sbin $command 2> /dev/null");
+   $command = "$tool_path @argline";
+   return ("LC_ALL=C $command 2> /dev/null");
 }
 
 # necessary for some programs that output info through stderr
@@ -91,7 +75,7 @@ sub get_cmd_path_with_stderr
    my ($cmd) = @_;
 
    my $command = &get_cmd_path ($cmd);
-   return ("LC_ALL=C PATH=\$PATH:/sbin:/usr/sbin $command 2>&1");
+   return ("LC_ALL=C $command 2>&1");
 }
 
 
@@ -460,7 +444,7 @@ sub run_pipe
   $command .= " |" if $mode_mask & $FILE_READ;
   $command = "| $command > /dev/null" if $mode_mask & $FILE_WRITE;
 
-  open PIPE, $command;
+  open *PIPE, $command;
   &Utils::Report::do_report ("file_run_pipe_success", $command);
   &Utils::Report::leave ();
   return *PIPE;
@@ -764,40 +748,66 @@ sub read_joined_lines
 # --- Command-line utilities --- #
 
 
-# &run (<command line>)
+# &run_full (<in background>, <command>, <array of arguments>)
 #
-# Assumes the first word on the command line is the command-line utility
+# Takes a boolean indicating whether to run the program in the background,
+# an array containing a command to run and the arguments to pass.
+# Assumes the first word in the array is the command-line utility
 # to run, and tries to locate it, replacing it with its full path. The path
 # is cached in a hash, to avoid searching for it repeatedly. Output
 # redirection is appended, to make the utility perfectly silent. The
-# preprocessed command line is run, and its exit value is returned.
+# preprocessed command line is run, and its exit value is returned,
+# or -1 on failure. When run in the background, 0 is returned if
+# the fork did succeed, disregarding possible failure of exec().
 #
-# Example: "mkswap /dev/hda3" -> 'PATH=$PATH:/sbin:/usr/sbin /sbin/mkswap /dev/hda3 2>/dev/null >/dev/null'.
 
-sub run
+sub run_full
 {
-  my ($cmd, $background) = @_;
-  my ($command, $tool_name, $tool_path, @argline);
+  my ($background, $cmd, @arguments) = @_;
+  my ($command, $tool_name, $tool_path, $pid);
 
   &Utils::Report::enter ();
 
-  $command = &get_cmd_path ($cmd);
+  $tool_path = &locate_tool ($cmd);
+  return -1 if ($tool_path eq "");
   return -1 if $command == -1;
-  $command .= " > /dev/null";
-  $command .= " &" if $background;
 
-  &Utils::Report::do_report ("file_run", $command);
+  $command = join (" ", ($tool_path, @arguments));
+  &Utils::Report::do_report ("file_run_full", $command);
   &Utils::Report::leave ();
 
+  my $pid = fork();
+
+  return -1 if (!defined $pid);
+
+  if ($pid == 0)
+  {
+    $ENV{"LC_ALL"} = "C";
+    open (STDOUT, "/dev/null");
+    open (STDERR, "/dev/null");
+    exec ($tool_path, @arguments);
+    exit (0);
+  }
+
+  # If no error has occurred so far, assume success,
+  # ignoring the future return value
+  return 0 if ($background);
+
+  waitpid ($pid, 0);
+
   # As documented in perlfunc, divide by 256.
-  return (system ($command) / 256);
+  return ($? / 256);
 }
 
+# Simple wrappers calling &run_full() with the right background parameter
 sub run_bg
 {
-  my ($cmd) = @_;
+  return &run_full (1, @_);
+}
 
-  return &run ($cmd, 1);
+sub run
+{
+  return &run_full (0, @_);
 }
 
 # &gst_file_locate_tool

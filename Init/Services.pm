@@ -232,7 +232,7 @@ sub run_sysv_initd_script
 
   if (-f "$initd_path/$service")
   {
-    if (&Utils::File::run ("$initd_path/$service $arg") == 0)
+    if (&Utils::File::run ("$initd_path/$service", $arg) == 0)
     {
       &Utils::Report::do_report ("service_sysv_op_success", $service, $arg);
       &Utils::Report::leave ();
@@ -589,15 +589,15 @@ sub run_bsd_script
   if (! -x $service)
   {
     $chmod = 1;
-    &Utils::File::run ("chmod ugo+x $service");
+    &Utils::File::run ("chmod", "ugo+x", $service);
   }
 
-  &Utils::File::run ("$service $arg", 1);
+  &Utils::File::run_bg ($service, $arg);
 
   # return it to it's normal state
   if ($chmod)
   {
-    &Utils::File::run ("chmod ugo-x $service");
+    &Utils::File::run ("chmod", "ugo-x", $service);
   }
 }
 
@@ -625,13 +625,13 @@ sub set_bsd_services
 
     if ($status == $SERVICE_START)
     {
-      &Utils::File::run ("chmod ugo+x $script");
+      &Utils::File::run ("chmod", "ugo+x", $script);
       &run_bsd_script ($script, "start");
     }
     else
     {
       &run_bsd_script ($script, "stop");
-      &Utils::File::run ("chmod ugo-x $script");
+      &Utils::File::run ("chmod", "ugo-x", $script);
     }
   }
 }
@@ -778,7 +778,7 @@ sub run_gentoo_script
 
   if (&gentoo_service_exists ($service))
   {
-    if (!&Utils::File::run ("/etc/init.d/$service $arg"))
+    if (!&Utils::File::run ("/etc/init.d/$service", $arg))
     {
       &Utils::Report::do_report ("service_sysv_op_success", $service, $arg);
       &Utils::Report::leave ();
@@ -804,13 +804,13 @@ sub set_gentoo_service_status
 
   if ($status == $SERVICE_START)
   {
-    &Utils::File::run ("rc-update add $script $rl");
+    &Utils::File::run ("rc-update", "add", $script, $rl);
     &run_gentoo_script ($script, "start");
   }
   else
   {
     &run_gentoo_script ($script, "stop");
-    &Utils::File::run ("rc-update del $script $rl");
+    &Utils::File::run ("rc-update", "del", $script, $rl);
   }
 }
 
@@ -909,7 +909,7 @@ sub run_rcng_script
 
   &Utils::Report::enter ();
 
-  if (!&Utils::File::run ("/etc/rc.d/$service $arg"))
+  if (!&Utils::File::run ("/etc/rc.d/$service", $arg))
   {
     &Utils::Report::do_report ("service_sysv_op_success", $service, $arg);
     &Utils::Report::leave ();
@@ -1092,7 +1092,7 @@ sub set_suse_services
     $rllist = "";
     %configured_runlevels = {};
 
-    &Utils::File::run ("insserv -r $script");
+    &Utils::File::run ("insserv", "-r", $script);
 
     foreach $rl (@$runlevels)
     {
@@ -1110,7 +1110,7 @@ sub set_suse_services
     {
       $rllist =~ s/,$//;
 
-      &Utils::File::run ("insserv $script,start=$rllist");
+      &Utils::File::run ("insserv", $script, "start=$rllist");
     }
 
     if (!$configured_runlevels{$default_runlevel})
@@ -1146,7 +1146,7 @@ sub run_smf_svcadm
 
   if (&smf_service_exists ($service))
   {
-    if (!&Utils::File::run ("svcadm $op{$arg} $service"))
+    if (!&Utils::File::run ("svcadm", $op{$arg}, $service))
     {
       &Utils::Report::do_report ("service_sysv_op_success", $service, $arg);
       &Utils::Report::leave ();
@@ -1245,11 +1245,11 @@ sub set_smf_service_status
 
   if ($active == $SERVICE_START)
   {
-    &Utils::File::run ("svcadm enable -s $service");
+    &Utils::File::run ("svcadm", "enable", "-s", $service);
   }
   else
   {
-    &Utils::File::run ("svcadm disable -s $service");
+    &Utils::File::run ("svcadm", "disable", "-s", $service);
   }
 }
 

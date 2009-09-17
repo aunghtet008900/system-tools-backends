@@ -158,7 +158,7 @@ sub apply_ntp_date
 
   # run ntpdate, this will only be effective
   # when there isn't any NTP server running
-  &Utils::File::run ("ntpdate -b $servers") if ($servers);
+  &Utils::File::run ("ntpdate", "-b", $servers) if ($servers);
 }
 
 sub get

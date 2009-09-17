@@ -126,8 +126,7 @@ sub get_linux_wireless_ifaces
   my ($fd, $line);
   my (@ifaces, $command);
 
-  $command = &Utils::File::get_cmd_path ("iwconfig");
-  open $fd, "$command |";
+  $fd = &Utils::File::run_pipe_read ("iwconfig");
   return @ifaces if $fd eq undef;
 
   while (<$fd>)

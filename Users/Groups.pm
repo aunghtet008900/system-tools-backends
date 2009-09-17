@@ -52,15 +52,15 @@ sub del_group
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    $command = "$cmd_pw groupdel -n \'" . $$group[$LOGIN] . "\'";
+    @command = ($cmd_pw, "groupdel", "-n", $$group[$LOGIN]);
   }
   else
   {
-    $command  = ($cmd_delgroup) ? $cmd_delgroup : $cmd_groupdel;
-    $command .= " \'" . $$group[$LOGIN] . "\'";
+    @command  = (($cmd_delgroup) ? $cmd_delgroup : $cmd_groupdel,
+                 $$group[$LOGIN]);
   }
 
-  &Utils::File::run ($command);
+  &Utils::File::run (@command);
 }
 
 # This is only for Linux and SunOS,
@@ -68,7 +68,7 @@ sub del_group
 sub add_user_to_group
 {
   my ($group, $user) = @_;
-  my ($command);
+  my (@command);
 
   if ($Utils::Backend::tool{"system"} eq "SunOS")
   {
@@ -84,14 +84,14 @@ sub add_user_to_group
     $groups =~ s/^,//;
     $groups =~ s/,$//;
 
-    $command = "$cmd_usermod -G $groups $user";
+    @command = ($cmd_usermod, "-G", $groups, $user);
   }
   else
   {
-    $command = "$cmd_gpasswd -a \'" . $user . "\' " . $group;
+    @command = ($cmd_gpasswd, "-a", $user, $group);
   }
 
-  &Utils::File::run ($command);
+  &Utils::File::run (@command);
 }
 
 # This is only for Linux and SunOS,
@@ -99,11 +99,11 @@ sub add_user_to_group
 sub delete_user_from_group
 {
   my ($group, $user) = @_;
-  my ($command);
+  my (@command);
 
   if ($Utils::Backend::tool{"system"} eq "SunOS")
   {
-    my ($groups, @arr);
+    my ($groups, @groups_arr);
 
     $groups = &Utils::File::run_backtick ("groups $user");
     $groups =~ s/.*://;
@@ -112,52 +112,47 @@ sub delete_user_from_group
     # delete the user
     $groups =~ s/[ \t]+$group//;
 
-    @arr = split (/ /, $groups);
-    $groups = join (',', @arr);
-    $groups =~ s/^,//;
-    $groups =~ s/,$//;
+    @groups_arr = split (/ /, $groups);
     
-    $command = "$cmd_usermod -G $groups $user";
+    @command = ($cmd_usermod, "-G", @groups_arr, $user);
   }
   else
   {
-    $command = "$cmd_gpasswd -d \'" . $user . "\' \'" . $group . "\'";
+    @command = ($cmd_gpasswd, "-d", $user, $group);
   }
 
-  &Utils::File::run ($command);
+  &Utils::File::run (@command);
 }
 
 sub add_group
 {
   my ($group) = @_;
-  my ($u, $user, $users);
+  my ($u, $user, @users);
 
   $u = $$group[$USERS];
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    $users = join (",", sort @$u);
+    @users = sort @$u;
       
-    $command = "$cmd_pw groupadd -n \'" . $$group[$LOGIN] .
-      "\' -g \'" . $$group[$GID] .
-      "\' -M \'" . $users . "\'";
+    @command = ($cmd_pw, "groupadd", "-n", $$group[$LOGIN],
+                                     "-g", $$group[$GID],
+                                     "-M", @users);
 
-    &Utils::File::run ($command);
+    &Utils::File::run (@command);
   }
   else
   {
     if ($cmd_addgroup)
     {
-      $command = "$cmd_addgroup " .
-          "--gid \'" . $$group[$GID] . "\' " . $$group[$LOGIN];
+      @command = ($cmd_addgroup, "--gid", $$group[$GID], $$group[$LOGIN]);
     }
     else
     {
-      $command = "$cmd_groupadd -g \'" . $$group[$GID] .
-          "\' " . $$group[$LOGIN];
+      @command = ($cmd_groupadd, "-g", $$group[$GID], $$group[$LOGIN]);
     }
 
-    &Utils::File::run ($command);
+    &Utils::File::run (@command);
 
     foreach $user (sort @$u)
     {
@@ -178,20 +173,20 @@ sub change_group
     $users_arr = $$new_group[$USERS];
     $str = join (",", sort @$users_arr);
 
-    $command = "$cmd_pw groupmod -n \'" . $$old_group[$LOGIN] .
-        "\' -g \'" . $$new_group[$GID] .
-        "\' -l \'" . $$new_group[$LOGIN] .
-        "\' -M \'" . $str . "\'";
+    @command = ($cmd_pw, "groupmod", "-n", $$old_group[$LOGIN],
+                                     "-g", $$new_group[$GID],
+                                     "-l", $$new_group[$LOGIN],
+                                     "-M", $str);
 
-    &Utils::File::run ($command);
+    &Utils::File::run (@command);
   }
   else
   {
-    $command = "$cmd_groupmod -g \'" . $$new_group[$GID] .
-        "\' -n \'" . $$new_group[$LOGIN] . "\' " .
-        "\'" . $$old_group[$LOGIN] . "\'";
+    @command = ($cmd_groupmod, "-g", $$new_group[$GID],
+                               "-n", $$new_group[$LOGIN],
+                                     $$old_group[$LOGIN]);
   
-    &Utils::File::run ($command);
+    &Utils::File::run (@command);
 
     # Let's see if the users that compose the group have changed.
     if (!Utils::Util::struct_eq ($$new_group[$USERS], $$old_group[$USERS]))

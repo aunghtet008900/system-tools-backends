@@ -188,7 +188,7 @@ sub add
      "file_open_write_success"  => ["info",  "Writing to [%s]."],
      "file_run_pipe_failed"     => ["warn",  "Failed to pipe command [%s] for reading."],
      "file_run_pipe_success"    => ["info",  "Piping command [%s] for reading."],
-     "file_run"                 => ["info",  "Running command [%s]."],
+     "file_run_full"            => ["info",  "Running command [%s]."],
      "file_create_path"         => ["info",  "Directory [%s] created."],
      "file_backup_rotate"       => ["info",  "Backup directory [%s] was rotated."],
      "file_backup_success"      => ["info",  "Saved backup for [%s]."],

@@ -43,7 +43,7 @@ sub get_utc_time
 sub change_timedate
 {
   my ($time) = @_;
-  my ($command);
+  my (@command);
 
   my $system_table = {
     "Linux"   => "date -u %02d%02d%02d%02d%04d.%02d",
@@ -51,13 +51,13 @@ sub change_timedate
     "SunOS"   => "date -u %02d%02d%02d%02d%04d.%02d",
   };
 
-  $command = sprintf ($$system_table {$Utils::Backend::tool{"system"}},
-                      $$time{"month"} + 1, $$time{"monthday"},
-                      $$time{"hour"},  $$time{"minute"}, 
-                      $$time{"year"},  $$time{"second"});
+  @command = ($$system_table {$Utils::Backend::tool{"system"}},
+              $$time{"month"} + 1, $$time{"monthday"},
+              $$time{"hour"}, $$time{"minute"},
+              $$time{"year"}, $$time{"second"});
 
-  &Utils::Report::do_report ("time_localtime_set", $command);
-  return &Utils::File::run ($command);
+  &Utils::Report::do_report ("time_localtime_set", @command);
+  return &Utils::File::run (@command);
 }
 
 sub set_utc_time
@@ -73,7 +73,7 @@ sub set_utc_time
 
 sub time_sync_hw_from_sys
 {
-  &Utils::File::run ("hwclock --systohc") if ($$tool{"system"} eq "Linux");
+  &Utils::File::run ("hwclock", "--systohc") if ($$tool{"system"} eq "Linux");
   return 0;
 }
 
@@ -116,7 +116,7 @@ sub get_timezone
     $size_test = (stat("$zoneinfo_dir/$zone"))[7];
     if ($size_test eq $size_search)
     {
-      if (!&Utils::File::run ("diff $zoneinfo_dir/$zone $local_time_file"))
+      if (!&Utils::File::run ("diff", "$zoneinfo_dir/$zone", $local_time_file))
       {
         # Found a match.
         last;

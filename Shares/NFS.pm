@@ -374,8 +374,8 @@ sub set
 
   if ($Utils::Backend::tool{"system"} eq "SunOS")
   {
-    &Utils::File::run ("unshareall -F nfs");
-    &Utils::File::run ("shareall -F nfs");
+    &Utils::File::run ("unshareall", "-F", "nfs");
+    &Utils::File::run ("shareall", "-F", "nfs");
   }
 }
 

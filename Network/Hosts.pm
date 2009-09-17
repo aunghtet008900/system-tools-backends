@@ -29,7 +29,7 @@ sub run_hostname
 
   &Utils::Report::enter ();
   &Utils::Report::do_report ("network_hostname_set", $hostname);
-  &Utils::File::run ("hostname $hostname");
+  &Utils::File::run ("hostname", $hostname);
   &Utils::Report::leave ();
 }
 

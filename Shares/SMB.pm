@@ -317,7 +317,7 @@ sub set_smb_users
     {
       # User deleted
       $user = $old_hash{$i};
-      &Utils::File::run ("pdbedit --delete -u $$user[0]");
+      &Utils::File::run ("pdbedit", "--delete", "-u", $$user[0]);
     }
   }
 }

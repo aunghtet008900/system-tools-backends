@@ -439,32 +439,32 @@ sub get
 sub del_user
 {
 	my ($user) = @_;
-  my ($command);
+  my (@command);
 	
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    $command = "$cmd_pw userdel -n \'" . $$user[$LOGIN] . "\' ";
+    @command = ($cmd_pw, "userdel", "-n", $$user[$LOGIN]);
   }
   else
   {
     if ($cmd_deluser)
     {
-      $command = "$cmd_deluser '". $$user[$LOGIN] . "'";
+      @command = ($cmd_deluser, $$user[$LOGIN]);
     }
     else
     {
-      $command = "$cmd_userdel \'" . $$user[$LOGIN] . "\'";
+      @command = ($cmd_userdel, $$user[$LOGIN]);
     }
   }
 
-  &Utils::File::run ($command);
+  &Utils::File::run (@command);
 }
 
 sub change_user_chfn
 {
   my ($login, $old_comment, $comment) = @_;
   my ($fname, $office, $office_phone, $home_phone);
-  my ($command, $str);
+  my (@command, $str);
 
   return if !$login;
 
@@ -474,14 +474,15 @@ sub change_user_chfn
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    $command = "$cmd_pw usermod -n " . $login . " -c \'" . $str . "\'";
+    @command = ($cmd_pw, "usermod", "-n", $login,
+                                    "-c", $str);
   }
   else
   {
-    $command = "$cmd_usermod -c \'" . $str . "\' " . $login;
+    @command = ($cmd_usermod, "-c", $str, $login);
   }
 
-  &Utils::File::run ($command);
+  &Utils::File::run (@command);
 }
 
 # modifies /etc/shadow directly, not good practice,
@@ -515,11 +516,11 @@ sub modify_shadow_password
 sub set_passwd
 {
   my ($login, $password) = @_;
-  my ($pwdpipe, $command);
+  my ($pwdpipe);
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-
+    my ($command);
     $command = "$cmd_pw usermod -H 0";
     $pwdpipe = &Utils::File::run_pipe_write ($command);
     print $pwdpipe $password;
@@ -531,10 +532,10 @@ sub set_passwd
   }
   else
   {
-    $command = "$cmd_usermod " .
-        " -p '" . $password . "' " . $login;
+    my (@command);
+    @command = ($cmd_usermod, "-p", $password, $login);
 
-    &Utils::File::run ($command);
+    &Utils::File::run (@command);
   }
 }
 
@@ -552,7 +553,7 @@ sub add_user
 
     # FreeBSD doesn't create the home directory
     $home = $$user[$HOME];
-    &Utils::File::run ("$tool_mkdir -p $home");
+    &Utils::File::run ($tool_mkdir, "-p", $home);
 
     $command = "$cmd_pw useradd " .
         " -n \'" . $$user[$LOGIN] . "\'" .
@@ -562,6 +563,13 @@ sub add_user
         " -s \'" . $$user[$SHELL] . "\'" .
         " -H 0"; # pw(8) reads password from STDIN
 
+#    @command = ($cmd_pw, "useradd", "-n", $$user[$LOGIN],
+#                                    "-u", $$user[$UID],
+#                                    "-d", $$user[$HOME],
+#                                    "-g", $$user[$GID],
+#                                    "-s", $$user[$SHELL],
+#                                    "-H", "0"); # pw(8) reads password from STDIN
+
     $pwdpipe = &Utils::File::run_pipe_write ($command);
     print $pwdpipe $$user[$PASSWD];
     &Utils::File::close_file ($pwdpipe);
@@ -570,23 +578,22 @@ sub add_user
   {
     $home_parents = $$user[$HOME];
     $home_parents =~ s/\/+[^\/]+\/*$//;
-    &Utils::File::run ("$tool_mkdir -p $home_parents");
+    &Utils::File::run ($tool_mkdir, "-p", $home_parents);
 
-    $command = "$cmd_useradd" .
-        " -d \'" . $$user[$HOME]  . "\'" .
-        " -g \'" . $$user[$GID]   . "\'" .
-        " -s \'" . $$user[$SHELL] . "\'" .
-        " -u \'" . $$user[$UID]   . "\'" .
-        " \'"    . $$user[$LOGIN] . "\'";
+    @command = ($cmd_useradd, "-d", $$user[$HOME],
+                              "-g", $$user[$GID],
+                              "-s", $$user[$SHELL],
+                              "-u", $$user[$UID],
+                                    $$user[$LOGIN]);
 
-    &Utils::File::run ($command);
+    &Utils::File::run (@command);
     &modify_shadow_password ($$user[$LOGIN], $$user[$PASSWD]);
   }
   else
   {
     $home_parents = $$user[$HOME];
     $home_parents =~ s/\/+[^\/]+\/*$//;
-    &Utils::File::run ("$tool_mkdir -p $home_parents");
+    &Utils::File::run ($tool_mkdir, "-p", $home_parents);
 
     if ($cmd_adduser &&
         $Utils::Backend::tool{"platform"} !~ /^slackware/ &&
@@ -596,34 +603,34 @@ sub add_user
     {
       # use adduser if available and valid (slackware one is b0rk)
       # set empty gecos fields and password, they will be filled out later
-      $command = "$cmd_adduser --gecos '' --disabled-password" .
-          " --home \'"  . $$user[$HOME]   . "\'" .
-          " --gid \'"   . $$user[$GID]    . "\'" .
-          " --shell \'" . $$user[$SHELL]  . "\'" .
-          " --uid \'"   . $$user[$UID]    . "\'" .
-          " \'"         . $$user[$LOGIN]  . "\'";
+      @command = ($cmd_adduser, "--gecos", "",
+                                "--disabled-password",
+                                "--home", $$user[$HOME],
+                                "--gid", $$user[$GID],
+                                "--shell", $$user[$SHELL],
+                                "--uid", $$user[$UID],
+                                         $$user[$LOGIN]);
 
-      &Utils::File::run ($command);
+      &Utils::File::run (@command);
 
       # password can't be set in non-interactive
       # mode with adduser, call usermod instead
-      $command = "$cmd_usermod " .
-          " -p '" . $$user[$PASSWD] . "' " . $$user[$LOGIN];
+      @command = ($cmd_usermod, "-p", $$user[$PASSWD], $$user[$LOGIN]);
 
-      &Utils::File::run ($command);
+      &Utils::File::run (@command);
     }
     else
     {
       # fallback to useradd
-      $command = "$cmd_useradd -m" .
-          " -d \'" . $$user[$HOME]   . "\'" .
-          " -g \'" . $$user[$GID]    . "\'" .
-          " -p \'" . $$user[$PASSWD] . "\'" .
-          " -s \'" . $$user[$SHELL]  . "\'" .
-          " -u \'" . $$user[$UID]    . "\'" .
-          " \'"    . $$user[$LOGIN]  . "\'";
+      @command = ($cmd_useradd, "-m",
+                                "-d", $$user[$HOME],
+                                "-g", $$user[$GID],
+                                "-p", $$user[$PASSWD],
+                                "-s", $$user[$SHELL],
+                                "-u", $$user[$UID],
+                                      $$user[$LOGIN]);
 
-      &Utils::File::run ($command);
+      &Utils::File::run (@command);
     }
   }
 
@@ -652,27 +659,24 @@ sub change_user
   }
   elsif ($Utils::Backend::tool{"system"} eq "SunOS")
   {
-    $command = "$cmd_usermod" .
-        " -d \'" . $$new_user[$HOME]   . "\'" .
-        " -g \'" . $$new_user[$GID]    . "\'" .
-        " -l \'" . $$new_user[$LOGIN]  . "\'" .
-        " -s \'" . $$new_user[$SHELL]  . "\'" .
-        " -u \'" . $$new_user[$UID]    . "\'" .
-        " \'" . $$old_user[$LOGIN] . "\'";
+    @command = ($cmd_usermod, "-d", $$new_user[$HOME],
+                              "-g", $$new_user[$GID],
+                              "-l", $$new_user[$LOGIN],
+                              "-s", $$new_user[$SHELL],
+                              "-u", $$new_user[$UID],
+                                    $$old_user[$LOGIN]);
 
-    &Utils::File::run ($command);
+    &Utils::File::run (@command);
     &modify_shadow_password ($$new_user[$LOGIN], $$new_user[$PASSWD]);
   }
   else
   {
-    $command = "$cmd_usermod" .
-        " -d \'" . $$new_user[$HOME]   . "\'" .
-        " -g \'" . $$new_user[$GID]    . "\'" .
-        " -l \'" . $$new_user[$LOGIN]  . "\'" .
-        " -p \'" . $$new_user[$PASSWD] . "\'" .
-        " -s \'" . $$new_user[$SHELL]  . "\'" .
-        " -u \'" . $$new_user[$UID]    . "\'" .
-        " \'" . $$old_user[$LOGIN] . "\'";
+    @command = ($cmd_usermod, "-d", $$new_user[$HOME],
+                              "-g", $$new_user[$GID],
+                              "-l", $$new_user[$LOGIN],
+                              "-s", $$new_user[$SHELL],
+                              "-u", $$new_user[$UID],
+                                    $$old_user[$LOGIN]);
 
     &Utils::File::run ($command);
   }
