@@ -1,3 +1,36 @@
+System Tools Backends Version 2.8.2, 2009-O9-29
+-----------------------------------------------
+
+The System Tools Backends version 2.8.2 "Don't mess with my arguments!" have been released. This is a minor release fixing the brown paper bag version 2.8.
+
+Changes since last release
+==========================
+
+    - Add compatibility with Upstart init system, used on the Debian platform. For now, this means only traditional scripts are handled; Upstart jobs are ignored and the stb won't conflict with them
+    - Don't daemonize on start by default; this fixes problems with D-Bus activation
+    - When starting external programs, call system() with argument as an arrays to avoid the shell messing with them. This notably fixes problems when users' Real Name field contains apostrophes (Bug  519273).
+    - Automatically set invalid service priorities to a default value of 50, instead of committing wrong data. This allows GUIs not to worry about this implementation detail if they don't mind.
+    - Remove useless versioning for Debian platform. All platforms should probably do the same to get things cleaner and less bug-prone.
+
+
+Translations
+============
+  - cs, courtesy of Petr Kovar
+  - de, courtesy of Mario Blättermann
+  - en_GB, courtesy of Philip Withnall
+  - es, courtesy of Ricardo Pérez López
+  - eu, courtesy of Iñaki Larrañaga Murgoitio
+  - fr, courtesy of Claude Paroz
+  - hu, courtesy of Gabor Kelemen
+  - it, courtesy of Luca Ferretti
+  - ja, courtesy of Takeshi AIHANA
+  - pl, courtesy of Tomasz Dominikowski
+  - pt_BR, courtesy of Rodolfo Ribeiro Gomes
+  - pt, courtesy of Duarte Loreto
+  - sv, courtesy of Daniel Nylander
+
+
+
 System Tools Backends Version 2.8.1, 2009-O8-20
 -----------------------------------------------
 
