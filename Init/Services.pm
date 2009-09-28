@@ -485,6 +485,7 @@ sub set_sysv_service
     $runlevel = $$r[0];
     $action   = ($$r[1] == $SERVICE_START) ? "S" : "K";
     $priority = sprintf ("%0.2d", $$r[2]);
+    $priority = "50" if ($$r[2] <= 0);
 
     $configured_runlevels{$runlevel} = 1;
 
