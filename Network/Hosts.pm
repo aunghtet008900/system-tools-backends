@@ -45,8 +45,6 @@ sub get_fqdn_dist
     "mandrake-9.0"    => "redhat-6.2",
     "yoper-2.2"       => "redhat-6.2",
     "conectiva-9"     => "redhat-6.2", 
-    "debian-3.0"      => "debian-2.2",
-    "ubuntu-7.04"     => "debian-2.2",
     "suse-9.0"        => "suse-9.0",
     "pld-1.0"         => "redhat-6.2",
     "vine-3.0"        => "redhat-6.2",
@@ -95,7 +93,7 @@ sub get_fqdn_parse_table
 		   ]
      },
 
-     "debian-2.2" =>
+     "debian" =>
      {
        fn =>
        {
@@ -215,7 +213,7 @@ sub get_fqdn_replace_table
 		   ]
      },
 
-     "debian-2.2" =>
+     "debian" =>
      {
        fn =>
        {

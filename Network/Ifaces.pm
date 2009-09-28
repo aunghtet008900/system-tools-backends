@@ -1983,6 +1983,7 @@ sub get_interface_dist
 {
   my %dist_map =
 	 (
+    "debian"          => "debian",
     "redhat-6.2"      => "redhat-6.2",
     "redhat-7.0"      => "redhat-6.2",
     "redhat-7.1"      => "redhat-6.2",
@@ -1991,8 +1992,6 @@ sub get_interface_dist
     "mandrake-9.0"    => "mandrake-9.0",
     "yoper-2.2"       => "redhat-6.2",
     "conectiva-9"     => "conectiva-9",
-    "debian-3.0"      => "debian-3.0",
-    "ubuntu-7.04"     => "debian-3.0",
     "suse-9.0"        => "suse-9.0",
     "pld-1.0"         => "pld-1.0",
     "vine-3.0"        => "vine-3.0",
@@ -2393,7 +2392,7 @@ sub get_interface_parse_table
        ]
      },
 
-     "debian-3.0" =>
+     "debian" =>
      {
        fn =>
        {
@@ -3117,7 +3116,7 @@ sub get_interface_replace_table
      ]
    },
 
-   "debian-3.0" =>
+   "debian" =>
    {
      iface_set    => \&activate_interface,
      iface_delete => \&delete_debian_interface,
@@ -3661,9 +3660,7 @@ sub get_available_configuration_methods
 {
   my $dist = $Utils::Backend::tool{"platform"};
   my $default = [ "static", "dhcp" ];
-  my %dist_map = (
-    "ubuntu-7.04"  => [ "ipv4ll" ],
-  );
+  my %dist_map = ();
 
   push @$default, @{$dist_map{$dist}};
   return $default;
@@ -3674,8 +3671,7 @@ sub get_available_encryptions
   my $dist = $Utils::Backend::tool{"platform"};
   my $default = [ "wep-hex", "wep-ascii" ];
   my %dist_map = (
-    "debian-3.0"  => [ "wpa-psk", "wpa2-psk" ],
-    "ubuntu-7.04" => [ "wpa-psk", "wpa2-psk" ],
+    "debian"  => [ "wpa-psk", "wpa2-psk" ],
   );
 
   push @$default, @{$dist_map{$dist}};

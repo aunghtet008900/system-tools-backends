@@ -32,15 +32,7 @@ use Utils::Replace;
 # --- System guessing --- #
 
 my $PLATFORM_INFO = {
-  "debian-3.0"      => [ "Debian GNU/Linux", "3.0", "Woody" ],
-  "debian-3.1"      => [ "Debian GNU/Linux", "3.1", "Sarge" ],
-  "ubuntu-5.04"     => [ "Ubuntu Linux", "5.04", "Hoary" ],
-  "ubuntu-5.10"     => [ "Ubuntu Linux", "5.10", "Breezy" ],
-  "ubuntu-6.06"     => [ "Ubuntu Linux", "6.06", "Dapper" ],
-  "ubuntu-6.10"     => [ "Ubuntu Linux", "6.10", "Edgy" ],
-  "ubuntu-7.04"     => [ "Ubuntu Linux", "7.04", "Feisty" ],
-  "ubuntu-7.10"     => [ "Ubuntu Linux", "7.10", "Gutsy" ],
-  "ubuntu-8.04"     => [ "Ubuntu Linux", "8.04", "Hardy" ],
+  "debian"          => [ "Debian GNU/Linux" ],
   "redhat-5.2"      => [ "Red Hat Linux", "5.2", "Apollo" ],
   "redhat-6.0"      => [ "Red Hat Linux", "6.0", "Hedwig" ],
   "redhat-6.1"      => [ "Red Hat Linux", "6.1", "Cartman" ],
@@ -116,7 +108,6 @@ sub ensure_distro_map
     (
      "blackpanther-4.0" => "mandrake-9.0",
      "conectiva-10"     => "conectiva-9",
-     "debian-3.1"       => "debian-3.0",
      "mandrake-7.1"     => "redhat-6.2",
      "mandrake-7.2"     => "redhat-6.2",
      "mandrake-9.1"     => "mandrake-9.0",
@@ -147,16 +138,9 @@ sub ensure_distro_map
      "slackware-12.0.0" => "slackware-9.1.0",
      "bluewhite64-12.0.0" => "slackware-9.1.0",
      "suse-9.1"         => "suse-9.0",
-     "ubuntu-5.04"      => "debian-3.0",
-     "ubuntu-5.10"      => "debian-3.0",
-     "ubuntu-6.06"      => "debian-3.0",
-     "ubuntu-6.10"      => "debian-3.0",
-     "ubuntu-7.10"      => "ubuntu-7.04",
-     "ubuntu-8.04"      => "ubuntu-7.04",
      "vine-3.1"         => "vine-3.0",
      "vlos-1.2"         => "gentoo",
      "nexenta-1.0"      => "solaris-2.11",
-     "guadalinex-v4"    => "debian-3.0",
      );
 
   return $metamap{$distro} if ($metamap{$distro});
@@ -366,7 +350,7 @@ sub guess
 
   my %platform_checks = (
     "Linux"   => [[ \&check_lsb ],
-                  [ \&check_distro_file, "/etc/debian_version", "debian", "(.*)", { "testing/unstable" => "sarge" } ],
+                  [ \&check_file_exists, "/etc/debian_version", "debian" ],
                   [ \&check_distro_file, "/etc/SuSE-release", "suse", "VERSION\\s*=\\s*(\\S+)" ],
                   [ \&check_distro_file, "/etc/blackPanther-release", "blackpanther", "^Linux Black Panther release (\\S+)" ],
                   [ \&check_distro_file, "/etc/blackPanther-release", "blackpanther", "^Black Panther ( L|l)inux release ([\\d\\.]+)" ],

@@ -129,28 +129,27 @@ sub get_distro_smb_file
 
   my %dist_map =
   (
+   "debian"          => "debian",
    "redhat-6.2"      => "redhat-6.2",
-   "redhat-7.0"      => "debian-3.0",
-   "redhat-7.1"      => "debian-3.0",
-   "redhat-7.2"      => "debian-3.0",
-   "redhat-7.3"      => "debian-3.0",
-   "redhat-8.0"      => "debian-3.0",
-   "mandrake-9.0"    => "debian-3.0",
-   "debian-3.0"      => "debian-3.0",
-   "ubuntu-7.04"     => "debian-3.0",
-   "suse-9.0"        => "debian-3.0",
-   "slackware-9.1.0" => "debian-3.0",
-   "gentoo"          => "debian-3.0",
-   "archlinux"       => "debian-3.0",
+   "redhat-7.0"      => "debian",
+   "redhat-7.1"      => "debian",
+   "redhat-7.2"      => "debian",
+   "redhat-7.3"      => "debian",
+   "redhat-8.0"      => "debian",
+   "mandrake-9.0"    => "debian",
+   "suse-9.0"        => "debian",
+   "slackware-9.1.0" => "debian",
+   "gentoo"          => "debian",
+   "archlinux"       => "debian",
    "pld-1.0"         => "pld-1.0",
-   "vine-3.0"        => "debian-3.0",
+   "vine-3.0"        => "debian",
    "freebsd-5"       => "freebsd-5",
   );
 
   my %dist_tables =
   (
    "redhat-6.2" => "/etc/smb.conf",
-   "debian-3.0" => "/etc/samba/smb.conf",
+   "debian" => "/etc/samba/smb.conf",
    "pld-1.0"    => "/etc/smb/smb.conf",
    "freebsd-5"  => "/usr/local/etc/smb.conf",
   );

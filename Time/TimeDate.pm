@@ -158,6 +158,7 @@ sub get_dist
 {
   my %dist_map =
   (
+   "debian"          => "debian",
    "redhat-6.2"      => "redhat-6.2",
    "redhat-7.0"      => "redhat-6.2",
    "redhat-7.1"      => "redhat-6.2",
@@ -165,9 +166,6 @@ sub get_dist
    "redhat-7.3"      => "redhat-6.2",
    "redhat-8.0"      => "redhat-6.2",
    "mandrake-9.0"    => "redhat-6.2",
-   "debian-4.0"      => "debian-4.0",
-   "debian-testing"  => "debian-4.0",
-   "ubuntu-7.04"     => "debian-4.0",
    "suse-9.0"        => "redhat-6.2",
    "slackware-9.1.0" => "redhat-6.2",
    "gentoo"          => "redhat-6.2",
@@ -199,21 +197,7 @@ sub conf_get_parse_table
      ]
    },
 
-   "debian-3.0" =>
-   {
-     fn =>
-     {
-       ZONEINFO     => "/usr/share/zoneinfo",
-       LOCAL_TIME   => "/etc/localtime"
-     },
-     table =>
-     [
-      [ "local_time",   \&get_utc_time ],
-      [ "timezone",     \&get_timezone, [LOCAL_TIME, ZONEINFO] ],
-     ]
-   },
-
-   "debian-4.0" =>
+   "debian" =>
    {
      fn =>
      {
@@ -281,23 +265,7 @@ sub conf_get_replace_table
      ]
    },
        
-   "debian-3.0" =>
-   {
-     fn =>
-     {
-       ZONEINFO     => "/usr/share/zoneinfo",
-       LOCAL_TIME   => "/etc/localtime",
-       TIMEZONE     => "/etc/timezone"
-     },
-     table =>
-     [
-      [ "timezone",    \&set_timezone, [LOCAL_TIME, ZONEINFO] ],
-      [ "timezone",    \&Utils::Replace::set_first_line, TIMEZONE ],
-      [ "local_time",  \&set_utc_time ],
-     ]
-   },
-
-   "debian-4.0" =>
+   "debian" =>
    {
      fn =>
      {
