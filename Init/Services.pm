@@ -6,7 +6,8 @@
 #
 # Authors: Carlos Garnacho Parro <garparr@teleline.es>,
 #          Hans Petter Jansson <hpj@ximian.com>,
-#          Arturo Espinosa <arturo@ximian.com>
+#          Arturo Espinosa <arturo@ximian.com>,
+#          Milan Bouchet-Valat <nalimilan@club.fr>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Library General Public License as published
@@ -67,6 +68,229 @@ sub get_runlevels
   $desc = $runlevels{$distro};
 
   return $desc;
+}
+
+# This function gets the runlevel that is in use
+sub get_sysv_default_runlevel
+{
+	my (@arr);
+	@arr = split / /, `/sbin/runlevel` ;
+  chomp $arr[1];
+
+	return $arr[1];
+}
+
+sub get_default_runlevel
+{
+  my $type = &get_init_type ();
+
+  return "default" if ($type eq "gentoo" || $type eq "rcng" || $type eq "bsd" || $type eq "smf");
+  return &get_sysv_default_runlevel ();
+}
+
+# Upstart support
+# TODO: Handle Upstart jobs, and not only traditional SystemV scripts inside an upstart system
+sub get_upstart_paths
+{
+  my %dist_map =
+    (
+     # gst_dist => [rc.X dirs location, init.d scripts location, relative path, upstart init jobs location]
+     "debian"   => ["$gst_prefix/etc",   "$gst_prefix/etc/init.d",   "../init.d",   "$gst_prefix/etc/init"],
+     );
+  my $res;
+
+  $res = $dist_map{$Utils::Backend::tool{"platform"}};
+  &Utils::Report::do_report ("service_upstart_unsupported", $Utils::Backend::tool{"platform"}) if ($res eq undef);
+  return @$res;
+}
+
+# we are going to extract the name of the script
+sub get_upstart_service_name
+{
+	my ($service) = @_;
+
+	$service =~ s/$initd_path\///;
+
+	return $service;
+}
+
+# This function gets the state of the service along the runlevels,
+# it also returns the average priority
+sub get_upstart_runlevels_status
+{
+	my ($service) = @_;
+	my ($link);
+	my ($runlevel, $action, $priority);
+	my (@arr, @ret);
+
+	foreach $link (<$rcd_path/rc[0-6].d/[SK][0-9][0-9]$service>)
+	{
+		$link =~ s/$rcd_path\///;
+		$link =~ /rc([0-6])\.d\/([SK])([0-9][0-9]).*/;
+		($runlevel,$action,$priority)=($1,$2,$3);
+
+                if ($action eq "S")
+		{
+                        push @arr, [ $runlevel, $SERVICE_START, $priority ];
+                }
+		elsif ($action eq "K")
+		{
+                        push @arr, [ $runlevel, $SERVICE_STOP, $priority ];
+		}
+	}
+
+	return \@arr;
+}
+
+# We are going to extract the information of the service
+sub get_upstart_service_info
+{
+	my ($service) = @_;
+	my ($script, @actions, @runlevels, $role);
+
+	# Return if it's a directory
+	return if (-d $service);
+
+	# We have to check if the service is executable
+	return unless (-x $service);
+
+	$script = &get_upstart_service_name ($service);
+	$runlevels = &get_upstart_runlevels_status($script);
+
+  return ($script, $runlevels);
+}
+
+# This function gets an ordered array of the available services from a upstart system
+sub get_upstart_services
+{
+	my ($service);
+	my (@arr);
+
+	($rcd_path, $initd_path, $relative_path, $init_path) = &get_upstart_paths ();
+        return undef unless ($rcd_path && $initd_path && $init_path);
+
+	foreach $service (<$initd_path/*>)
+	{
+		my (@info, $script);
+
+		@info = &get_upstart_service_info ($service);
+		# Only manage traditional init.d scripts, ignore services with jobs installed
+		$script = $info[0];
+		if (!-e "$init_path/$script.conf")
+		{
+                        push @arr, \@info  if (scalar (@info));
+                }
+	}
+
+	return \@arr;
+}
+
+# These are the functions for storing the service settings in upstart
+sub remove_upstart_link
+{
+  my ($rcd_path, $runlevel, $script) = @_;
+
+  foreach $link (<$rcd_path/rc$runlevel.d/[SK][0-9][0-9]$script>)
+  {
+    &Utils::Report::enter ();
+    &Utils::Report::do_report ("service_upstart_remove_link", "$link");
+    unlink ($link);
+    &Utils::Report::leave ();
+  }
+}
+
+sub add_upstart_link
+{
+  my ($rcd_path, $relative_path, $runlevel, $action, $priority, $service) = @_;
+  my ($prio) = sprintf ("%0.2d",$priority);
+
+  symlink ("$relative_path/$service", "$rcd_path/rc$runlevel.d/$action$prio$service");
+
+  &Utils::Report::enter ();
+  &Utils::Report::do_report ("service_upstart_add_link", "$rcd_path/rc$runlevel.d/$action$prio$service");
+  &Utils::Report::leave ();
+}
+
+sub run_upstart_initd_script
+{
+  my ($service, $arg) = @_;
+  my ($rc_path, $initd_path);
+  my $str;
+
+  &Utils::Report::enter ();
+
+  if (&Utils::File::run ("service", $service, $arg) == 0)
+  {
+      &Utils::Report::do_report ("service_upstart_op_success", $service, $arg);
+      &Utils::Report::leave ();
+      return 0;
+  }
+
+  &Utils::Report::do_report ("service_upstart_op_failed", $service, $arg);
+  &Utils::Report::leave ();
+  return -1;
+}
+
+sub set_upstart_service
+{
+  my ($service) = @_;
+  my ($script, $priority, $runlevels, $default_runlevel);
+  my ($runlevel, $action, %configured_runlevels);
+
+  ($rcd_path, $initd_path, $relative_path) = &get_upstart_paths ();
+  return unless ($rcd_path && $initd_path && $relative_path);
+
+  $script = $$service[0];
+  $runlevels = $$service[1];
+  $default_runlevel = &get_default_runlevel ();
+
+  foreach $r (@$runlevels)
+  {
+    $runlevel = $$r[0];
+    $action   = ($$r[1] == $SERVICE_START) ? "S" : "K";
+    $priority = sprintf ("%0.2d", $$r[2]);
+    $priority = "50" if ($$r[2] <= 0);
+
+    $configured_runlevels{$runlevel} = 1;
+
+    if (!-f "$rcd_path/rc$runlevel.d/$action$priority$script")
+    {
+      &remove_upstart_link ($rcd_path, $runlevel, $script);
+      &add_upstart_link ($rcd_path, $relative_path, $runlevel, $action, $priority, $script);
+
+      if ($runlevel eq $default_runlevel)
+      {
+        &run_upstart_initd_script ($script, ($$r[1] == $SERVICE_START) ? "start" : "stop");
+      }
+    }
+  }
+
+  # remove unneeded links
+  foreach $link (<$rcd_path/rc[0-6].d/[SK][0-9][0-9]$script>)
+	{
+    $link =~ /rc([0-6])\.d/;
+    $runlevel = $1;
+
+    if (!exists $configured_runlevels{$runlevel})
+    {
+      &remove_upstart_link ($rcd_path, $runlevel, $script);
+
+      if ($runlevel eq $default_runlevel)
+      {
+        &run_upstart_initd_script ($script, "stop");
+      }
+    }
+  }
+}
+
+sub set_upstart_services
+{
+	my ($services) = @_;
+
+	foreach $i (@$services)
+	{
+		&set_upstart_service($i);
+	}
 }
 
 # This function gets the runlevel that is in use
@@ -1277,9 +1501,9 @@ sub get_init_type
 
   $gst_dist = $Utils::Backend::tool{"platform"};
 
-  if (($gst_dist =~ /debian/) && (Utils::File::exists ("/etc/runlevel.conf")))
+  if (($gst_dist =~ /debian/))
   {
-    return "file-rc";
+    return "upstart";
   }
   elsif ($gst_dist =~ /slackware/)
   {
@@ -1313,6 +1537,7 @@ sub run_script
   my ($proc, $type);
   my %map =
     (
+     "upstart" => \&run_upstart_initd_script,
      "sysv"    => \&run_sysv_initd_script,
      "file-rc" => \&run_sysv_initd_script,
      "bsd"     => \&run_bsd_script,
@@ -1331,13 +1556,14 @@ sub get
 {
   $type = &get_init_type ();
 
-  return &get_sysv_services ()   if ($type eq "sysv");
-  return &get_filerc_services () if ($type eq "file-rc");
-  return &get_bsd_services ()    if ($type eq "bsd");
-  return &get_gentoo_services () if ($type eq "gentoo");
-  return &get_rcng_services ()   if ($type eq "rcng");
-  return &get_suse_services ()   if ($type eq "suse");
-  return &get_smf_services ()    if ($type eq "smf");
+  return &get_upstart_services () if ($type eq "upstart");
+  return &get_sysv_services ()    if ($type eq "sysv");
+  return &get_filerc_services ()  if ($type eq "file-rc");
+  return &get_bsd_services ()     if ($type eq "bsd");
+  return &get_gentoo_services ()  if ($type eq "gentoo");
+  return &get_rcng_services ()    if ($type eq "rcng");
+  return &get_suse_services ()    if ($type eq "suse");
+  return &get_smf_services ()     if ($type eq "smf");
 
   return undef;
 }
@@ -1348,13 +1574,14 @@ sub set
 
   $type = &get_init_type ();
 
-  &set_sysv_services   ($services) if ($type eq "sysv");
-  &set_filerc_services ($services) if ($type eq "file-rc");
-  &set_bsd_services    ($services) if ($type eq "bsd");
-  &set_gentoo_services ($services) if ($type eq "gentoo");
-  &set_rcng_services   ($services) if ($type eq "rcng");
-  &set_suse_services   ($services) if ($type eq "suse");
-  &set_smf_services    ($services) if ($type eq "smf");
+  &set_upstart_services ($services) if ($type eq "upstart");
+  &set_sysv_services    ($services) if ($type eq "sysv");
+  &set_filerc_services  ($services) if ($type eq "file-rc");
+  &set_bsd_services     ($services) if ($type eq "bsd");
+  &set_gentoo_services  ($services) if ($type eq "gentoo");
+  &set_rcng_services    ($services) if ($type eq "rcng");
+  &set_suse_services    ($services) if ($type eq "suse");
+  &set_smf_services     ($services) if ($type eq "smf");
 }
 
 1;
