@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: system-tools-backend\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-system-tools&component=s-t-b\n"
-"POT-Creation-Date: 2009-04-09 15:31+0000\n"
-"PO-Revision-Date: 2009-04-09 18:54+0100\n"
+"POT-Creation-Date: 2009-08-19 12:32+0000\n"
+"PO-Revision-Date: 2009-10-12 10:01+0100\n"
 "Last-Translator: Matej Urbančič <mateju@svn.gnome.org>\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -19,19 +19,24 @@ msgstr ""
 "X-Poedit-Country: SLOVENIA\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
-#: ../system-tools-backends.policy.in.h:1
-msgid "Change user configuration"
-msgstr "Spremeni nastavitve uporabnika"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
+#| msgid "Change user configuration"
+msgid "Change the user's own account configuration"
+msgstr "Spremeni nastavitve uporabnikovega računa"
 
-#: ../system-tools-backends.policy.in.h:2
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:2
 msgid "Manage system configuration"
 msgstr "Upravljanje s sistemskimi nastavitvami"
 
-#: ../system-tools-backends.policy.in.h:3
-msgid "System policy prevents modifying the configuration"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
+#| msgid "System policy prevents modifying the user configuration"
+msgid "System policy prevents modifying the system configuration"
 msgstr "Sistemska določila onemogočajo spreminjanje nastavitev"
 
-#: ../system-tools-backends.policy.in.h:4
-msgid "System policy prevents modifying the user configuration"
-msgstr "Sistemska določila onemogočajo spreminjanje uporabniških nastavitev"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
+msgid "System policy requires you to authenticate in order to modify your user account information"
+msgstr "Sistemska določila zahtevajo overitev pred spreminjanjem nastavitev podrobnosti računa"
+
+#~ msgid "System policy prevents modifying the configuration"
+#~ msgstr "Sistemska določila onemogočajo spreminjanje nastavitev"
 
