@@ -7,28 +7,35 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: system-tools-backends\n"
-"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-"
-"system-tools&component=s-t-b\n"
-"POT-Creation-Date: 2009-04-02 08:40+0000\n"
-"PO-Revision-Date: 2009-04-03 21:38+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-10-13 22:56+0200\n"
+"PO-Revision-Date: 2009-10-02 00:38+0200\n"
 "Last-Translator: David Planella <david.planella@gmail.com>\n"
 "Language-Team: Catalan <tradgnome@softcatala.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../system-tools-backends.policy.in.h:1
-msgid "Change user configuration"
-msgstr "Canvia la configuració d'usuari"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
+msgid "Change the user's own account configuration"
+msgstr "Canvia la configuració del compte propi de l'usuari"
 
-#: ../system-tools-backends.policy.in.h:2
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:2
 msgid "Manage system configuration"
 msgstr "Gestiona la configuració del sistema"
 
-#: ../system-tools-backends.policy.in.h:3
-msgid "System policy prevents modifying the configuration"
-msgstr "La política del sistema no permet modificar la configuració"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
+msgid "System policy prevents modifying the system configuration"
+msgstr ""
+"La política del sistema no permet modificar la configuració del sistema"
 
-#: ../system-tools-backends.policy.in.h:4
-msgid "System policy prevents modifying the user configuration"
-msgstr "La política del sistema no permet modificar la configuració d'usuari"
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
+msgid ""
+"System policy requires you to authenticate in order to modify your user "
+"account information"
+msgstr ""
+"La política del sistema requereix que us autentiqueu per a modificar la "
+"informació del vostre compte d'usuari"
+
+#~ msgid "System policy prevents modifying the configuration"
+#~ msgstr "La política del sistema no permet modificar la configuració"
