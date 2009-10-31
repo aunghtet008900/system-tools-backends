@@ -677,8 +677,7 @@ sub change_user
                               "-s", $$new_user[$SHELL],
                               "-u", $$new_user[$UID],
                                     $$old_user[$LOGIN]);
-
-    &Utils::File::run ($command);
+    &Utils::File::run (@command);
   }
 
   &change_user_chfn ($$new_user[$LOGIN], $$old_user[$COMMENT], $$new_user[$COMMENT]);
