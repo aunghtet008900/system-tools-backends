@@ -674,9 +674,11 @@ sub change_user
     @command = ($cmd_usermod, "-d", $$new_user[$HOME],
                               "-g", $$new_user[$GID],
                               "-l", $$new_user[$LOGIN],
+                              "-p", $$new_user[$PASSWD],
                               "-s", $$new_user[$SHELL],
                               "-u", $$new_user[$UID],
                                     $$old_user[$LOGIN]);
+
     &Utils::File::run (@command);
   }
 
