@@ -51,10 +51,10 @@ sub change_timedate
     "SunOS"   => "date -u %02d%02d%02d%02d%04d.%02d",
   };
 
-  @command = ($$system_table {$Utils::Backend::tool{"system"}},
-              $$time{"month"} + 1, $$time{"monthday"},
-              $$time{"hour"}, $$time{"minute"},
-              $$time{"year"}, $$time{"second"});
+  @command = split (/ /, sprintf ($$system_table {$Utils::Backend::tool{"system"}},
+                                  $$time{"month"} + 1, $$time{"monthday"},
+                                  $$time{"hour"}, $$time{"minute"},
+                                  $$time{"year"}, $$time{"second"}));
 
   &Utils::Report::do_report ("time_localtime_set", @command);
   return &Utils::File::run (@command);
