@@ -770,11 +770,10 @@ sub run_full
 
   $tool_path = &locate_tool ($cmd);
   return -1 if ($tool_path eq "");
-  return -1 if $command == -1;
+  return -1 if $cmd == -1;
 
   $command = join (" ", ($tool_path, @arguments));
   &Utils::Report::do_report ("file_run_full", $command);
-  &Utils::Report::leave ();
 
   my $pid = fork();
 
@@ -785,8 +784,10 @@ sub run_full
     $ENV{"LC_ALL"} = "C";
     open (STDOUT, "/dev/null");
     open (STDERR, "/dev/null");
-    exec ($tool_path, @arguments);
-    exit (0);
+    system ($tool_path, @arguments);
+
+    # As documented in perlfunc, divide by 256.
+    exit ($? / 256);
   }
 
   # If no error has occurred so far, assume success,
@@ -795,8 +796,14 @@ sub run_full
 
   waitpid ($pid, 0);
 
-  # As documented in perlfunc, divide by 256.
-  return ($? / 256);
+  if ($? != 0)
+  {
+    &Utils::Report::do_report ("file_run_full_failed", $command);
+  }
+
+  &Utils::Report::leave ();
+
+  return ($?);
 }
 
 # Simple wrappers calling &run_full() with the right background parameter
