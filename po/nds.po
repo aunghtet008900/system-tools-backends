@@ -1,0 +1,33 @@
+# Low German translation for system-tools-backends-clone.
+# Copyright (C) 2009 system-tools-backends-clone's COPYRIGHT HOLDER
+# This file is distributed under the same license as the system-tools-backends-clone package.
+# Nils-Christoph Fiedler <fiedler@medienkompanie.de>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: system-tools-backends-clone master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-system-tools&component=s-t-b\n"
+"POT-Creation-Date: 2009-11-28 11:50+0000\n"
+"PO-Revision-Date: 2009-11-28 12:53+0100\n"
+"Last-Translator: Nils-Christoph Fiedler <fiedler@medienkompanie.de>\n"
+"Language-Team: Low German <nds-lowgerman@lists.sourceforge.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
+msgid "Change the user's own account configuration"
+msgstr "De eegen Brukertoganginstellens ännern"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:2
+msgid "Manage system configuration"
+msgstr "Systeminstellens oppassen"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
+msgid "System policy prevents modifying the system configuration"
+msgstr "De Systempolitik lett nich to, dat de Systeminstellens ännet werrn künn"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
+msgid "System policy requires you to authenticate in order to modify your user account information"
+msgstr "De Systempolitik lett dat Ännern  vun Brukertogangsinformatschoonen just to, wenn je dik authentifizerst"
+
