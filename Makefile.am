@@ -17,7 +17,8 @@ modules_DATA =	\
 	SMBConfig.pm		\
 	TimeConfig.pm		\
 	UserConfig.pm		\
-	UsersConfig.pm
+	UsersConfig.pm		\
+	SelfConfig.pm
 
 scripts = \
 	SystemToolsBackends.pl

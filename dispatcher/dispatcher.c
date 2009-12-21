@@ -42,7 +42,6 @@
 #define DBUS_ADDRESS_ENVVAR "DBUS_SESSION_BUS_ADDRESS"
 #define DBUS_INTERFACE_STB "org.freedesktop.SystemToolsBackends"
 #define DBUS_INTERFACE_STB_PLATFORM "org.freedesktop.SystemToolsBackends.Platform"
-#define DBUS_PATH_USER_CONFIG "/org/freedesktop/SystemToolsBackends/UserConfig2"
 #define DBUS_PATH_SELF_CONFIG "/org/freedesktop/SystemToolsBackends/SelfConfig2"
 
 #define STB_DISPATCHER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), STB_TYPE_DISPATCHER, StbDispatcherPrivate))
@@ -501,14 +500,12 @@ dispatch_platform_message (StbDispatcher *dispatcher,
 }
 
 static void
-dispatch_user_config (StbDispatcher *dispatcher,
+dispatch_self_config (StbDispatcher *dispatcher,
 		      DBusMessage   *message)
 {
   StbDispatcherPrivate *priv;
-  DBusMessageIter iter;
-  DBusMessage *user_message = NULL;
   const gchar *sender;
-  gulong uid;
+  uid_t uid, message_uid;
 
   priv = dispatcher->_priv;
   sender = dbus_message_get_sender (message);
@@ -516,63 +513,17 @@ dispatch_user_config (StbDispatcher *dispatcher,
 
   g_return_if_fail (uid != -1);
 
-  if (dbus_message_has_member (message, "get"))
+  if (dbus_message_get_args (message, NULL,
+                             DBUS_TYPE_UINT32, &message_uid,
+                             DBUS_TYPE_INVALID)
+                             && message_uid == uid)
     {
-      /* compose the call to UserConfig with the uid of the caller */
-      user_message = dbus_message_new_method_call (DBUS_INTERFACE_STB ".UserConfig2",
-						   DBUS_PATH_USER_CONFIG,
-						   DBUS_INTERFACE_STB,
-						   "get");
-      dbus_message_iter_init_append (user_message, &iter);
-      dbus_message_iter_append_basic (&iter, DBUS_TYPE_UINT32, &uid);
-    }
-  else if (dbus_message_has_member (message, "set"))
-    {
-      DBusMessageIter array_iter;
-      const gchar *passwd;
-      gchar **gecos;
-      gint gecos_elements, i;
-      uid_t message_uid;
-
-      if (dbus_message_get_args (message, NULL,
-				 DBUS_TYPE_UINT32, &message_uid,
-				 DBUS_TYPE_STRING, &passwd,
-				 DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &gecos, &gecos_elements,
-				 DBUS_TYPE_INVALID))
-	{
-	  user_message = dbus_message_new_method_call (DBUS_INTERFACE_STB ".UserConfig2",
-						       DBUS_PATH_USER_CONFIG,
-						       DBUS_INTERFACE_STB,
-						       "set");
-
-	  dbus_message_iter_init_append (user_message, &iter);
-	  dbus_message_iter_append_basic (&iter, DBUS_TYPE_UINT32, &uid);
-	  dbus_message_iter_append_basic (&iter, DBUS_TYPE_STRING, &passwd);
-
-	  /* append gecos array */
-	  dbus_message_iter_open_container (&iter,
-					    DBUS_TYPE_ARRAY,
-					    DBUS_TYPE_STRING_AS_STRING,
-					    &array_iter);
-
-	  for (i = 0; gecos[i]; i++)
-	    dbus_message_iter_append_basic (&array_iter, DBUS_TYPE_STRING, &gecos[i]);
-
-	  dbus_message_iter_close_container (&iter, &array_iter);
-	  dbus_free_string_array (gecos);
-	}
+      dbus_message_set_sender (message, sender);
+      dispatch_stb_message (dispatcher, message, dbus_message_get_serial (message));
+      dbus_message_unref (message);
     }
   else
-    g_warning ("unsupported method on SelfConfig");
-
-  if (user_message)
-    {
-      dbus_message_set_sender (user_message, sender);
-      dispatch_stb_message (dispatcher, user_message, dbus_message_get_serial (message));
-      dbus_message_unref (user_message);
-    }
-  else
-    return_error (dispatcher, message, DBUS_ERROR_UNKNOWN_METHOD);
+    return_error (dispatcher, message, DBUS_ERROR_ACCESS_DENIED);
 }
 
 static DBusHandlerResult
@@ -597,7 +548,7 @@ dispatcher_filter_func (DBusConnection *connection,
   else if (dbus_message_has_path (message, DBUS_PATH_SELF_CONFIG))
     {
       if (can_caller_do_action (dispatcher, message, "self"))
-	dispatch_user_config (dispatcher, message);
+	dispatch_self_config (dispatcher, message);
       else
 	return_error (dispatcher, message, DBUS_ERROR_ACCESS_DENIED);
     }

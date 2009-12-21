@@ -779,6 +779,20 @@ sub set_logindefs
   }
 }
 
+sub get_self
+{
+  my ($uid) = @_;
+  my ($users) = &get ();
+
+  foreach $user (@$users)
+  {
+    next if ($uid != $$user[$UID]);
+    return ($$user[$COMMENT], $$user[$LOCALE]);
+  }
+
+  return ([""], "");
+}
+
 sub get_user
 {
   my ($login) = @_;
@@ -811,6 +825,27 @@ sub set_user
     }
   }
 }
+
+sub set_self
+{
+  my ($uid, $old_passwd, $new_passwd, @comments) = @_;
+  my ($users) = &get ();
+
+  # Make backups manually, otherwise they don't get backed up.
+  &Utils::File::do_backup ($_) foreach (@passwd_names);
+  &Utils::File::do_backup ($_) foreach (@shadow_names);
+
+  foreach $user (@$users)
+  {
+    if ($uid == $$user[$UID])
+    {
+      &change_user_chfn ($$user[$LOGIN], $$user[$COMMENT], @comments);
+      return;
+    }
+  }
+  # TODO: change password
+}
+
 
 sub get_files
 {
