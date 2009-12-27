@@ -4,7 +4,8 @@
 #
 # Copyright (C) 2007 Carlos Garnacho
 #
-# Authors: Carlos Garnacho Parro  <carlosg@gnome.org>
+# Authors: Carlos Garnacho Parro  <carlosg@gnome.org>,
+#          Milan Bouchet-Valat <nalimilan@club.fr>.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Library General Public License as published
@@ -26,9 +27,14 @@ use base qw(StbObject);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Users::Users;
 
-my $OBJECT_NAME = "UserConfig";
+my $OBJECT_NAME = "UserConfig2";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
-my $format = [ "uint32", "string", [ "array", "string" ]];
+
+# base user struct, also used in UsersConfig
+# variables: login, password, UID, main group GID, GECOS fields, home, shell,
+# password flags, encrypted home, home dir flags, locale, location
+our $USER_FORMAT = [ "struct", "string", "string", "uint32", "uint32", [ "array", "string" ], "string", "string",
+                     "int32", "bool", "int32", "string", "string" ];
 
 sub new
 {
@@ -40,14 +46,16 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [ "uint32" ], $format);
-dbus_method ("set", $format, []);
+dbus_method ("get", [ "string" ], [ $USER_FORMAT ]);
+dbus_method ("set", [ $USER_FORMAT ], []);
+dbus_method ("add", [ $USER_FORMAT ], []);
+dbus_method ("del", [ $USER_FORMAT ], []);
 
 sub get
 {
-  my ($self, $uid) = @_;
+  my ($self, $login) = @_;
 
-  return Users::Users::get_user ($uid);
+  return Users::Users::get_user ($login);
 }
 
 sub set
@@ -55,6 +63,20 @@ sub set
   my ($self, @config) = @_;
 
   Users::Users::set_user (@config);
+}
+
+sub add
+{
+  my ($self, @config) = @_;
+
+  Users::Users::add_user (@config);
+}
+
+sub del
+{
+  my ($self, @config) = @_;
+
+  Users::Users::del_user (@config);
 }
 
 sub getFiles

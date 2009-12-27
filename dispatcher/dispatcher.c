@@ -15,7 +15,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
  *
- * Authors: Carlos Garnacho Parro  <carlosg@gnome.org>
+ * Authors: Carlos Garnacho Parro  <carlosg@gnome.org>,
+ *          Milan Bouchet-Valat <nalimilan@club.fr>.
  */
 
 #include <unistd.h>
@@ -41,8 +42,8 @@
 #define DBUS_ADDRESS_ENVVAR "DBUS_SESSION_BUS_ADDRESS"
 #define DBUS_INTERFACE_STB "org.freedesktop.SystemToolsBackends"
 #define DBUS_INTERFACE_STB_PLATFORM "org.freedesktop.SystemToolsBackends.Platform"
-#define DBUS_PATH_USER_CONFIG "/org/freedesktop/SystemToolsBackends/UserConfig"
-#define DBUS_PATH_SELF_CONFIG "/org/freedesktop/SystemToolsBackends/SelfConfig"
+#define DBUS_PATH_USER_CONFIG "/org/freedesktop/SystemToolsBackends/UserConfig2"
+#define DBUS_PATH_SELF_CONFIG "/org/freedesktop/SystemToolsBackends/SelfConfig2"
 
 #define STB_DISPATCHER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), STB_TYPE_DISPATCHER, StbDispatcherPrivate))
 
@@ -320,7 +321,6 @@ can_caller_do_action (StbDispatcher *dispatcher,
   StbDispatcherPrivate *priv;
   PolkitSubject *subject;
   PolkitAuthorizationResult *result;
-  const gchar *member;
   gchar *action_id;
   gulong caller_pid;
   gboolean retval;
@@ -333,19 +333,18 @@ can_caller_do_action (StbDispatcher *dispatcher,
   if (dbus_message_has_member (message, "get"))
     return TRUE;
 
-  /* Do not allow anything besides "set" past this point */
-  if (!dbus_message_has_member (message, "set"))
+  /* Do not allow anything besides "set", "add" or "del" past this point */
+  if (!(dbus_message_has_member (message, "set")
+       || dbus_message_has_member (message, "add")
+       || dbus_message_has_member (message, "del")))
     return FALSE;
 
   priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
-  member = dbus_message_get_member (message);
-
-  g_return_val_if_fail (member != NULL, FALSE);
 
   if (name)
-    action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s.%s", name, member);
+    action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s.set", name);
   else
-    action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s", member);
+    action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.set");
 
   /* Get the caller's PID using the connection name */
   call = dbus_message_new_method_call ("org.freedesktop.DBus",
@@ -520,7 +519,7 @@ dispatch_user_config (StbDispatcher *dispatcher,
   if (dbus_message_has_member (message, "get"))
     {
       /* compose the call to UserConfig with the uid of the caller */
-      user_message = dbus_message_new_method_call (DBUS_INTERFACE_STB ".UserConfig",
+      user_message = dbus_message_new_method_call (DBUS_INTERFACE_STB ".UserConfig2",
 						   DBUS_PATH_USER_CONFIG,
 						   DBUS_INTERFACE_STB,
 						   "get");
@@ -541,7 +540,7 @@ dispatch_user_config (StbDispatcher *dispatcher,
 				 DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &gecos, &gecos_elements,
 				 DBUS_TYPE_INVALID))
 	{
-	  user_message = dbus_message_new_method_call (DBUS_INTERFACE_STB ".UserConfig",
+	  user_message = dbus_message_new_method_call (DBUS_INTERFACE_STB ".UserConfig2",
 						       DBUS_PATH_USER_CONFIG,
 						       DBUS_INTERFACE_STB,
 						       "set");

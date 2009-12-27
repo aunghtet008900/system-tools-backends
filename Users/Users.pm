@@ -6,7 +6,8 @@
 # Authors: Hans Petter Jansson <hpj@ximian.com>,
 #          Arturo Espinosa <arturo@ximian.com>,
 #          Tambet Ingo <tambet@ximian.com>.
-#          Grzegorz Golawski <grzegol@pld-linux.org> (PLD Support)
+#          Grzegorz Golawski <grzegol@pld-linux.org> (PLD Support),
+#          Milan Bouchet-Valat <nalimilan@club.fr>.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Library General Public License as published
@@ -74,13 +75,18 @@ $cmd_pw       = &Utils::File::locate_tool ("pw");
 
 # enum like for verbose group array positions
 my $i = 0;
-my $LOGIN   = $i++;
-my $PASSWD  = $i++;
-my $UID     = $i++;
-my $GID     = $i++;
-my $COMMENT = $i++;
-my $HOME    = $i++;
-my $SHELL   = $i++;
+my $LOGIN         = $i++;
+my $PASSWD        = $i++;
+my $UID           = $i++;
+my $GID           = $i++;
+my $COMMENT       = $i++;
+my $HOME          = $i++;
+my $SHELL         = $i++;
+my $PASSWD_STATUS = $i++;
+my $ENC_HOME      = $i++;
+my $HOME_FLAGS    = $i++;
+my $LOCALE        = $i++;
+my $LOCATION      = $i++;
 
 %login_defs_prop_map = ();
 %profiles_prop_map = ();
@@ -397,6 +403,16 @@ sub get
     $line[$COMMENT] = [@comment];
 
     $users_hash{$login} = [@line];
+
+    # max value for an unsigned 32 bits integer means no main group
+    $users_hash{$login}[$GID] = 0xFFFFFFFF if (!$users_hash{$login}[$GID]);
+
+    # TODO: read actual values
+    $users_hash{$login}[$PASSWD_STATUS] = 0;
+    $users_hash{$login}[$ENC_HOME] = 0;
+    $users_hash{$login}[$HOME_FLAGS] = 0;
+    $users_hash{$login}[$LOCALE] = "";
+    $users_hash{$login}[$LOCATION] = "";
   }
 
   &Utils::File::close_file ($ifh);
@@ -438,23 +454,43 @@ sub get
 
 sub del_user
 {
-	my ($user) = @_;
-  my (@command);
+  my ($user) = @_;
+  my (@command, $remove_home);
+  
+  $remove_home = $$user[$HOME_FLAGS] & 1;
 	
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    @command = ($cmd_pw, "userdel", "-n", $$user[$LOGIN]);
-  }
-  else
-  {
-    if ($cmd_deluser)
-    {
-      @command = ($cmd_deluser, $$user[$LOGIN]);
-    }
+    if ($remove_home)
+      {
+        @command = ($cmd_pw, "userdel", "-r", "-n", $$user[$LOGIN]);
+      }
     else
+      {
+        @command = ($cmd_pw, "userdel", "-n", $$user[$LOGIN]);
+      }
+  }
+  elsif ($cmd_deluser) # use deluser (preferred method)
     {
-      @command = ($cmd_userdel, $$user[$LOGIN]);
+      if ($remove_home)
+      {
+        @command = ($cmd_deluser, "--remove-home", $$user[$LOGIN]);
+      }
+      else
+      {
+        @command = ($cmd_deluser, $$user[$LOGIN]);
+      }
     }
+  else # use userdel
+    {
+      if ($remove_home)
+      {
+        @command = ($cmd_userdel, "--remove", $$user[$LOGIN]);
+      }
+      else
+      {
+        @command = ($cmd_userdel, $$user[$LOGIN]);
+      }
   }
 
   &Utils::File::run (@command);
@@ -541,8 +577,8 @@ sub set_passwd
 
 sub add_user
 {
-	my ($user) = @_;
-	my ($home_parents, $tool_mkdir);
+  my ($user) = @_;
+  my ($home_parents, $tool_mkdir, $chown_home);
   
   $tool_mkdir = &Utils::File::locate_tool ("mkdir");
 
@@ -634,6 +670,14 @@ sub add_user
     }
   }
 
+  # ensure user owns its home dir if asked
+  $chown_home = $$user[$HOME_FLAGS] & (1 << 1);
+  if ($chown_home && $$user[$HOME] ne "/")
+  {
+    @command = ("chown", "-R", "$$user[$LOGIN]:", $$user[$HOME]);
+    &Utils::File::run (@command);
+  }
+
   &change_user_chfn ($$user[$LOGIN], undef, $$user[$COMMENT]);
 }
 
@@ -719,81 +763,34 @@ sub set_logindefs
   }
 }
 
-sub set
-{
-  my ($config) = @_;
-  my ($old_config, %users);
-  my (%config_hash, %old_config_hash);
-
-  if ($config)
-  {
-    # Make backups manually, otherwise they don't get backed up.
-    &Utils::File::do_backup ($_) foreach (@passwd_names);
-    &Utils::File::do_backup ($_) foreach (@shadow_names);
-
-    $old_config = &get ();
-
-    foreach $i (@$config) 
-    {
-      $users{$$i[$LOGIN]} |= 1;
-      $config_hash{$$i[$LOGIN]} = $i;
-    }
-	
-    foreach $i (@$old_config)
-    {
-      $users{$$i[$LOGIN]} |= 2;
-      $old_config_hash{$$i[$LOGIN]} = $i;
-    }
-
-    # Delete all groups that only appeared in the old configuration
-    foreach $i (sort (keys (%users)))
-    {
-      $state = $users{$i};
-
-      if ($state == 1)
-      {
-        # Users with state 1 have been added to the config
-        &add_user ($config_hash{$i});
-      }
-      elsif ($state == 2)
-      {
-        # Users with state 2 have been deleted from the config
-        &del_user ($old_config_hash{$i});
-      }
-      elsif (($state == 3) &&
-             (!Utils::Util::struct_eq ($config_hash{$i}, $old_config_hash{$i})))
-      {
-        &change_user ($old_config_hash{$i}, $config_hash{$i});
-      }
-    }
-  }
-}
-
 sub get_user
 {
-  my ($uid) = @_;
+  my ($login) = @_;
   my ($users) = &get ();
 
   foreach $user (@$users)
   {
-    next if ($uid != $$user[$UID]);
-    return ($$user[$UID], $$user[$PASSWD], $$user[$COMMENT]);
+    next if ($login ne $$user[$LOGIN]);
+    return $user;
   }
 
-  return ($uid, "", []);
+  return NULL;
 }
 
 sub set_user
 {
-  my ($uid, $passwd, @comment) = @_;
+  my ($new_user) = @_;
   my ($users) = &get ();
+
+  # Make backups manually, otherwise they don't get backed up.
+  &Utils::File::do_backup ($_) foreach (@passwd_names);
+  &Utils::File::do_backup ($_) foreach (@shadow_names);
 
   foreach $user (@$users)
   {
-    if ($uid == $$user[$UID])
+    if ($$new_user[$UID] == $$user[$UID])
     {
-      &set_passwd ($$user[$LOGIN], $passwd);
-      &change_user_chfn ($$user[$LOGIN], undef, @comment);
+      &change_user ($user, $new_user);
       return;
     }
   }

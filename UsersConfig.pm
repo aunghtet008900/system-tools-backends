@@ -4,7 +4,8 @@
 #
 # Copyright (C) 2005 Carlos Garnacho
 #
-# Authors: Carlos Garnacho Parro  <carlosg@gnome.org>
+# Authors: Carlos Garnacho Parro  <carlosg@gnome.org>,
+#          Milan Bouchet-Valat <nalimilan@club.fr>.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Library General Public License as published
@@ -24,13 +25,19 @@ package UsersConfig;
 
 use base qw(StbObject);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
+use UserConfig;
 use Users::Users;
 use Users::Shells;
 
-my $OBJECT_NAME = "UsersConfig";
+my $OBJECT_NAME = "UsersConfig2";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
-my $format = [[ "array", [ "struct", "string", "string", "int32", "int32", [ "array", "string"], "string", "string" ]],
-              ["array", "string" ], "int32", "int32", "int32", "string", "string", "int32" ];
+
+# settings: list of shells, use MD5, umin, umax, home prefix, default shell, default group, encrypted home support
+# only configuration settings are set via UsersConfig
+my $set_format = [ [ "array", "string" ], "bool", "uint32", "uint32", "string", "string", "uint32", "bool" ];
+# array of users plus configuration settings
+my $get_format = [[ "array", $UserConfig::USER_FORMAT ], [ "array", "string" ], "bool", "uint32", "uint32", "string", "string", "uint32", "bool" ];
+
 
 sub new
 {
@@ -42,8 +49,8 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [], $format);
-dbus_method ("set", $format, []);
+dbus_method ("get", [], $get_format);
+dbus_method ("set", $set_format, []);
 
 sub get
 {
@@ -58,7 +65,7 @@ sub get
 
   return ($users, $shells, $use_md5, $$logindefs{"umin"},
           $$logindefs{"umax"}, $$logindefs{"home_prefix"},
-          $$logindefs{"shell"}, $$logindefs{"group"});
+          $$logindefs{"shell"}, $$logindefs{"group"}, 0);
 }
 
 sub set
@@ -66,14 +73,14 @@ sub set
   my ($self, @config) = @_;
   $self->SUPER::reset_counter ();
 
-  Users::Users::set ($config[0]);
-  Users::Shells::set ($config[1]);
-  Users::Users::set_logindefs ({"umin"        => $config[3],
-                                "umax"        => $config[4],
-                                "home_prefix" => $config[5],
-                                "shell"       => $config[6],
-                                "group"       => $config[7]});
+  Users::Shells::set ($config[0]);
+  Users::Users::set_logindefs ({"umin"        => $config[2],
+                                "umax"        => $config[3],
+                                "home_prefix" => $config[4],
+                                "shell"       => $config[5],
+                                "group"       => $config[6]});
 }
+
 
 sub getFiles
 {
