@@ -2,9 +2,9 @@
 
 # DBus object for the Groups list
 #
-# Copyright (C) 2005 Carlos Garnacho
+# Copyright (C) 2009 Milan Bouchet-Valat
 #
-# Authors: Carlos Garnacho Parro  <carlosg@gnome.org>
+# Authors: Milan Bouchet-Valat <nalimilan@club.fr>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Library General Public License as published
@@ -20,19 +20,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-package GroupsConfig;
+package GroupConfig;
 
 use base qw(StbObject);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
-use GroupConfig;
 use Users::Groups;
 use Users::Users;
 
-my $OBJECT_NAME = "GroupsConfig2";
+my $OBJECT_NAME = "GroupConfig2";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
 
-# array of groups, min gid, max gid
-my $format = [ [ "array", $GroupConfig::GROUP_FORMAT ], "uint32", "uint32" ];
+# name, password, GID, users
+our $GROUP_FORMAT = [ "struct", "string", "string", "uint32", [ "array", "string" ]];
 
 sub new
 {
@@ -46,28 +45,38 @@ sub new
   return $self;
 }
 
-dbus_method ("get", [], $format);
-dbus_method ("set", $format, []);
+dbus_method ("get", [ "string" ], [ $GROUP_FORMAT ]);
+dbus_method ("set", [ $GROUP_FORMAT ], []);
+dbus_method ("add", [ $GROUP_FORMAT ], []);
+dbus_method ("del", [ $GROUP_FORMAT ], []);
 #dbus_signal ("changed", []);
 
 sub get
 {
-  my ($self) = @_;
-  my $groups, $logindefs;
-  $self->SUPER::reset_counter ();
+  my ($self, $name) = @_;
 
-  $groups = Users::Groups::get ();
-  $logindefs = &Users::Users::get_logindefs ();
-
-  return ($groups, $$logindefs{"gmin"}, $$logindefs{"gmax"});
+  return Users::Groups::get_group ($name);
 }
 
 sub set
 {
-  my ($self, $config) = @_;
-  $self->SUPER::reset_counter ();
+  my ($self, @config) = @_;
 
-  Users::Groups::set ($config);
+  Users::Groups::set_group (@config);
+}
+
+sub add
+{
+  my ($self, @config) = @_;
+
+  Users::Groups::add_group (@config);
+}
+
+sub del
+{
+  my ($self, @config) = @_;
+
+  Users::Groups::del_group (@config);
 }
 
 sub getFiles
@@ -77,6 +86,6 @@ sub getFiles
   return &Users::Groups::get_files ();
 }
 
-my $config = GroupsConfig->new ();
+my $config = GroupConfig->new ();
 
 1;

@@ -50,6 +50,9 @@ sub del_group
 {
   my ($group) = @_;
 
+  # Make backups manually, otherwise they don't get backed up.
+  &Utils::File::do_backup ($group_names);
+
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
     @command = ($cmd_pw, "groupdel", "-n", $$group[$LOGIN]);
@@ -128,6 +131,9 @@ sub add_group
 {
   my ($group) = @_;
   my ($u, $user, @users);
+
+  # Make backups manually, otherwise they don't get backed up.
+  &Utils::File::do_backup ($group_names);
 
   $u = $$group[$USERS];
 
@@ -215,6 +221,38 @@ sub change_group
   }
 }
 
+sub get_group
+{
+  my ($login) = @_;
+  my ($groups) = &get ();
+
+  foreach $group (@$groups)
+  {
+    next if ($login != $$group[$LOGIN]);
+    return $group;
+  }
+
+  return NULL;
+}
+
+sub set_group
+{
+  my ($new_group) = @_;
+  my ($groups) = &get ();
+
+  # Make backups manually, otherwise they don't get backed up.
+  &Utils::File::do_backup ($group_names);
+
+  foreach $group (@$groups)
+  {
+    if ($$new_group[$GID] == $$group[$GID])
+    {
+      &change_group ($group, $new_group);
+      return;
+    }
+  }
+}
+
 sub get
 {
   my ($ifh, @groups, $group_last_modified);
@@ -256,49 +294,14 @@ sub get_files
 sub set
 {
   my ($config) = @_;
-  my ($old_config, %groups);
-  my (%config_hash, %old_config_hash);
 
-  if ($config)
+  return if (!$config);
+
+  # Change groups that are present in both old and new config.
+  # Groups won't be removed or added this way, for more safety.
+  foreach $group (@$config)
   {
-    # Make backup manually, otherwise they don't get backed up.
-    &Utils::File::do_backup ($group_names);
-
-    $old_config = &get ();
-
-    foreach $i (@$config)
-    {
-      $groups{$$i[$LOGIN]} |= 1;
-      $config_hash{$$i[$LOGIN]} = $i;
-    }
-
-    foreach $i (@$old_config)
-    {
-	    $groups{$$i[$LOGIN]} |= 2;
-      $old_config_hash{$$i[$LOGIN]} = $i;
-    }
-
-    # Delete all groups that only appeared in the old configuration
-    foreach $i (sort (keys (%groups)))
-    {
-      $state = $groups{$i};
-
-      if ($state == 1)
-      {
-        # Groups with state 1 have been added to the config
-        &add_group ($config_hash{$i});
-      }
-      elsif ($state == 2)
-      {
-        # Groups with state 2 have been deleted from the config
-        &del_group ($old_config_hash{$i});
-      }
-      elsif (($state == 3) &&
-             (!Utils::Util::struct_eq ($config_hash{$i}, $old_config_hash{$i})))
-      {
-        &change_group ($old_config_hash{$i}, $config_hash{$i});
-      }
-    }
+    set_group ($group);
   }
 }
 

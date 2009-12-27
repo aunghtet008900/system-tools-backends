@@ -8,6 +8,7 @@ modulesdir = $(scriptsdir)
 modules_DATA =	\
 	Platform.pm	\
 	StbObject.pm	\
+	GroupConfig.pm	\
 	GroupsConfig.pm	\
 	HostsConfig.pm		\
 	IfacesConfig.pm	\
