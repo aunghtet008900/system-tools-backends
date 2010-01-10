@@ -575,34 +575,54 @@ sub set_passwd
   }
 }
 
+# This function allows empty values to be passed, in which cas
+# the platform's tools will choose the default.
 sub add_user
 {
   my ($user) = @_;
-  my ($home_parents, $tool_mkdir, $chown_home);
+  my ($tool_mkdir, $chown_home, $real_uid, $real_gid);
   
   $tool_mkdir = &Utils::File::locate_tool ("mkdir");
+
+  # If directory is specified, ensure its parents exist.
+  # When using default prefix, we assume the directory exists.
+  if ($$user[$HOME])
+  {
+    my ($home_parents);
+
+    $home_parents = $$user[$HOME];
+    $home_parents =~ s/\/+[^\/]+\/*$//;
+    &Utils::File::run ($tool_mkdir, "-p", $home_parents);
+  }
+
+  # max value means default UID or GID here
+  $real_uid = ($$user[$UID] != 0xFFFFFFFF);
+  $real_gid = ($$user[$GID] != 0xFFFFFFFF);
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
     my $pwdpipe;
-    my $home;
+    my $logindefs;
 
     # FreeBSD doesn't create the home directory
-    $home = $$user[$HOME];
-    &Utils::File::run ($tool_mkdir, "-p", $home);
+    if (!$$user[$HOME])
+    {
+      $logindefs = &get_logindefs ();
+      $$user[$HOME] = "$$logindefs{'home_prefix'}/$$user[$LOGIN]";
+    }
+    &Utils::File::run ($tool_mkdir, "-p", $$user[$HOME]);
 
     $command = "$cmd_pw useradd " .
         " -n \'" . $$user[$LOGIN] . "\'" .
-        " -u \'" . $$user[$UID]   . "\'" .
-        " -d \'" . $$user[$HOME]  . "\'" .
-        " -g \'" . $$user[$GID]   . "\'" .
-        " -s \'" . $$user[$SHELL] . "\'" .
         " -H 0"; # pw(8) reads password from STDIN
 
+     $command .= "-d \' $$user[$HOME] \' " if ($$user[$HOME]);
+     $command .= "-s \' $$user[$SHELL] \' " if ($$user[$SHELL]);
+     $command .= "-u $$user[$UID]" if ($real_uid);
+     $command .= "-g $$user[$GID]" if ($real_gid);
+
 #    @command = ($cmd_pw, "useradd", "-n", $$user[$LOGIN],
-#                                    "-u", $$user[$UID],
 #                                    "-d", $$user[$HOME],
-#                                    "-g", $$user[$GID],
 #                                    "-s", $$user[$SHELL],
 #                                    "-H", "0"); # pw(8) reads password from STDIN
 
@@ -612,25 +632,19 @@ sub add_user
   }
   elsif ($Utils::Backend::tool{"system"} eq "SunOS")
   {
-    $home_parents = $$user[$HOME];
-    $home_parents =~ s/\/+[^\/]+\/*$//;
-    &Utils::File::run ($tool_mkdir, "-p", $home_parents);
+    @command = ($cmd_useradd);
 
-    @command = ($cmd_useradd, "-d", $$user[$HOME],
-                              "-g", $$user[$GID],
-                              "-s", $$user[$SHELL],
-                              "-u", $$user[$UID],
-                                    $$user[$LOGIN]);
+    push (@command, ("-d", $$user[$HOME])) if ($$user[$HOME]);
+    push (@command, ("-s", $$user[$SHELL])) if ($$user[$SHELL]);
+    push (@command, ("-u", $$user[$UID])) if ($real_uid);
+    push (@command, ("-g", $$user[$GID])) if ($real_gid);
+    push (@command, $$user[$LOGIN]);
 
     &Utils::File::run (@command);
     &modify_shadow_password ($$user[$LOGIN], $$user[$PASSWD]);
   }
   else
   {
-    $home_parents = $$user[$HOME];
-    $home_parents =~ s/\/+[^\/]+\/*$//;
-    &Utils::File::run ($tool_mkdir, "-p", $home_parents);
-
     if ($cmd_adduser &&
         $Utils::Backend::tool{"platform"} !~ /^slackware/ &&
         $Utils::Backend::tool{"platform"} !~ /^archlinux/ &&
@@ -640,12 +654,13 @@ sub add_user
       # use adduser if available and valid (slackware one is b0rk)
       # set empty gecos fields and password, they will be filled out later
       @command = ($cmd_adduser, "--gecos", "",
-                                "--disabled-password",
-                                "--home", $$user[$HOME],
-                                "--gid", $$user[$GID],
-                                "--shell", $$user[$SHELL],
-                                "--uid", $$user[$UID],
-                                         $$user[$LOGIN]);
+                                "--disabled-password");
+
+      push (@command, ("--home", $$user[$HOME])) if ($$user[$HOME]);
+      push (@command, ("--shell", $$user[$SHELL])) if ($$user[$SHELL]);
+      push (@command, ("--uid", $$user[$UID])) if ($real_uid);
+      push (@command, ("--gid", $$user[$GID])) if ($real_gid);
+      push (@command, $$user[$LOGIN]);
 
       &Utils::File::run (@command);
 
@@ -659,12 +674,13 @@ sub add_user
     {
       # fallback to useradd
       @command = ($cmd_useradd, "-m",
-                                "-d", $$user[$HOME],
-                                "-g", $$user[$GID],
-                                "-p", $$user[$PASSWD],
-                                "-s", $$user[$SHELL],
-                                "-u", $$user[$UID],
-                                      $$user[$LOGIN]);
+                                "-p", $$user[$PASSWD]);
+
+      push (@command, ("-d", $$user[$HOME])) if ($$user[$HOME]);
+      push (@command, ("-s", $$user[$SHELL])) if ($$user[$SHELL]);
+      push (@command, ("-u", $$user[$UID])) if ($real_uid);
+      push (@command, ("-g", $$user[$GID])) if ($real_gid);
+      push (@command, $$user[$LOGIN]);
 
       &Utils::File::run (@command);
     }
@@ -684,7 +700,7 @@ sub add_user
 sub change_user
 {
   my ($old_user, $new_user) = @_;
-	
+
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
     my $pwdpipe;
