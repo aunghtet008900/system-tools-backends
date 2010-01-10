@@ -46,6 +46,8 @@
 
 package Users::Users;
 
+use Authen::PAM;
+
 use Utils::Util;
 use Utils::Report;
 use Utils::File;
@@ -72,6 +74,9 @@ $cmd_deluser  = &Utils::File::locate_tool ("deluser");
 
 $cmd_chfn     = &Utils::File::locate_tool ("chfn");
 $cmd_pw       = &Utils::File::locate_tool ("pw");
+
+$cmd_passwd   = &Utils::File::locate_tool ("passwd");
+$cmd_chpasswd = &Utils::File::locate_tool ("chpasswd");
 
 # enum like for verbose group array positions
 my $i = 0;
@@ -273,45 +278,6 @@ my $logindefs_dist_map = {
   'users_write_groups_fail'       => ['warn', 'Writing groups failed.'],
 });
 
-
-sub do_get_use_md5
-{
-  my ($file) = @_;
-  my ($fh, @line, $i, $use_md5);
-
-  my $fh = &Utils::File::open_read_from_names ("/etc/pam.d/$file");
-  return 0 if (!$fh);
-
-  $use_md5 = 0;
-
-  while (<$fh>)
-  {
-    next if &Utils::Util::ignore_line ($_);
-    chomp;
-    @line = split /[ \t]+/;
-
-    if ($line[0] eq "\@include")
-    {
-      $use_md5 = &do_get_use_md5 ($line[1]);
-    }
-    elsif ($line[0] eq "password")
-    {
-      foreach $i (@line)
-      {
-        $use_md5 = 1 if ($i eq "md5");
-      }
-    }
-  }
-
-  close $fh;
-  return $use_md5;
-}
-
-sub get_use_md5
-{
-  return &do_get_use_md5 ("passwd");
-}
-
 sub logindefs_add_defaults
 {
   # Common for all distros
@@ -402,6 +368,9 @@ sub get
     push @comment, "" while (scalar (@comment) < 5);
     $line[$COMMENT] = [@comment];
 
+    # always return empty string - anyway, passwd should be in /etc/shadow
+    $line[$PASSWD] = "";
+
     $users_hash{$login} = [@line];
 
     # max value for an unsigned 32 bits integer means no main group
@@ -416,32 +385,6 @@ sub get
   }
 
   &Utils::File::close_file ($ifh);
-  $ifh = &Utils::File::open_read_from_names(@shadow_names);
-
-  if ($ifh)
-  {
-    while (<$ifh>)
-    {
-      chomp;
-
-      # FreeBSD allows comments in the shadow passwd file.
-      next if &Utils::Util::ignore_line ($_);
-
-      @line = split ':', $_, -1;
-      $login = shift @line;
-      $passwd = shift @line;
-
-      # do not add data if the user isn't present
-      next if (!exists $users_hash{$login});
-
-      $users_hash{$login}[$PASSWD] = $passwd;
-
-      # FIXME: add the rest of the fields?
-      #push @{$$users_hash{$login}}, @line;
-    }
-
-    &Utils::File::close_file ($ifh);
-  }
 
   # transform the hash into an array
   foreach $login (keys %users_hash)
@@ -557,21 +500,24 @@ sub set_passwd
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
     my ($command);
-    $command = "$cmd_pw usermod -H 0";
+    $command = "$cmd_pw usermod \'$login\' -h 0";
     $pwdpipe = &Utils::File::run_pipe_write ($command);
     print $pwdpipe $password;
     &Utils::File::close_file ($pwdpipe);
   }
   elsif ($Utils::Backend::tool{"system"} eq "SunOS")
   {
-    &modify_shadow_password ($login, $password);
+    my ($command);
+    $command = "$cmd_passwd --stdin \'$login\'";
+    $pwdpipe = &Utils::File::run_pipe_write ($command);
+    print $pwdpipe $password;
+    &Utils::File::close_file ($pwdpipe);
   }
   else
   {
-    my (@command);
-    @command = ($cmd_usermod, "-p", $password, $login);
-
-    &Utils::File::run (@command);
+    $pwdpipe = &Utils::File::run_pipe_write ($cmd_chpasswd);
+    print $pwdpipe "$login:$password";
+    &Utils::File::close_file ($pwdpipe);
   }
 }
 
@@ -601,7 +547,6 @@ sub add_user
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    my $pwdpipe;
     my $logindefs;
 
     # FreeBSD doesn't create the home directory
@@ -612,23 +557,15 @@ sub add_user
     }
     &Utils::File::run ($tool_mkdir, "-p", $$user[$HOME]);
 
-    $command = "$cmd_pw useradd " .
-        " -n \'" . $$user[$LOGIN] . "\'" .
-        " -H 0"; # pw(8) reads password from STDIN
+    @command = ($cmd_pw, "useradd", "-n", $$user[$LOGIN],
+                                    "-h", "-"); # disable login until password is set
 
-     $command .= "-d \' $$user[$HOME] \' " if ($$user[$HOME]);
-     $command .= "-s \' $$user[$SHELL] \' " if ($$user[$SHELL]);
-     $command .= "-u $$user[$UID]" if ($real_uid);
-     $command .= "-g $$user[$GID]" if ($real_gid);
+    push (@command, ("-s", $$user[$HOME])) if ($$user[$HOME]);
+    push (@command, ("-s", $$user[$SHELL])) if ($$user[$SHELL]);
+    push (@command, ("-u", $$user[$UID])) if ($real_uid);
+    push (@command, ("-g", $$user[$GID])) if ($real_gid);
 
-#    @command = ($cmd_pw, "useradd", "-n", $$user[$LOGIN],
-#                                    "-d", $$user[$HOME],
-#                                    "-s", $$user[$SHELL],
-#                                    "-H", "0"); # pw(8) reads password from STDIN
-
-    $pwdpipe = &Utils::File::run_pipe_write ($command);
-    print $pwdpipe $$user[$PASSWD];
-    &Utils::File::close_file ($pwdpipe);
+    &Utils::File::run (@command);
   }
   elsif ($Utils::Backend::tool{"system"} eq "SunOS")
   {
@@ -641,7 +578,6 @@ sub add_user
     push (@command, $$user[$LOGIN]);
 
     &Utils::File::run (@command);
-    &modify_shadow_password ($$user[$LOGIN], $$user[$PASSWD]);
   }
   else
   {
@@ -663,18 +599,11 @@ sub add_user
       push (@command, $$user[$LOGIN]);
 
       &Utils::File::run (@command);
-
-      # password can't be set in non-interactive
-      # mode with adduser, call usermod instead
-      @command = ($cmd_usermod, "-p", $$user[$PASSWD], $$user[$LOGIN]);
-
-      &Utils::File::run (@command);
     }
     else
     {
       # fallback to useradd
-      @command = ($cmd_useradd, "-m",
-                                "-p", $$user[$PASSWD]);
+      @command = ($cmd_useradd, "-m");
 
       push (@command, ("-d", $$user[$HOME])) if ($$user[$HOME]);
       push (@command, ("-s", $$user[$SHELL])) if ($$user[$SHELL]);
@@ -695,6 +624,7 @@ sub add_user
   }
 
   &change_user_chfn ($$user[$LOGIN], undef, $$user[$COMMENT]);
+  &set_passwd ($$user[$LOGIN], $$user[$PASSWD]);
 }
 
 sub change_user
@@ -703,38 +633,20 @@ sub change_user
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    my $pwdpipe;
-
-    $command = "$cmd_pw usermod \'" . $$old_user[$LOGIN] . "\'" .
-        " -l \'" . $$new_user[$LOGIN] . "\'" .
-        " -u \'" . $$new_user[$UID]   . "\'" .
-        " -d \'" . $$new_user[$HOME]  . "\'" .
-        " -g \'" . $$new_user[$GID]   . "\'" .
-        " -s \'" . $$new_user[$SHELL] . "\'" .
-        " -H 0"; # pw(8) reads password from STDIN
-
-    $pwdpipe = &Utils::File::run_pipe_write ($command);
-    print $pwdpipe $$new_user[$PASSWD];
-    &Utils::File::close_file ($pwdpipe);
-  }
-  elsif ($Utils::Backend::tool{"system"} eq "SunOS")
-  {
-    @command = ($cmd_usermod, "-d", $$new_user[$HOME],
-                              "-g", $$new_user[$GID],
-                              "-l", $$new_user[$LOGIN],
-                              "-s", $$new_user[$SHELL],
-                              "-u", $$new_user[$UID],
-                                    $$old_user[$LOGIN]);
+    @command = ($cmd_pw, "usermod", $$old_user[$LOGIN],
+                         "-l", $$new_user[$LOGIN],
+                         "-u", $$new_user[$UID],
+                         "-d", $$new_user[$HOME],
+                         "-g", $$new_user[$GID],
+                         "-s", $$new_user[$SHELL]);
 
     &Utils::File::run (@command);
-    &modify_shadow_password ($$new_user[$LOGIN], $$new_user[$PASSWD]);
   }
   else
   {
     @command = ($cmd_usermod, "-d", $$new_user[$HOME],
                               "-g", $$new_user[$GID],
                               "-l", $$new_user[$LOGIN],
-                              "-p", $$new_user[$PASSWD],
                               "-s", $$new_user[$SHELL],
                               "-u", $$new_user[$UID],
                                     $$old_user[$LOGIN]);
@@ -743,6 +655,7 @@ sub change_user
   }
 
   &change_user_chfn ($$new_user[$LOGIN], $$old_user[$COMMENT], $$new_user[$COMMENT]);
+  &set_passwd ($$new_user[$LOGIN], $$new_user[$PASSWD]);
 }
 
 sub set_logindefs

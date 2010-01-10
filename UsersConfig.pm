@@ -32,11 +32,11 @@ use Users::Shells;
 my $OBJECT_NAME = "UsersConfig2";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
 
-# settings: list of shells, use MD5, umin, umax, home prefix, default shell, default group, encrypted home support
+# settings: list of shells, umin, umax, home prefix, default shell, default group, encrypted home support
 # only configuration settings are set via UsersConfig
-my $set_format = [ [ "array", "string" ], "bool", "uint32", "uint32", "string", "string", "uint32", "bool" ];
+my $set_format = [ [ "array", "string" ], "uint32", "uint32", "string", "string", "uint32", "bool" ];
 # array of users plus configuration settings
-my $get_format = [[ "array", $UserConfig::USER_FORMAT ], [ "array", "string" ], "bool", "uint32", "uint32", "string", "string", "uint32", "bool" ];
+my $get_format = [[ "array", $UserConfig::USER_FORMAT ], [ "array", "string" ], "uint32", "uint32", "string", "string", "uint32", "bool" ];
 
 
 sub new
@@ -55,15 +55,14 @@ dbus_method ("set", $set_format, []);
 sub get
 {
   my ($self) = @_;
-  my $logindefs, $users, $use_md5, $shells;
+  my $logindefs, $users, $shells;
   $self->SUPER::reset_counter ();
 
-  $use_md5 = &Users::Users::get_use_md5 ();
   $logindefs = &Users::Users::get_logindefs ();
   $users = &Users::Users::get ();
   $shells = &Users::Shells::get ();
 
-  return ($users, $shells, $use_md5, $$logindefs{"umin"},
+  return ($users, $shells, $$logindefs{"umin"},
           $$logindefs{"umax"}, $$logindefs{"home_prefix"},
           $$logindefs{"shell"}, $$logindefs{"group"}, 0);
 }
