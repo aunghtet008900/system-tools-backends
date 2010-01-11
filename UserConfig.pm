@@ -48,7 +48,7 @@ sub new
 
 dbus_method ("get", [ "string" ], [ $USER_FORMAT ]);
 dbus_method ("set", [ $USER_FORMAT ], []);
-dbus_method ("add", [ $USER_FORMAT ], []);
+dbus_method ("add", [ $USER_FORMAT ], [ $USER_FORMAT ]);
 dbus_method ("del", [ $USER_FORMAT ], []);
 
 sub get
@@ -69,7 +69,7 @@ sub add
 {
   my ($self, @config) = @_;
 
-  Users::Users::add_user (@config);
+  return Users::Users::add_user (@config);
 }
 
 sub del

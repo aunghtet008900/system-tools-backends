@@ -625,6 +625,10 @@ sub add_user
 
   &change_user_chfn ($$user[$LOGIN], undef, $$user[$COMMENT]);
   &set_passwd ($$user[$LOGIN], $$user[$PASSWD]);
+
+  # Return the new user with default values filled.
+  # Returns NULL if user doesn't exist, which means failure.
+  return &get_user ($$user[$LOGIN]);
 }
 
 sub change_user
