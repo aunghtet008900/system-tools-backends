@@ -1,3 +1,32 @@
+System Tools Backends Version 2.9.0, 2010-01-11
+-----------------------------------------------
+
+The System Tools Backends version 2.9.0 "Once Again" have been released. This development release is incompatible with the previous 2.8 series.
+
+Changes since last release
+==========================
+
+    - New users and groups protocol. This includes many changes, notably:
+        * Ability to commit users and groups individually (preferred method), to avoid destroying the system when severe bugs occur.
+        * Password received in clear text, so that they are changed using the standard PAM stack (this fixes problems with keyrings, encrypted folders, and new encryption methods)
+        * New fields: whether home should be removed when deleting user, or chown to user when created; whether to disable password; encrypt home directory; locale and location (for future extensions).
+        * When creating users, leaving some fields empty allows the platform tools to choose defaults, and the filled structure is sent as a reply.
+        * UIDs and GIDs are now uint32, to work with all of our platforms.
+
+    - Fixed error reporting when running external commands.
+
+Translations
+============
+
+  - nds, courtesy of Nils-Christoph Fiedler
+  - zh_CN, courtesy of Aron Xu
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.9/
+
+
 System Tools Backends Version 2.8.3, 2009-11-15
 -----------------------------------------------
 
