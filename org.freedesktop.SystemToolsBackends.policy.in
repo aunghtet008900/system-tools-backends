@@ -7,7 +7,7 @@
 
   <action id="org.freedesktop.systemtoolsbackends.set">
     <_description>Manage system configuration</_description>
-    <_message>System policy prevents modifying the system configuration</_message>
+    <_message>You need to authenticate to modify the system configuration</_message>
     <defaults>
       <allow_inactive>no</allow_inactive>
       <allow_active>auth_admin_keep</allow_active>
@@ -16,7 +16,7 @@
 
   <action id="org.freedesktop.systemtoolsbackends.self.set">
     <_description>Change the user's own account configuration</_description>
-    <_message>System policy requires you to authenticate in order to modify your user account information</_message>
+    <_message>You need to authenticate to modify your user account information</_message>
     <defaults>
       <allow_inactive>no</allow_inactive>
       <allow_active>auth_self</allow_active>
