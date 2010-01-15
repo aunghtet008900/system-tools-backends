@@ -1,4 +1,4 @@
 [D-BUS Service]
-Name=org.freedesktop.SystemToolsBackends.UserConfig
+Name=org.freedesktop.SystemToolsBackends.UserConfig2
 Exec=@scriptsdir@/SystemToolsBackends.pl -m UserConfig
 User=root

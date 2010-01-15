@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.SystemToolsBackends.SelfConfig2
+Exec=@scriptsdir@/SystemToolsBackends.pl -m SelfConfig
+User=root
