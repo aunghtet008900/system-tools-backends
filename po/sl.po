@@ -1,14 +1,15 @@
+# Slovenian translation of system-tools-backends-clone
 # Copyright (C) 2005-2007 Free Software Foundation, Inc.
 # This file is distributed under the same license as the program package.
 #
-# Matej Urbančič <mateju@svn.gnome.org>, 2009.
+# Matej Urbančič <mateju@svn.gnome.org>, 2009 - 2010.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: system-tools-backend\n"
+"Project-Id-Version: system-tools-backends-clone\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-system-tools&component=s-t-b\n"
-"POT-Creation-Date: 2009-08-19 12:32+0000\n"
-"PO-Revision-Date: 2009-10-12 10:01+0100\n"
+"POT-Creation-Date: 2010-01-13 18:05+0000\n"
+"PO-Revision-Date: 2010-01-15 19:48+0100\n"
 "Last-Translator: Matej Urbančič <mateju@svn.gnome.org>\n"
 "Language-Team: Slovenian\n"
 "MIME-Version: 1.0\n"
@@ -20,7 +21,6 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
-#| msgid "Change user configuration"
 msgid "Change the user's own account configuration"
 msgstr "Spremeni nastavitve uporabnikovega računa"
 
@@ -29,13 +29,12 @@ msgid "Manage system configuration"
 msgstr "Upravljanje s sistemskimi nastavitvami"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
-#| msgid "System policy prevents modifying the user configuration"
-msgid "System policy prevents modifying the system configuration"
-msgstr "Sistemska določila onemogočajo spreminjanje nastavitev"
+msgid "You need to authenticate to modify the system configuration"
+msgstr "Sistemska določila zahtevajo overitev pred spreminjanjem nastavitev sistema"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
-msgid "System policy requires you to authenticate in order to modify your user account information"
-msgstr "Sistemska določila zahtevajo overitev pred spreminjanjem nastavitev podrobnosti računa"
+msgid "You need to authenticate to modify your user account information"
+msgstr "Sistemska določila zahtevajo overitev pred spreminjanjem podrobnosti računa"
 
 #~ msgid "System policy prevents modifying the configuration"
 #~ msgstr "Sistemska določila onemogočajo spreminjanje nastavitev"
