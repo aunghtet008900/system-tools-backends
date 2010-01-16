@@ -60,10 +60,8 @@ systemd_DATA = org.freedesktop.SystemToolsBackends.conf
 
 policy_in_files = org.freedesktop.SystemToolsBackends.policy.in
 
-if HAVE_POLKIT
 policydir = $(POLKIT_POLICY_DIR)
 policy_DATA = $(policy_in_files:.policy.in=.policy)
 
 @INTLTOOL_POLICY_RULE@
 
-endif

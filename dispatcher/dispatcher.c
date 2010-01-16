@@ -31,9 +31,7 @@
 #include "config.h"
 #include "dispatcher.h"
 
-#ifdef HAVE_POLKIT
 #include <polkit/polkit.h>
-#endif
 
 #ifdef HAVE_GIO
 #include "file-monitor.h"
@@ -42,6 +40,7 @@
 #define DBUS_ADDRESS_ENVVAR "DBUS_SESSION_BUS_ADDRESS"
 #define DBUS_INTERFACE_STB "org.freedesktop.SystemToolsBackends"
 #define DBUS_INTERFACE_STB_PLATFORM "org.freedesktop.SystemToolsBackends.Platform"
+#define DBUS_INTERFACE_STB_AUTH "org.freedesktop.SystemToolsBackends.Authentication"
 #define DBUS_PATH_SELF_CONFIG "/org/freedesktop/SystemToolsBackends/SelfConfig2"
 
 #define STB_DISPATCHER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), STB_TYPE_DISPATCHER, StbDispatcherPrivate))
@@ -65,9 +64,7 @@ struct StbDispatcherPrivate
   DBusConnection *connection;
   gchar *platform;
 
-#ifdef HAVE_POLKIT
   PolkitAuthority *polkit_authority;
-#endif
 
 #ifdef HAVE_GIO
   StbFileMonitor *file_monitor;
@@ -311,22 +308,95 @@ get_destination (DBusMessage *message)
   return destination;
 }
 
-static gboolean
-can_caller_do_action (StbDispatcher *dispatcher,
-		      DBusMessage   *message,
-		      const gchar   *name)
+static void
+return_error (StbDispatcher *dispatcher,
+	      DBusMessage   *message,
+	      const gchar   *error_name,
+	      const gchar   *error_message)
 {
-#ifdef HAVE_POLKIT
+  DBusMessage *reply;
+  StbDispatcherPrivate *priv;
+
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+
+  DEBUG (dispatcher, "sending error %s from: %s", error_name, dbus_message_get_path (message));
+
+  reply = dbus_message_new_error (message, error_name, error_message);
+  dbus_connection_send (priv->connection, reply, NULL);
+  dbus_message_unref (reply);
+}
+
+static gboolean
+check_polkit_auth (StbDispatcher *dispatcher,
+                   DBusMessage   *message,
+                   GError       **ret_error)
+{
   StbDispatcherPrivate *priv;
   PolkitSubject *subject;
   PolkitAuthorizationResult *result;
+  GError *error;
+  gchar **path;
   gchar *action_id;
-  gulong caller_pid;
   gboolean retval;
-  GError *gerror = NULL;
-  DBusError dbus_error;
-  DBusMessage *call, *reply;
-  const gchar *connection_name;
+
+  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
+
+  if (dbus_message_get_path_decomposed (message, &path)
+      && path[0] && path[1] && path[2] && path[3]
+      && strcmp (path[3], "SelfConfig2") == 0)
+    action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.self.set");
+  else
+    action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.set");
+
+  subject = polkit_system_bus_name_new (dbus_message_get_sender (message));
+  result = polkit_authority_check_authorization_sync (priv->polkit_authority, subject, action_id, NULL,
+                                                      POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
+                                                      NULL, &error);
+  if (result)
+    {
+      retval = polkit_authorization_result_get_is_authorized (result);
+      g_object_unref (result);
+    }
+  else
+    {
+      retval = FALSE;
+
+      if (error->code == POLKIT_ERROR_CANCELLED)
+          /* Clients need to hanle this case separately to avoid showing an error dialog */
+          return_error (dispatcher, message,
+                        "org.freedesktop.SystemToolsBackends.AuthenticationCancelled",
+                        "Authentication cancelled by user");
+      else
+          return_error (dispatcher, message,
+                        "org.freedesktop.SystemToolsBackends.AuthenticationFailed",
+                        error->message);
+
+        g_warning ("Error checking PolicyKit authorization: %s", error->message);
+
+        if (!ret_error)
+          g_error_free (error);
+        else
+          *ret_error = error;
+    }
+
+  DEBUG (dispatcher,
+	 (retval) ? "subject is allowed to do action '%s'" : "subject can't do action '%s'",
+	 action_id);
+
+  g_free (action_id);
+  g_object_unref (subject);
+
+  if (path)
+    g_strfreev (path);
+
+  return retval;
+}
+
+static gboolean
+can_caller_do_action (StbDispatcher *dispatcher,
+		      DBusMessage   *message)
+{
+  gboolean retval;
 
   /* Allow getting information */
   if (dbus_message_has_member (message, "get"))
@@ -338,71 +408,49 @@ can_caller_do_action (StbDispatcher *dispatcher,
        || dbus_message_has_member (message, "del")))
     return FALSE;
 
-  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
-
-  if (name)
-    action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.%s.set", name);
-  else
-    action_id = g_strdup_printf ("org.freedesktop.systemtoolsbackends.set");
-
-  /* Get the caller's PID using the connection name */
-  call = dbus_message_new_method_call ("org.freedesktop.DBus",
-				       "/org/freedesktop/DBus",
-				       "org.freedesktop.DBus",
-				       "GetConnectionUnixProcessID");
-  connection_name = dbus_message_get_sender (message);
-  dbus_message_append_args (call, DBUS_TYPE_STRING, &connection_name, DBUS_TYPE_INVALID);
-
-  dbus_error_init (&dbus_error);
-
-  reply = dbus_connection_send_with_reply_and_block (priv->connection, call, -1, &dbus_error);
-  if (dbus_error_is_set (&dbus_error))
-    goto dbus_error;
-
-  dbus_message_get_args (reply, &dbus_error, DBUS_TYPE_UINT32, &caller_pid, DBUS_TYPE_INVALID);
-  if (dbus_error_is_set (&dbus_error))
-    goto dbus_error;
-
-  dbus_message_unref (call);
-  dbus_message_unref (reply);
-
-  /* We need to identify the subject using its PID
-   * because it's how PolkitLockButton works on the client side */
-  subject = polkit_unix_process_new (caller_pid);
-  result = polkit_authority_check_authorization_sync (priv->polkit_authority, subject, action_id, NULL,
-                                                      POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
-                                                      NULL, &gerror);
-
-  g_object_unref (subject);
-
-  if (gerror)
-    {
-      g_critical ("%s", gerror->message);
-      g_error_free (gerror);
-      g_free (action_id);
-
-      return FALSE;
-    }
-
-  retval = polkit_authorization_result_get_is_authorized (result);
-
-  DEBUG (dispatcher,
-	 (retval) ? "subject is allowed to do action '%s'" : "subject can't do action '%s'",
-	 action_id);
-
-  g_free (action_id);
+  /* Replies with an error if needed, in which case retval is FALSE */
+  retval = check_polkit_auth (dispatcher, message, NULL);
 
   return retval;
+}
 
-  dbus_error:
-    g_critical ("Could not get PID of the caller: %s", dbus_error.message);
-    dbus_error_free (&dbus_error);
-    g_free (action_id);
+/*
+ * Handles all messages with DBUS_INTERFACE_STB_AUTH, which check authorizations
+ * for all modules.
+ */
+static void
+dispatch_auth_message (StbDispatcher *dispatcher,
+                       DBusMessage   *message)
+{
+  StbDispatcherPrivate *priv;
+  GError *error = NULL;
 
-    return FALSE;
-#else
-  return TRUE;
-#endif /* HAVE_POLKIT */
+  priv = dispatcher->_priv;
+
+  if (!dbus_message_has_interface (message, DBUS_INTERFACE_STB_AUTH))
+    return;
+
+  if (dbus_message_has_member (message, "authenticate"))
+    {
+      DBusMessage *reply;
+      DBusMessageIter iter;
+      gboolean authorized;
+
+      /* Replies with an error if needed */
+      authorized = check_polkit_auth (dispatcher, message, &error);
+
+      if (!error)
+        {
+           /* Create a reply with the authorization result */
+           reply = dbus_message_new_method_return (message);
+
+           dbus_message_iter_init_append (reply, &iter);
+           dbus_message_iter_append_basic (&iter, DBUS_TYPE_BOOLEAN, &authorized);
+
+           dbus_connection_send (priv->connection, reply, NULL);
+           dbus_message_unref (reply);
+        }
+    }
 }
 
 static void
@@ -450,24 +498,6 @@ dispatch_stb_message (StbDispatcher *dispatcher,
 }
 
 static void
-return_error (StbDispatcher *dispatcher,
-	      DBusMessage   *message,
-	      const gchar   *error_name)
-{
-  DBusMessage *reply;
-  StbDispatcherPrivate *priv;
-
-  priv = STB_DISPATCHER_GET_PRIVATE (dispatcher);
-
-  DEBUG (dispatcher, "sending error %s from: %s", error_name, dbus_message_get_path (message));
-
-  reply = dbus_message_new_error (message, error_name,
-				  "No permissions to perform the task.");
-  dbus_connection_send (priv->connection, reply, NULL);
-  dbus_message_unref (reply);
-}
-
-static void
 dispatch_platform_message (StbDispatcher *dispatcher,
 			   DBusMessage   *message)
 {
@@ -505,26 +535,27 @@ dispatch_self_config (StbDispatcher *dispatcher,
 {
   StbDispatcherPrivate *priv;
   const gchar *sender;
-  uid_t uid, message_uid;
+  gulong uid, message_uid;
 
   priv = dispatcher->_priv;
   sender = dbus_message_get_sender (message);
   uid = dbus_bus_get_unix_user (priv->connection, sender, NULL);
 
-  /* Absolutely avoid UID 0 being allowed */
+  /* Absolutely avoid passing UID 0 */
   g_return_if_fail (uid > 0);
 
   if (dbus_message_get_args (message, NULL,
-                             DBUS_TYPE_UINT32, &uid,
+                             DBUS_TYPE_UINT32, &message_uid,
                              DBUS_TYPE_INVALID)
                              && message_uid == uid)
     {
       dbus_message_set_sender (message, sender);
-      dispatch_stb_message (dispatcher, message, dbus_message_get_serial (message));
-      dbus_message_unref (message);
+      dispatch_stb_message (dispatcher, message, 0);
     }
   else
-    return_error (dispatcher, message, DBUS_ERROR_ACCESS_DENIED);
+    return_error (dispatcher, message,
+                  "org.freedesktop.SystemToolsBackends.InvalidMessage",
+                  "Malformed message was sent");
 }
 
 static DBusHandlerResult
@@ -546,19 +577,19 @@ dispatcher_filter_func (DBusConnection *connection,
     dispatch_stb_message (dispatcher, message, 0);
   else if (dbus_message_has_interface (message, DBUS_INTERFACE_STB_PLATFORM))
     dispatch_platform_message (dispatcher, message);
+  else if (dbus_message_has_interface (message, DBUS_INTERFACE_STB_AUTH))
+    dispatch_auth_message (dispatcher, message);
   else if (dbus_message_has_path (message, DBUS_PATH_SELF_CONFIG))
     {
-      if (can_caller_do_action (dispatcher, message, "self"))
+      /* Error is returned from can_caller_do_action() in case of failure */
+      if (can_caller_do_action (dispatcher, message))
 	dispatch_self_config (dispatcher, message);
-      else
-	return_error (dispatcher, message, DBUS_ERROR_ACCESS_DENIED);
     }
   else if (dbus_message_has_interface (message, DBUS_INTERFACE_STB))
     {
-      if (can_caller_do_action (dispatcher, message, NULL))
+      /* Error is returned from can_caller_do_action() in case of failure */
+      if (can_caller_do_action (dispatcher, message))
 	dispatch_stb_message (dispatcher, message, 0);
-      else
-	return_error (dispatcher, message, DBUS_ERROR_ACCESS_DENIED);
     }
 
   return DBUS_HANDLER_RESULT_HANDLED;
@@ -607,9 +638,7 @@ stb_dispatcher_init (StbDispatcher *dispatcher)
   /* we're screwed if we don't have this */
   g_assert (priv->connection != NULL);
 
-#ifdef HAVE_POLKIT
   priv->polkit_authority = polkit_authority_get ();
-#endif
 
 #ifdef HAVE_GIO
   priv->file_monitor = stb_file_monitor_new ();
@@ -662,9 +691,7 @@ stb_dispatcher_finalize (GObject *object)
 
   dbus_connection_unref (priv->connection);
 
-#ifdef HAVE_POLKIT
   g_object_unref (priv->polkit_authority);
-#endif
 
 #ifdef HAVE_GIO
   g_object_unref (priv->file_monitor);
