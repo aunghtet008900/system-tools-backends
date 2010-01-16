@@ -509,12 +509,13 @@ dispatch_self_config (StbDispatcher *dispatcher,
 
   priv = dispatcher->_priv;
   sender = dbus_message_get_sender (message);
-  uid = (uid_t) dbus_bus_get_unix_user (priv->connection, sender, NULL);
+  uid = dbus_bus_get_unix_user (priv->connection, sender, NULL);
 
-  g_return_if_fail (uid != -1);
+  /* Absolutely avoid UID 0 being allowed */
+  g_return_if_fail (uid > 0);
 
   if (dbus_message_get_args (message, NULL,
-                             DBUS_TYPE_UINT32, &message_uid,
+                             DBUS_TYPE_UINT32, &uid,
                              DBUS_TYPE_INVALID)
                              && message_uid == uid)
     {
