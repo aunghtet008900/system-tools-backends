@@ -1,19 +1,19 @@
-# German setup-tools-backends translation.
+# German system-tools-backends translation.
 # Copyright (C) 2001-2004 Free Software Foundation, Inc.
-# This file is distributed under the same license as the setup-tools-backends
+# This file is distributed under the same license as the system-tools-backends
 # package.
 # Christian Neumair <chris@gnome-de.org>, 2004.
 # Hendrik Richter <hendrik@gnome-de.org>, 2004.
 # Moritz Baumann <Unknown>, 2009.
-# Mario Blättermann <mariobl@gnome.org>, 2009.
+# Mario Blättermann <mariobl@gnome.org>, 2009, 2010.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: setup-tools-backends\n"
+"Project-Id-Version: system-tools-backends\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-"
 "system-tools&component=s-t-b\n"
-"POT-Creation-Date: 2009-08-19 12:32+0000\n"
-"PO-Revision-Date: 2009-09-21 21:01+0200\n"
+"POT-Creation-Date: 2010-01-13 18:05+0000\n"
+"PO-Revision-Date: 2010-01-16 12:28+0100\n"
 "Last-Translator: Mario Blättermann <mariobl@gnome.org>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -25,7 +25,6 @@ msgstr ""
 "X-Poedit-Country: GERMANY\n"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
-#| msgid "Change user configuration"
 msgid "Change the user's own account configuration"
 msgstr "Einstellungen des eigenen Benutzerkontos ändern"
 
@@ -34,17 +33,12 @@ msgid "Manage system configuration"
 msgstr "Systemkonfiguration verwalten"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
-#| msgid "System policy prevents modifying the user configuration"
-msgid "System policy prevents modifying the system configuration"
-msgstr "Die Systemrichtlinien verhindern eine Änderung der Systemeinstellungen"
+msgid "You need to authenticate to modify the system configuration"
+msgstr "Sie müssen sich legitimieren, um die Systemeinstellungen zu ändern"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
-msgid ""
-"System policy requires you to authenticate in order to modify your user "
-"account information"
+msgid "You need to authenticate to modify your user account information"
 msgstr ""
-"Die Systemrichtlinien erfordern Ihre Legitimierung, um die Informationen zu "
-"Ihrem eigenen Benutzerkonto zu ändern"
+"Sie müssen sich legitimieren, um die Einstellungen Ihres eigenen "
+"Benutzerkontos zu ändern"
 
-#~ msgid "System policy prevents modifying the configuration"
-#~ msgstr "Die Systemrichtlinien verhindern eine Änderung der Konfiguration"
