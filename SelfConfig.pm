@@ -30,7 +30,7 @@ my $OBJECT_NAME = "SelfConfig2";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
 
 # user is only allowed to change his own GECOS fields, locale, location
-my $format = [ [ "struct", "uint32", [ "array", "string" ], "string", "string" ] ];
+my $format = [ "uint32", [ "array", "string" ], "string", "string" ];
 
 sub new
 {

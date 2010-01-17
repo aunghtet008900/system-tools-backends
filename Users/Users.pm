@@ -745,7 +745,7 @@ sub set_user
 
 sub set_self
 {
-  my ($uid, $old_passwd, $new_passwd, @comments) = @_;
+  my ($uid, @comments, $locale, $location) = @_;
   my ($users) = &get ();
 
   # Make backups manually, otherwise they don't get backed up.
@@ -760,7 +760,7 @@ sub set_self
       return;
     }
   }
-  # TODO: change password
+  # TODO: change locale and location
 }
 
 
