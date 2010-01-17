@@ -1,3 +1,26 @@
+System Tools Backends Version 2.9.1, 2010-01-17
+-----------------------------------------------
+
+The System Tools Backends version 2.9.1 "Just Wait a Minute" have been released. This development release is incompatible with the previous 2.8 series.
+
+Changes since last release
+==========================
+
+    - Fix D-Bus .service files to work with new users and groups versions
+    - Add a new authentication interface allowing to check for PolicyKit authorizations before committing
+    - Fix SelfConfig and improve security checks
+
+Translations
+============
+    - de, courtesy of Mario Blättermann
+    - sl, courtesy of Matej Urbančič
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.9/
+
+
 System Tools Backends Version 2.9.0, 2010-01-11
 -----------------------------------------------
 
