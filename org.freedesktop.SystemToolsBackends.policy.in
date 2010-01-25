@@ -4,6 +4,8 @@
  "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
 
 <policyconfig>
+  <vendor>The System Tools Backends Project</vendor>
+  <vendor_url>http://system-tools-backends.freedesktop.org</vendor_url>
 
   <action id="org.freedesktop.systemtoolsbackends.set">
     <_description>Manage system configuration</_description>
