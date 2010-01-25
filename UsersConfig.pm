@@ -55,16 +55,19 @@ dbus_method ("set", $set_format, []);
 sub get
 {
   my ($self) = @_;
-  my $logindefs, $users, $shells;
+  my $logindefs, $users, $shells, $ecryptfs_support;
   $self->SUPER::reset_counter ();
 
   $logindefs = &Users::Users::get_logindefs ();
   $users = &Users::Users::get ();
   $shells = &Users::Shells::get ();
+  $ecryptfs_support = (&Utils::File::locate_tool ("mount.ecryptfs") ne "")
+    && ($Utils::Backend::tool{"platform"} =~ /^debian/);
 
   return ($users, $shells, $$logindefs{"umin"},
           $$logindefs{"umax"}, $$logindefs{"home_prefix"},
-          $$logindefs{"shell"}, $$logindefs{"group"}, 0);
+          $$logindefs{"shell"}, $$logindefs{"group"},
+          $ecryptfs_support);
 }
 
 sub set

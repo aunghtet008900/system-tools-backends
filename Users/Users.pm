@@ -596,6 +596,13 @@ sub add_user
       push (@command, ("--shell", $$user[$SHELL])) if ($$user[$SHELL]);
       push (@command, ("--uid", $$user[$UID])) if ($real_uid);
       push (@command, ("--gid", $$user[$GID])) if ($real_gid);
+
+      # Allow encrypted home if the tool is present
+      if ($$user[$ENC_HOME] && &Utils::File::locate_tool ("mount.ecryptfs"))
+      {
+        push (@command, "--encrypt-home");
+      }
+
       push (@command, $$user[$LOGIN]);
 
       &Utils::File::run (@command);
