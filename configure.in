@@ -174,6 +174,7 @@ services/org.freedesktop.SystemToolsBackends.NFSConfig.service
 services/org.freedesktop.SystemToolsBackends.NTPConfig.service
 services/org.freedesktop.SystemToolsBackends.Platform.service
 services/org.freedesktop.SystemToolsBackends.SelfConfig2.service
+services/org.freedesktop.SystemToolsBackends.ServiceConfig2.service
 services/org.freedesktop.SystemToolsBackends.ServicesConfig.service
 services/org.freedesktop.SystemToolsBackends.SMBConfig.service
 services/org.freedesktop.SystemToolsBackends.TimeConfig.service

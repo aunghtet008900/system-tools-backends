@@ -14,6 +14,7 @@ modules_DATA =	\
 	IfacesConfig.pm	\
 	NFSConfig.pm		\
 	NTPConfig.pm		\
+	ServiceConfig.pm	\
 	ServicesConfig.pm	\
 	SMBConfig.pm		\
 	TimeConfig.pm		\

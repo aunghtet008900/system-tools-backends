@@ -824,38 +824,43 @@ sub run_bsd_script
   }
 }
 
+sub set_bsd_service
+{
+  my ($service) = @_;
+  my ($script, $runlevels, $status, %scripts);
+
+  $scripts = &get_bsd_scripts_list ();
+  $script = $$scripts{$$service[0]};
+  $runlevels = $$service[1];
+  $runlevel  = $$runlevels[0];
+
+  next if ($script eq undef);
+
+  $status = $$runlevel[1];
+  $status = $SERVICE_STOP if ($status eq undef);
+
+  next if ($status == &get_bsd_service_status ($script));
+
+  if ($status == $SERVICE_START)
+  {
+    &Utils::File::run ("chmod", "ugo+x", $script);
+    &run_bsd_script ($script, "start");
+  }
+  else
+  {
+    &run_bsd_script ($script, "stop");
+    &Utils::File::run ("chmod", "ugo-x", $script);
+  }
+}
+
 # This function stores the configuration in a bsd init
 sub set_bsd_services
 {
   my ($services) = @_;
-  my ($script, $runlevels, %scripts);
-  my ($status);
-
-  $scripts = &get_bsd_scripts_list ();
 
   foreach $service (@$services)
   {
-    $script = $$scripts{$$service[0]};
-    $runlevels = $$service[1];
-    $runlevel  = $$runlevels[0];
-
-    next if ($script eq undef);
-
-    $status = $$runlevel[1];
-    $status = $SERVICE_STOP if ($status eq undef);
-
-    next if ($status == &get_bsd_service_status ($script));
-
-    if ($status == $SERVICE_START)
-    {
-      &Utils::File::run ("chmod", "ugo+x", $script);
-      &run_bsd_script ($script, "start");
-    }
-    else
-    {
-      &run_bsd_script ($script, "stop");
-      &Utils::File::run ("chmod", "ugo-x", $script);
-    }
+    &set_bsd_service ($service);
   }
 }
 
@@ -1037,27 +1042,34 @@ sub set_gentoo_service_status
   }
 }
 
-# This function stores the configuration in gentoo init
-sub set_gentoo_services
+sub set_gentoo_service
 {
-  my ($services) = @_;
+  my ($service) = @_;
   my ($action, $rl, $script, $arr);
   my ($runlevels_services) = &get_gentoo_runlevels_services ();
 
   return if (!$runlevels_services);
 
+  $script = $$service[0];
+  $arr = $$service[1];
+
+  foreach $i (@$arr)
+  {
+    $action = $$i[1];
+    $rl = $$i[0];
+    &set_gentoo_service_status ($script, $rl, $action,
+                                $runlevels_services);
+  }
+}
+
+# This function stores the configuration in gentoo init
+sub set_gentoo_services
+{
+  my ($services) = @_;
+
   foreach $service (@$services)
   {
-    $script = $$service[0];
-    $arr = $$service[1];
-
-    foreach $i (@$arr)
-    {
-      $action = $$i[1];
-      $rl = $$i[0];
-      &set_gentoo_service_status ($script, $rl, $action,
-                                  $runlevels_services);
-    }
+    &set_gentoo_service ($service);
   }
 }
 
@@ -1229,9 +1241,9 @@ sub set_archlinux_service_status
   &run_rcng_script ($service, ($active) ? "start" : "stop");
 }
 
-sub set_rcng_services
+sub set_rcng_service
 {
-  my ($services) = @_;
+  my ($service) = @_;
   my ($action, $runlevels, $script, $func);
 
   # archlinux stores services differently
@@ -1244,14 +1256,21 @@ sub set_rcng_services
     $func = \&set_rcng_service_status;
   }
 
+  $script    = $$service[0];
+  $runlevels = $$service[1];
+  $runlevel  = $$runlevels[0];
+  $action    = ($$runlevel[1] == $SERVICE_START)? 1 : 0;
+
+  &$func ($script, $action);
+}
+
+sub set_rcng_services
+{
+  my ($services) = @_;
+
   foreach $service (@$services)
   {
-    $script    = $$service[0];
-    $runlevels = $$service[1];
-    $runlevel  = $$runlevels[0];
-    $action    = ($$runlevel[1] == $SERVICE_START)? 1 : 0;
-
-    &$func ($script, $action);
+    &set_rcng_services ($service);
   }
 }
 
@@ -1299,47 +1318,52 @@ sub get_suse_services
   return \@arr;
 }
 
+sub set_suse_service
+{
+  my ($service) = @_;
+  my ($action, $runlevels, $script, $rllist);
+  my (%configured_runlevelsl);
+
+  $script = $$service[0];
+  $runlevels = $$service[1];
+  $rllist = "";
+  %configured_runlevels = {};
+
+  &Utils::File::run ("insserv", "-r", $script);
+
+  foreach $rl (@$runlevels)
+  {
+    $configured_runlevels{$$rl[0]} = 1;
+     if ($$rl[1] == $SERVICE_START)
+    {
+      $rllist .= $$rl[0] . ",";
+    }
+     &run_sysv_initd_script ($script, ($$rl[1] == $SERVICE_START) ? "start" : "stop");
+  }
+
+  if ($rllist ne "")
+  {
+    $rllist =~ s/,$//;
+     &Utils::File::run ("insserv", $script, "start=$rllist");
+  }
+
+  if (!$configured_runlevels{$default_runlevel})
+  {
+    &run_sysv_initd_script ($script, $$rl[1]);
+  }
+}
+
 # This function stores the configuration in suse init
 sub set_suse_services
 {
   my ($services) = @_;
-  my ($action, $runlevels, $script, $rllist);
-  my (%configured_runlevels, $default_runlevel);
+  my ($default_runlevel);
 
   $default_runlevel = &get_sysv_default_runlevel ();
 
   foreach $service (@$services)
   {
-    $script = $$service[0];
-    $runlevels = $$service[1];
-    $rllist = "";
-    %configured_runlevels = {};
-
-    &Utils::File::run ("insserv", "-r", $script);
-
-    foreach $rl (@$runlevels)
-    {
-      $configured_runlevels{$$rl[0]} = 1;
-
-      if ($$rl[1] == $SERVICE_START)
-      {
-        $rllist .= $$rl[0] . ",";
-      }
-
-      &run_sysv_initd_script ($script, ($$rl[1] == $SERVICE_START) ? "start" : "stop");
-    }
-
-    if ($rllist ne "")
-    {
-      $rllist =~ s/,$//;
-
-      &Utils::File::run ("insserv", $script, "start=$rllist");
-    }
-
-    if (!$configured_runlevels{$default_runlevel})
-    {
-      &run_sysv_initd_script ($script, $$rl[1]);
-    }
+    &set_suse_service ($service);
   }
 }
 
@@ -1476,22 +1500,29 @@ sub set_smf_service_status
   }
 }
 
+sub set_smf_service
+{
+  my ($service) = @_;
+  my ($action, $rl, $script, $arr);
+
+  $script = $$service[0];
+  $arr = $$service[1];
+
+  foreach $i (@$arr)
+  {
+    $action = $$i[1];
+    $rl = $$i[0];
+    &set_smf_service_status ($script, $rl, $action);
+  }
+}
+
 sub set_smf_services
 {
   my ($services) = @_;
-  my ($action, $rl, $script, $arr);
 
   foreach $service (@$services)
   {
-    $script = $$service[0];
-    $arr = $$service[1];
-
-    foreach $i (@$arr)
-    {
-      $action = $$i[1];
-      $rl = $$i[0];
-      &set_smf_service_status ($script, $rl, $action);
-    }
+    &set_smf_service ($service);
   }
 }
 
@@ -1571,7 +1602,7 @@ sub get
 
 sub set
 {
-	my ($services) = @_;
+  my ($services) = @_;
 
   $type = &get_init_type ();
 
@@ -1583,6 +1614,35 @@ sub set
   &set_rcng_services    ($services) if ($type eq "rcng");
   &set_suse_services    ($services) if ($type eq "suse");
   &set_smf_services     ($services) if ($type eq "smf");
+}
+
+sub get_service
+{
+  my ($name) = @_;
+  my ($services) = &get ();
+
+  foreach $service (@$services)
+  {
+    return $service if ($service[0] eq $name);
+  }
+
+  return undef;
+}
+
+sub set_service
+{
+  my ($service) = @_;
+
+  $type = &get_init_type ();
+
+  &set_upstart_service ($service) if ($type eq "upstart");
+  &set_sysv_service    ($service) if ($type eq "sysv");
+  &set_filerc_service  ($service) if ($type eq "file-rc");
+  &set_bsd_service     ($service) if ($type eq "bsd");
+  &set_gentoo_service  ($service) if ($type eq "gentoo");
+  &set_rcng_service    ($service) if ($type eq "rcng");
+  &set_suse_service    ($service) if ($type eq "suse");
+  &set_smf_service     ($service) if ($type eq "smf");
 }
 
 1;

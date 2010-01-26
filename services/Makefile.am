@@ -7,6 +7,7 @@ services = \
 	org.freedesktop.SystemToolsBackends.NTPConfig.service \
         org.freedesktop.SystemToolsBackends.Platform.service \
 	org.freedesktop.SystemToolsBackends.SelfConfig2.service \
+        org.freedesktop.SystemToolsBackends.ServiceConfig2.service \
         org.freedesktop.SystemToolsBackends.ServicesConfig.service \
 	org.freedesktop.SystemToolsBackends.SMBConfig.service \
 	org.freedesktop.SystemToolsBackends.TimeConfig.service \

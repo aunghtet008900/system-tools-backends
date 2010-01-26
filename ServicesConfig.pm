@@ -25,12 +25,13 @@ package ServicesConfig;
 use base qw(StbObject);
 use Net::DBus::Exporter ($Utils::Backend::DBUS_PREFIX);
 use Init::Services;
+use ServiceConfig;
 
 my $OBJECT_NAME = "ServicesConfig";
 my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
 my $format = [[ "array", "string" ],
               "string",
-              [ "array", [ "struct", "string", [ "array", [ "struct", "string", "int32", "int32" ]]]]];
+              [ "array", $ServiceConfig::SERVICE_FORMAT ]];
 
 sub new
 {
