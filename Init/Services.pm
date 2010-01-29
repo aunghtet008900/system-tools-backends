@@ -176,7 +176,9 @@ sub get_upstart_services
 		@info = &get_upstart_service_info ($service);
 		# Only manage traditional init.d scripts, ignore services with jobs installed
 		$script = $info[0];
-		if (!-e "$init_path/$script.conf")
+
+		if (!&Init::ServicesList::is_forbidden ($script)
+		    && !-e "$init_path/$script.conf")
 		{
                         push @arr, \@info  if (scalar (@info));
                 }
@@ -409,7 +411,7 @@ sub get_sysv_services
 		my (@info);
 
 		@info = &get_sysv_service_info ($service);
-    push @arr, \@info  if (scalar (@info));
+		push @arr, \@info  if (scalar (@info) && !&Init::ServicesList::is_forbidden ($info[0]));
 	}
 
 	return \@arr;
@@ -795,7 +797,7 @@ sub get_bsd_services
     my (@info);
 
     @info = &get_bsd_service_info ($$scripts{$name}, $name);
-    push @arr, \@info if (scalar (@info));
+    push @arr, \@info if (scalar (@info) && !&Init::ServicesList::is_forbidden ($info[0]));
   }
 
   return \@arr;
@@ -991,7 +993,7 @@ sub get_gentoo_services
     my (@info);
 
     @info = &get_gentoo_service_info ($service, $runlevels_services);
-    push @arr, \@info if scalar (@info);
+    push @arr, \@info if (scalar (@info) && !&Init::ServicesList::is_forbidden ($info[0]));
   }
 
   return \@arr;
@@ -1132,7 +1134,7 @@ sub get_rcng_services
 
     $service =~ s/.*\///;
     @info = &get_rcng_service_info ($service);
-    push @arr, \@info if (scalar (@info));
+    push @arr, \@info if (scalar (@info) && !&Init::ServicesList::is_forbidden ($info[0]));
   }
 
   return \@arr;
@@ -1312,7 +1314,7 @@ sub get_suse_services
 
     $service =~ s/.*\///;
     @info = &get_suse_service_info ($service);
-    push @arr, \@info  if (scalar (@info));
+    push @arr, \@info  if (scalar (@info) && !&Init::ServicesList::is_forbidden ($info[0]));
   }
 
   return \@arr;
@@ -1474,7 +1476,7 @@ sub get_smf_services
     my (@info);
 
     @info = &get_smf_service_info ($service);
-    push @arr, \@info if scalar (@info);
+    push @arr, \@info if scalar (@info && !&Init::ServicesList::is_forbidden ($info[0]));
   }
 
   return \@arr;
