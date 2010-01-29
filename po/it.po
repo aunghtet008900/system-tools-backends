@@ -1,15 +1,15 @@
 # Italian translation for system-tools-backends.
 # Copyright (C) 2009 Free Software Foundation, Inc
 # This file is distributed under the same license as the system-tools-backends package.
-# Luca Ferretti <elle.uca@libero.it>, 2009.
 #
+# Luca Ferretti <elle.uca@libero.it>, 2009, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: system-tools-backends\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-"
 "system-tools&component=s-t-b\n"
-"POT-Creation-Date: 2009-08-19 15:31+0000\n"
-"PO-Revision-Date: 2009-08-19 17:42+0200\n"
+"POT-Creation-Date: 2010-01-13 18:05+0000\n"
+"PO-Revision-Date: 2010-01-13 21:07+0100\n"
 "Last-Translator: Luca Ferretti <elle.uca@libero.it>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
 "MIME-Version: 1.0\n"
@@ -18,24 +18,21 @@ msgstr ""
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
 msgid "Change the user's own account configuration"
-msgstr "Cambia la configurazione dell'account proprio dell'utente"
+msgstr "Cambia la configurazione del proprio account utente"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:2
 msgid "Manage system configuration"
 msgstr "Gestisce la configurazione di sistema"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
-msgid "System policy prevents modifying the system configuration"
-msgstr ""
-"La politica di sistema impedisce la modifica della configurazione di sistema"
+msgid "You need to authenticate to modify the system configuration"
+msgstr "È necessario autenticarsi per modificare la configurazione del sistema"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
-msgid ""
-"System policy requires you to authenticate in order to modify your user "
-"account information"
+msgid "You need to authenticate to modify your user account information"
 msgstr ""
-"La politica di sistema richiede di autenticarsi per poter modificare le "
-"informazioni del proprio account utente"
+"È necessario autenticarsi per modificare le informazioni del proprio account "
+"utente"
 
 #~ msgid "System policy prevents modifying the configuration"
 #~ msgstr "La politica di sistema impedisce la modifica della configurazione"
