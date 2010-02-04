@@ -1,19 +1,20 @@
 # Czech translation of system-tools-backends.
-# Copyright (C) 2009 the author(s) of system-tools-backends.
+# Copyright (C) 2009, 2010 the author(s) of system-tools-backends.
 # This file is distributed under the same license as the system-tools-backends package.
-# Petr Kovar <pknbe@volny.cz>, 2009.
+# Petr Kovar <pknbe@volny.cz>, 2009, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: system-tools-backends\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-29 21:50+0200\n"
-"PO-Revision-Date: 2009-08-29 21:50+0200\n"
+"POT-Creation-Date: 2010-02-04 22:05+0100\n"
+"PO-Revision-Date: 2010-02-04 22:04+0100\n"
 "Last-Translator: Petr Kovar <pknbe@volny.cz>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 1.0\n"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
 msgid "Change the user's own account configuration"
@@ -24,14 +25,9 @@ msgid "Manage system configuration"
 msgstr "Spravovat systémové nastavení"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
-msgid "System policy prevents modifying the system configuration"
-msgstr "Systémová pravidla znemožňují úpravu systémového nastavení"
+msgid "You need to authenticate to modify the system configuration"
+msgstr "Systémové nastavení lze upravit pouze po ověření"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
-msgid ""
-"System policy requires you to authenticate in order to modify your user "
-"account information"
-msgstr ""
-"Systémová pravidla před úpravou informací o vlastním účtu vyžadují, abyste "
-"provedli ověření"
-
+msgid "You need to authenticate to modify your user account information"
+msgstr "Informace o vlastním účtu lze upravit pouze po ověření"
