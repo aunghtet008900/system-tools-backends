@@ -46,8 +46,6 @@
 
 package Users::Users;
 
-use Authen::PAM;
-
 use Utils::Util;
 use Utils::Report;
 use Utils::File;
