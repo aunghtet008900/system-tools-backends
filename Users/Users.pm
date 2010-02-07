@@ -464,34 +464,6 @@ sub change_user_chfn
   &Utils::File::run (@command);
 }
 
-# modifies /etc/shadow directly, not good practice,
-# but better than passing clean passwords around
-sub modify_shadow_password
-{
-  my ($login, $password) = @_;
-  my ($buffer, $i, @arr);
-
-  $buffer = &Utils::File::load_buffer (@shadow_names);
-  return if (!$buffer);
-  $i = 0;
-
-  while ($$buffer[$i])
-  {
-    @arr = split ':', $$buffer[$i], -1;
-
-    if ($arr[0] eq $login)
-    {
-      $arr[1] = $password;
-      $$buffer[$i] = join (':', @arr) . "\n";
-      last;
-    }
-
-    $i++;
-  }
-
-  &Utils::File::save_buffer ($buffer, @shadow_names);
-}
-
 sub set_passwd
 {
   my ($login, $password) = @_;
