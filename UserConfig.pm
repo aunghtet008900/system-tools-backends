@@ -32,9 +32,9 @@ my $OBJECT_PATH = "$Utils::Backend::DBUS_PATH/$OBJECT_NAME";
 
 # base user struct, also used in UsersConfig
 # variables: login, password, UID, main group GID, GECOS fields, home, shell,
-# password flags, encrypted home, home dir flags, locale, location
+# password flags, encrypted home, home dir flags, locale, location, face
 our $USER_FORMAT = [ "struct", "string", "string", "uint32", "uint32", [ "array", "string" ], "string", "string",
-                     "int32", "bool", "int32", "string", "string" ];
+                     "int32", "bool", "int32", "string", "string", "string" ];
 
 sub new
 {

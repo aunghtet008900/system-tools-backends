@@ -90,6 +90,7 @@ my $ENC_HOME      = $i++;
 my $HOME_FLAGS    = $i++;
 my $LOCALE        = $i++;
 my $LOCATION      = $i++;
+my $FACE          = $i++;
 
 %login_defs_prop_map = ();
 %profiles_prop_map = ();
@@ -380,6 +381,7 @@ sub get
     $users_hash{$login}[$HOME_FLAGS] = 0;
     $users_hash{$login}[$LOCALE] = "";
     $users_hash{$login}[$LOCATION] = "";
+    $users_hash{$login}[$FACE] = "";
   }
 
   &Utils::File::close_file ($ifh);
