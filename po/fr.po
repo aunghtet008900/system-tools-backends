@@ -1,16 +1,16 @@
 # French translation of system-tools-backends.
-# Copyright (C) 2009 The Free Software Foundation.
+# Copyright (C) 2009-2010 The Free Software Foundation.
 # This file is distributed under the same license as the system-tools-backends package.
 #
-# Claude Paroz <claude@2xlibre.net>, 2009.
+# Claude Paroz <claude@2xlibre.net>, 2009-2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: system-tools-backends 1.1.91\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-"
 "system-tools&component=s-t-b\n"
-"POT-Creation-Date: 2009-08-19 12:32+0000\n"
-"PO-Revision-Date: 2009-08-21 09:23+0200\n"
+"POT-Creation-Date: 2010-01-13 18:05+0000\n"
+"PO-Revision-Date: 2010-02-08 22:20+0100\n"
 "Last-Translator: Claude Paroz <claude@2xlibre.net>\n"
 "Language-Team: GNOME French Team <gnomefr@traduc.org>\n"
 "MIME-Version: 1.0\n"
@@ -26,15 +26,12 @@ msgid "Manage system configuration"
 msgstr "Gérer la configuration du système"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
-msgid "System policy prevents modifying the system configuration"
+msgid "You need to authenticate to modify the system configuration"
 msgstr ""
-"Une politique système empêche la modification de la configuration du "
-"système"
+"Vous devez vous authentifier pour modifier la configuration du système"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
-msgid ""
-"System policy requires you to authenticate in order to modify your user "
-"account information"
+msgid "You need to authenticate to modify your user account information"
 msgstr ""
-"Une politique système exige que vous vous authentifiez avant de pouvoir "
-"modifier les informations de votre compte utilisateur"
+"Vous devez vous authentifier pour modifier les informations de votre compte "
+"utilisateur"
