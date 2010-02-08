@@ -1,14 +1,14 @@
 # Hungarian translation of system-tools-backends.
-# Copyright (C) 2005, 2009 Free Software Foundation, Inc.
+# Copyright (C) 2005, 2009, 2010 Free Software Foundation, Inc.
 # This file is distributed under the same license as the system-tools-backends package.
 #
-# Gabor Kelemen <kelemeng at gnome dot hu>, 2009.
+# Gabor Kelemen <kelemeng at gnome dot hu>, 2009, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: system-tools-backends clone\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-07 17:35+0200\n"
-"PO-Revision-Date: 2009-09-07 17:35+0200\n"
+"POT-Creation-Date: 2010-02-08 12:40+0100\n"
+"PO-Revision-Date: 2010-02-08 12:43+0100\n"
 "Last-Translator: Gabor Kelemen <kelemeng at gnome dot hu>\n"
 "Language-Team: Hungarian <gnome at fsf dot hu>\n"
 "MIME-Version: 1.0\n"
@@ -27,13 +27,10 @@ msgid "Manage system configuration"
 msgstr "Rendszerbeállítások kezelése"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
-msgid "System policy prevents modifying the system configuration"
-msgstr "A rendszer házirendje megakadályozza a rendszerbeállítások módosítását"
+msgid "You need to authenticate to modify the system configuration"
+msgstr "A rendszerbeállítások módosításához hitelesítenie kell magát"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
-msgid ""
-"System policy requires you to authenticate in order to modify your user "
-"account information"
-msgstr ""
-"A rendszer házirendje megköveteli a hitelesítést a felhasználói fiók "
-"információinak módosítását"
+msgid "You need to authenticate to modify your user account information"
+msgstr "A felhasználói fiók információinak módosításához hitelesítenie kell magát"
+
