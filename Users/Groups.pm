@@ -271,7 +271,7 @@ sub get
     # FreeBSD allows comments in the group file. */
     next if &Utils::Util::ignore_line ($_);
 
-    @line = split ':', $_, -1;
+    @line = split ':', $_, 4;
     @a = split ',', pop @line;
     push @line, [@a];
     $copy = [@line];
