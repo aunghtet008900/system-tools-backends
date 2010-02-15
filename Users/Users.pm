@@ -594,8 +594,12 @@ sub add_user
     }
   }
 
-  # ensure user owns its home dir if asked
   $chown_home = $$user[$HOME_FLAGS] & (1 << 1);
+
+  # update user to get values that were filled
+  $user = &get_user ($$user[$LOGIN]);
+
+  # ensure user owns its home dir if asked
   if ($chown_home && $$user[$HOME] ne "/")
   {
     @command = ("chown", "-R", "$$user[$LOGIN]:", $$user[$HOME]);
@@ -607,7 +611,7 @@ sub add_user
 
   # Return the new user with default values filled.
   # Returns NULL if user doesn't exist, which means failure.
-  return &get_user ($$user[$LOGIN]);
+  return $user;
 }
 
 sub change_user
@@ -639,6 +643,9 @@ sub change_user
 
   &change_user_chfn ($$new_user[$LOGIN], $$old_user[$COMMENT], $$new_user[$COMMENT]);
   &set_passwd ($$new_user[$LOGIN], $$new_user[$PASSWD]);
+
+  # Erase password string to avoid it from staying in memory
+  $$new_user[$PASSWD] = '0' x length ($$new_user[$PASSWD]);
 }
 
 sub set_logindefs
