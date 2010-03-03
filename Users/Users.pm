@@ -264,6 +264,7 @@ my $logindefs_dist_map = {
   'users_read_profiledb_fail'    => ['warn', 'Profiles read failed.'],
   'users_read_users_success'     => ['info', 'Users read successfully.'],
   'users_read_users_fail'        => ['warn', 'Users read failed.'],
+  'users_read_users_invalid'     => ['warn', 'Invalid user found while reading (missing fields).'],
   'users_read_groups_success'    => ['info', 'Groups read successfully.'],
   'users_read_groups_fail'       => ['warn', 'Groups read failed.'],
   'users_read_shells_success'    => ['info', 'Shells read successfully.'],
@@ -361,6 +362,14 @@ sub get
 
     @line  = split ':', $_, -1;
     $login = $line[$LOGIN];
+
+    # skip invalid users, else they will create troubles
+    if (($line[$LOGIN] eq "") || ($line[$UID] eq ""))
+    {
+      &Utils::Report::do_report ("users_read_users_invalid");
+      next;
+    }
+
     @comment = split ',', $line[$COMMENT], 5;
 
     # we need to make sure that there are 5 elements
