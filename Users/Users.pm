@@ -347,7 +347,7 @@ sub get_logindefs
 
 sub get
 {
-  my ($ifh, @users, %users_hash);
+  my ($ifh, @users, %users_hash, $fd, @passwd_status);
   my (@line, @users);
 
   # Find the passwd file.
@@ -381,11 +381,30 @@ sub get
 
     $users_hash{$login} = [@line];
 
+    # Detect lock status of password
+    # We run 'passwd' instead of reading /etc/shadow directly
+    # to avoid leaving sensitive data in memory (hard to clear in perl)
+    $fd = &Utils::File::run_pipe_read ("passwd -S $login");
+    @passwd_status = split ' ', <$fd>;
+    &Utils::File::close_file ($fd);
+
+    if ($passwd_status[1] eq "P")
+    {
+      $users_hash{$login}[$PASSWD_STATUS] = 0;
+    }
+    elsif ($passwd_status[1] eq "NP")
+    {
+      $users_hash{$login}[$PASSWD_STATUS] = 1;
+    }
+    else # "L", means locked password
+    {
+      $users_hash{$login}[$PASSWD_STATUS] = 1 << 1;
+    }
+
     # max value for an unsigned 32 bits integer means no main group
     $users_hash{$login}[$GID] = 0xFFFFFFFF if (!$users_hash{$login}[$GID]);
 
     # TODO: read actual values
-    $users_hash{$login}[$PASSWD_STATUS] = 0;
     $users_hash{$login}[$ENC_HOME] = 0;
     $users_hash{$login}[$HOME_FLAGS] = 0;
     $users_hash{$login}[$LOCALE] = "";
@@ -475,8 +494,15 @@ sub change_user_chfn
 
 sub set_passwd
 {
-  my ($login, $password) = @_;
+  my ($login, $password, $passwd_status) = @_;
   my ($pwdpipe);
+
+  # handle empty password via passwd, as all tools don't support it
+  if ($passwd_status & 1)
+  {
+    &Utils::File::run ("passwd", "-d", $login);
+    return;
+  }
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
@@ -499,6 +525,22 @@ sub set_passwd
     $pwdpipe = &Utils::File::run_pipe_write ($cmd_chpasswd);
     print $pwdpipe "$login:$password";
     &Utils::File::close_file ($pwdpipe);
+  }
+}
+
+# Enable/disable password, only call if value has changed
+sub set_lock
+{
+  my ($login, $passwd_status) = @_;
+  my ($pwdpipe);
+
+  if ($passwd_status & (1 << 1))
+  {
+    &Utils::File::run ("passwd", "-l", $login);
+  }
+  else
+  {
+    &Utils::File::run ("passwd", "-u", $login);
   }
 }
 
@@ -616,7 +658,8 @@ sub add_user
   }
 
   &change_user_chfn ($$user[$LOGIN], undef, $$user[$COMMENT]);
-  &set_passwd ($$user[$LOGIN], $$user[$PASSWD]);
+  &set_passwd ($$user[$LOGIN], $$user[$PASSWD], $$user[$PASSWD_STATUS]);
+  &set_lock ($$user[$LOGIN], $$user[$PASSWD_STATUS]);
 
   # Return the new user with default values filled.
   # Returns NULL if user doesn't exist, which means failure.
@@ -651,7 +694,13 @@ sub change_user
   }
 
   &change_user_chfn ($$new_user[$LOGIN], $$old_user[$COMMENT], $$new_user[$COMMENT]);
-  &set_passwd ($$new_user[$LOGIN], $$new_user[$PASSWD]);
+  &set_passwd ($$new_user[$LOGIN], $$new_user[$PASSWD], $$user[$PASSWD_STATUS]);
+
+  # Only change lock status if status has changed
+  if (($$new_user[$PASSWD_STATUS] & (1 << 1)) != ($$user[$PASSWD_STATUS] & (1 << 1)))
+  {
+    &set_lock ($$user[$LOGIN], $$new_user[$PASSWD_STATUS]);
+  }
 
   # Erase password string to avoid it from staying in memory
   $$new_user[$PASSWD] = '0' x length ($$new_user[$PASSWD]);
