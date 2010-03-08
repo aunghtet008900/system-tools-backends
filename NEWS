@@ -1,3 +1,29 @@
+System Tools Backends Version 2.9.4, 2010-03-08
+-----------------------------------------------
+
+The System Tools Backends version 2.9.4 "Quick" have been released. This development release is incompatible with the previous 2.8 series.
+
+Changes since last release
+==========================
+
+    - Support for locking/unlocking user accounts
+    - Fix setting Real name for new users
+    - Be more robust by ignoring invalid users from /etc/passwd
+
+Translations
+============
+
+    - ar, courtesy of Khaled Hosny
+    - gl, courtesy of Fran Diéguez
+    - pl, courtesy of Piotr Drąg
+    - pt, courtesy of Duarte Loreto
+
+Downloading
+===========
+You can get it from :
+http://system-tools-backends.freedesktop.org/downloads/2.9/
+
+
 System Tools Backends Version 2.9.3, 2010-02-15
 -----------------------------------------------
 
