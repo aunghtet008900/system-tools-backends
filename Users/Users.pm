@@ -645,6 +645,10 @@ sub add_user
     }
   }
 
+  &change_user_chfn ($$user[$LOGIN], undef, $$user[$COMMENT]);
+  &set_passwd ($$user[$LOGIN], $$user[$PASSWD], $$user[$PASSWD_STATUS]);
+  &set_lock ($$user[$LOGIN], $$user[$PASSWD_STATUS]);
+
   $chown_home = $$user[$HOME_FLAGS] & (1 << 1);
 
   # update user to get values that were filled
@@ -656,10 +660,6 @@ sub add_user
     @command = ("chown", "-R", "$$user[$LOGIN]:", $$user[$HOME]);
     &Utils::File::run (@command);
   }
-
-  &change_user_chfn ($$user[$LOGIN], undef, $$user[$COMMENT]);
-  &set_passwd ($$user[$LOGIN], $$user[$PASSWD], $$user[$PASSWD_STATUS]);
-  &set_lock ($$user[$LOGIN], $$user[$PASSWD_STATUS]);
 
   # Return the new user with default values filled.
   # Returns NULL if user doesn't exist, which means failure.
