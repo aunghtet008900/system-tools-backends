@@ -2,14 +2,14 @@
 # Traducció del system-tools-backends de l'equip de Softcatalà.
 # Copyright © 2009 Free Software Foundation, Inc.
 # This file is distributed under the same license as the system-tools-backends package.
-# David Planella <david.planella@gmail.com>, 2009.
+# David Planella <david.planella@gmail.com>, 2009, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: system-tools-backends\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-10-13 22:56+0200\n"
-"PO-Revision-Date: 2009-10-02 00:38+0200\n"
+"POT-Creation-Date: 2010-03-10 22:52+0100\n"
+"PO-Revision-Date: 2010-03-10 09:07+0100\n"
 "Last-Translator: David Planella <david.planella@gmail.com>\n"
 "Language-Team: Catalan <tradgnome@softcatala.org>\n"
 "MIME-Version: 1.0\n"
@@ -25,17 +25,13 @@ msgid "Manage system configuration"
 msgstr "Gestiona la configuració del sistema"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
-msgid "System policy prevents modifying the system configuration"
-msgstr ""
-"La política del sistema no permet modificar la configuració del sistema"
+msgid "You need to authenticate to modify the system configuration"
+msgstr "Cal que us autentiqueu per modificar la configuració del sistema"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
-msgid ""
-"System policy requires you to authenticate in order to modify your user "
-"account information"
+msgid "You need to authenticate to modify your user account information"
 msgstr ""
-"La política del sistema requereix que us autentiqueu per a modificar la "
-"informació del vostre compte d'usuari"
+"Cal que us autentiqueu per modificar la informació del vostre compte d'usuari"
 
 #~ msgid "System policy prevents modifying the configuration"
 #~ msgstr "La política del sistema no permet modificar la configuració"
