@@ -535,7 +535,8 @@ dispatch_self_config (StbDispatcher *dispatcher,
 {
   StbDispatcherPrivate *priv;
   const gchar *sender;
-  gulong uid, message_uid;
+  gulong uid;
+  guint32 message_uid;
 
   priv = dispatcher->_priv;
   sender = dbus_message_get_sender (message);
