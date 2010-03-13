@@ -334,7 +334,7 @@ check_polkit_auth (StbDispatcher *dispatcher,
   StbDispatcherPrivate *priv;
   PolkitSubject *subject;
   PolkitAuthorizationResult *result;
-  GError *error;
+  GError *error = NULL;
   gchar **path;
   gchar *action_id;
   gboolean retval;
