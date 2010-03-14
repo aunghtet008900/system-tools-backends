@@ -301,14 +301,27 @@ sub get_files
 sub set
 {
   my ($config) = @_;
+  my ($groups) = &get ();
+  my ($new_group, $group);
 
   return if (!$config);
 
+
+  # Make backups manually, otherwise they don't get backed up.
+  &Utils::File::do_backup ($group_names);
+
   # Change groups that are present in both old and new config.
   # Groups won't be removed or added this way, for more safety.
-  foreach $group (@$config)
+  foreach $new_group (@$config)
   {
-    set_group ($group);
+    foreach $group (@$groups)
+    {
+      if ($$new_group[$GID] == $$group[$GID])
+      {
+        &change_group ($group, $new_group);
+        break;
+      }
+  }
   }
 }
 
