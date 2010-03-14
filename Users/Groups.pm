@@ -252,7 +252,7 @@ sub set_group
 
   foreach $group (@$groups)
   {
-    if ($$new_group[$GID] == $$group[$GID])
+    if ($$new_group[$LOGIN] eq $$group[$LOGIN])
     {
       &change_group ($group, $new_group);
       return;
@@ -316,7 +316,7 @@ sub set
   {
     foreach $group (@$groups)
     {
-      if ($$new_group[$GID] == $$group[$GID])
+      if ($$new_group[$LOGIN] eq $$group[$LOGIN])
       {
         &change_group ($group, $new_group);
         break;
