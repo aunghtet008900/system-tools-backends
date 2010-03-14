@@ -176,23 +176,30 @@ sub change_group
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
-    $users_arr = $$new_group[$USERS];
-    $str = join (",", sort @$users_arr);
+    if (($$old_group[$GID] != $$new_group[$GID]) || ($$old_group[$LOGIN] ne $$new_group[$LOGIN])
+        || !Utils::Util::struct_eq ($$new_group[$USERS], $$old_group[$USERS]))
+    {
+      $users_arr = $$new_group[$USERS];
+      $str = join (",", sort @$users_arr);
 
-    @command = ($cmd_pw, "groupmod", "-n", $$old_group[$LOGIN],
-                                     "-g", $$new_group[$GID],
-                                     "-l", $$new_group[$LOGIN],
-                                     "-M", $str);
+      @command = ($cmd_pw, "groupmod", "-n", $$old_group[$LOGIN],
+                                       "-g", $$new_group[$GID],
+                                       "-l", $$new_group[$LOGIN],
+                                       "-M", $str);
 
-    &Utils::File::run (@command);
+      &Utils::File::run (@command);
+    }
   }
   else
   {
-    @command = ($cmd_groupmod, "-g", $$new_group[$GID],
-                               "-n", $$new_group[$LOGIN],
-                                     $$old_group[$LOGIN]);
+    if (($$old_group[$GID] != $$new_group[$GID]) || ($$old_group[$LOGIN] ne $$new_group[$LOGIN]))
+    {
+      @command = ($cmd_groupmod, "-g", $$new_group[$GID],
+                                 "-n", $$new_group[$LOGIN],
+                                       $$old_group[$LOGIN]);
   
-    &Utils::File::run (@command);
+      &Utils::File::run (@command);
+    }
 
     # Let's see if the users that compose the group have changed.
     if (!Utils::Util::struct_eq ($$new_group[$USERS], $$old_group[$USERS]))
