@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
-# Iñaki Larrañaga Murgoitio <dooteo@euskalgnu.org>, 2009.
+# Iñaki Larrañaga Murgoitio <dooteo@euskalgnu.org>, 2009, 2010.
 msgid ""
 msgstr ""
 "Project-Id-Version: eu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-28 16:54+0200\n"
-"PO-Revision-Date: 2009-08-28 16:56+0200\n"
+"POT-Creation-Date: 2010-03-15 19:01+0100\n"
+"PO-Revision-Date: 2010-03-15 19:02+0100\n"
 "Last-Translator: Iñaki Larrañaga Murgoitio <dooteo@euskalgnu.org>\n"
 "Language-Team: Basque <itzulpena@euskalgnu.org>\n"
 "MIME-Version: 1.0\n"
@@ -26,14 +26,10 @@ msgid "Manage system configuration"
 msgstr "Kudeatu sistemaren konfigurazioa"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
-msgid "System policy prevents modifying the system configuration"
-msgstr "Sistemako arauak sistemako konfigurazioa eraldatzea saihesten du"
+msgid "You need to authenticate to modify the system configuration"
+msgstr "Autentifikatu egin behar zara sistemako konfigurazioa eraldatzea¡ko"
 
 #: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
-msgid ""
-"System policy requires you to authenticate in order to modify your user "
-"account information"
-msgstr ""
-"Sistemako arauak autentifikatzera behartzen zaitu zure erabiltzailearen kontuko "
-"informazioa aldatzeko"
+msgid "You need to authenticate to modify your user account information"
+msgstr "Autentifikatu egin behar zara zure erabiltzailearen kontuko informazioa aldatzeko"
 
