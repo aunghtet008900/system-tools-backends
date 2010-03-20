@@ -779,7 +779,7 @@ sub set_user
 
   foreach $user (@$users)
   {
-    if ($$new_user[$UID] == $$user[$UID])
+    if ($$new_user[$LOGIN] eq $$user[$LOGIN])
     {
       &change_user ($user, $new_user);
       return;
