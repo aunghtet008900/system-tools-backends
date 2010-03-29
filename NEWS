@@ -1,3 +1,26 @@
+System Tools Backends Version 2.10.0, 2010-03-29
+-----------------------------------------------
+
+The System Tools Backends version 2.10.0 "Last But Not Least" have been released. This is the first stable release which is incompatible with the previous 2.8 series.
+
+Changes since last release
+==========================
+
+    - Add FreeBSD 8 as a known platform, handled just like version 7
+    - Identify users and groups by login instead of UID
+    - Major performance improvements when committing groups
+    - Fix crash due to wrong int size with SelfConfig
+    - Fix crash on authentication error
+
+Translations
+============
+
+    - ca, courtesy of David Planella
+    - eu, courtesy of Iñaki Larrañaga Murgoitio
+    - zh_HK, courtesy of Chao-Hsiung Liao
+    - zh_TW, courtesy of Chao-Hsiung Liao
+
+
 System Tools Backends Version 2.9.4, 2010-03-08
 -----------------------------------------------
 
