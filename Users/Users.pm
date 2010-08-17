@@ -669,6 +669,7 @@ sub add_user
 sub change_user
 {
   my ($old_user, $new_user) = @_;
+  my $chown_home, $move_home, $copy_home, $erase_home;
 
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
@@ -697,9 +698,86 @@ sub change_user
   &set_passwd ($$new_user[$LOGIN], $$new_user[$PASSWD], $$user[$PASSWD_STATUS]);
 
   # Only change lock status if status has changed
-  if (($$new_user[$PASSWD_STATUS] & (1 << 1)) != ($$user[$PASSWD_STATUS] & (1 << 1)))
+  if (($$new_user[$PASSWD_STATUS] & (1 << 1)) != ($$old_user[$PASSWD_STATUS] & (1 << 1)))
   {
-    &set_lock ($$user[$LOGIN], $$new_user[$PASSWD_STATUS]);
+    &set_lock ($$new_user[$LOGIN], $$new_user[$PASSWD_STATUS]);
+  }
+
+
+  # Home directory handling
+  if ($$new_user[$HOME] ne $$old_user[$HOME])
+  {
+    # remove old home dir
+    $remove_home = $$new_user[$HOME_FLAGS] (& 1 << 0);
+    # ensure user owns home dir
+    $chown_home  = $$new_user[$HOME_FLAGS] & (1 << 1);
+    # copy old home files to new dir
+    $copy_home   = $$new_user[$HOME_FLAGS] & (1 << 2);
+    # remove files present in path to new home
+    $erase_home  = $$new_user[$HOME_FLAGS] & (1 << 3);
+
+    # Remove trailing slash(es) to avoid issues with rm on symlinks
+    # '/' becomes empty, which is easier to check for security below
+    $$new_user[$HOME] =~ s|/+$||;
+    $$new_user[$HOME] =~ s|/+$||;
+
+    if ($erase_home && $$new_user[$HOME] && -e $$new_user[$HOME])
+    {
+      @command = ("rm", "-Rf", $$new_user[$HOME]);
+      &Utils::File::run (@command);
+    }
+
+    if ($copy_home && $$new_user[$HOME] && $$old_user[$HOME])
+    {
+      # Remove new directory if present, to avoid troubles when merging.
+      # GUIs should ask the user before passing this flag anyway!
+      if (-e $$new_user[$HOME])
+      {
+        @command = ("rm", "-Rf", $$new_user[$HOME]);
+        &Utils::File::run (@command);
+      }
+
+      if (-e $$old_user[$HOME])
+      {
+        if ($remove_home)
+        {
+          @command = ("mv", "-f", $$old_user[$HOME], $$new_user[$HOME]);
+        }
+        else
+        {
+          if ($Utils::Backend::tool{"system"} eq "SunOS")
+          {
+            @command = ("cp", "-RPpf", $$old_user[$HOME], $$new_user[$HOME]);
+          }
+          else
+          {
+            @command = ("cp", "-af", $$old_user[$HOME], $$new_user[$HOME]);
+          }
+        }
+        &Utils::File::run (@command);
+      }
+    }
+    elsif ($remove_home && $$old_user[$HOME] && -e $$old_user[$HOME] )
+    {
+      @command = ("rm", "-Rf", $$old_user[$HOME]);
+      &Utils::File::run (@command);
+    }
+
+    # Create home directory owned by user if not present
+    # If a file with this name exists, skip
+    if (!-e $$new_user[$HOME] && $$new_user[$HOME])
+    {
+      @command = ("mkdir", "-p", $$new_user[$HOME]);
+      &Utils::File::run (@command) if (!-d $$new_user[$HOME]);
+
+      @command = ("chown", "-f", "$$new_user[$LOGIN]:$$new_user[$GID]", $$new_user[$HOME]);
+      &Utils::File::run (@command);
+    }
+    elsif ($chown_home && $$new_user[$HOME])
+    {
+      @command = ("chown", "-Rf", "$$new_user[$LOGIN]:$$new_user[$GID]", $$new_user[$HOME]);
+      &Utils::File::run (@command);
+    }
   }
 
   # Erase password string to avoid it from staying in memory
