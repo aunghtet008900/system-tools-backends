@@ -480,7 +480,10 @@ dispatch_stb_message (StbDispatcher *dispatcher,
 
   /* forward the message to the corresponding service */
   dbus_message_set_destination (copy, destination);
-  dbus_connection_send_with_reply (priv->connection, copy, &pending_call, -1);
+
+  /* Ideally, modules should reply quickly, possibly saying operation is still pending.
+   * Since they currently block without replying, set the timeout to something long. */
+  dbus_connection_send_with_reply (priv->connection, copy, &pending_call, INT_MAX);
 
   if (pending_call)
     {
