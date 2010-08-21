@@ -557,11 +557,23 @@ sub add_user
   # When using default prefix, we assume the directory exists.
   if ($$user[$HOME])
   {
-    my ($home_parents);
+    my $home_parents, $erase_home;
 
     $home_parents = $$user[$HOME];
     $home_parents =~ s/\/+[^\/]+\/*$//;
     &Utils::File::run ($tool_mkdir, "-p", $home_parents);
+
+    $erase_home = $$user[$HOME_FLAGS] & (1 << 3);
+
+    # Remove home if asked, it will be created from scratch by platform tools
+    if ($erase_home && -e $$user[$HOME] && $$user[$HOME] ne "/")
+    {
+      # Remove trailing slash(es) to avoid issues with rm on symlinks
+      $$user[$HOME] =~ s|/*$||;
+
+      @command = ("rm", "-Rf", $$user[$HOME]);
+      &Utils::File::run (@command);
+    }
   }
 
   # max value means default UID or GID here
