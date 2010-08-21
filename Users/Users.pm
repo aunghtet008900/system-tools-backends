@@ -657,7 +657,7 @@ sub add_user
   # ensure user owns its home dir if asked
   if ($chown_home && $$user[$HOME] ne "/")
   {
-    @command = ("chown", "-R", "$$user[$LOGIN]:", $$user[$HOME]);
+    @command = ("chown", "-R", "$$user[$LOGIN]:$$user[$GID]", $$user[$HOME]);
     &Utils::File::run (@command);
   }
 
