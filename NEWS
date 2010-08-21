@@ -1,3 +1,21 @@
+System Tools Backends Version 2.10.1, 2010-08-21
+-----------------------------------------------
+
+The System Tools Backends version 2.10.1 "Home, Sweet Home!" have been released. This stable release
+is backward compatible with 2.10.0.
+
+Changes since last release
+==========================
+
+    - Rework handling of home directory changes, allowing several files migration schemes
+      depending on user's choices
+    - Allow erasing already existing files in home when creating a user
+    - Set D-Bus timeout to maximum for replies from modules, to allow long operations
+      to complete without error
+    - Fix chown syntax which was not supported on all platforms
+    - Update MAINTAINERS file
+
+
 System Tools Backends Version 2.10.0, 2010-03-29
 -----------------------------------------------
 
