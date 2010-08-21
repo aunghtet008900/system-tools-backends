@@ -708,7 +708,7 @@ sub change_user
   if ($$new_user[$HOME] ne $$old_user[$HOME])
   {
     # remove old home dir
-    $remove_home = $$new_user[$HOME_FLAGS] (& 1 << 0);
+    $remove_home = $$new_user[$HOME_FLAGS] & (1 << 0);
     # ensure user owns home dir
     $chown_home  = $$new_user[$HOME_FLAGS] & (1 << 1);
     # copy old home files to new dir
@@ -718,8 +718,8 @@ sub change_user
 
     # Remove trailing slash(es) to avoid issues with rm on symlinks
     # '/' becomes empty, which is easier to check for security below
-    $$new_user[$HOME] =~ s|/+$||;
-    $$new_user[$HOME] =~ s|/+$||;
+    $$new_user[$HOME] =~ s|/*$||;
+    $$old_user[$HOME] =~ s|/*$||;
 
     if ($erase_home && $$new_user[$HOME] && -e $$new_user[$HOME])
     {
