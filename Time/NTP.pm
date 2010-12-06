@@ -75,6 +75,11 @@ sub ntp_conf_replace
   my ($line_key, $val, $rest);
   my ($n, $ret);
 
+  # If config file does not exist, and no server has to be written,
+  # don't create and empty file that will confuse package managers.
+  # Notably, this avoids creating an empty file when simply running ntpdate.
+  return if (!&Utils::File::exists ($file) && !@$value);
+
   &Utils::Report::enter ();
   &Utils::Report::do_report ("replace_split", $key, $file);
 
