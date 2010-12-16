@@ -137,13 +137,18 @@ sub add_group
 
   $u = $$group[$USERS];
 
+  # max value means default UID or GID here
+  $real_gid = ($$group[$GID] != 0xFFFFFFFF);
+
   if ($Utils::Backend::tool{"system"} eq "FreeBSD")
   {
     @users = sort @$u;
-      
+
+
     @command = ($cmd_pw, "groupadd", "-n", $$group[$LOGIN],
-                                     "-g", $$group[$GID],
                                      "-M", @users);
+
+    push (@command, ("-g", $$group[$GID])) if $real_gid;
 
     &Utils::File::run (@command);
   }
@@ -151,11 +156,13 @@ sub add_group
   {
     if ($cmd_addgroup)
     {
-      @command = ($cmd_addgroup, "--gid", $$group[$GID], $$group[$LOGIN]);
+      @command = ($cmd_addgroup, $$group[$LOGIN]);
+      push (@command, ("--gid", $$group[$GID])) if $real_gid;
     }
     else
     {
-      @command = ($cmd_groupadd, "-g", $$group[$GID], $$group[$LOGIN]);
+      @command = ($cmd_groupadd, $$group[$LOGIN]);
+      push (@command, ("-g", $$group[$GID])) if $real_gid;
     }
 
     &Utils::File::run (@command);
