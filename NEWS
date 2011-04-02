@@ -1,3 +1,17 @@
+System Tools Backends Version 2.10.2, 2011-04-02
+-----------------------------------------------
+
+The System Tools Backends version 2.10.2 "Stop Joking" have been released. This stable release
+is backward compatible with 2.10.0.
+
+Changes since last release
+==========================
+
+    - Don't create empty /etc/ntp.conf (Colin Watson)
+    - Allow any sessions, not only active ones, to authenticate via PolicyKit
+    - Support creating groups with default GID instead of fixed one
+
+
 System Tools Backends Version 2.10.1, 2010-08-21
 -----------------------------------------------
 
