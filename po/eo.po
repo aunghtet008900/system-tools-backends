@@ -1,0 +1,35 @@
+# Esperanto translation for system-tools-backends.
+# Copyright (C) 2011 Free Software Foundation, Inc.
+# This file is distributed under the same license as the system-tools-backends package.
+#
+# Kristjan SCHMIDT <kristjan.schmidt@googlemail.com>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: system-tools-backends 2.10.2\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-"
+"system-tools&keywords=I18N+L10N&component=s-t-b\n"
+"POT-Creation-Date: 2011-07-28 05:01+0000\n"
+"PO-Revision-Date: 2011-11-06 10:06+0100\n"
+"Last-Translator: Kristjan SCHMIDT <kristjan.schmidt@googlemail.com>\n"
+"Language-Team: Esperanto <gnome-l10n-eo@lists.launchpad.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bits\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:1
+msgid "Change the user's own account configuration"
+msgstr "Ŝanĝi la prpran konto-agordaron de la uzanto"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:2
+msgid "Manage system configuration"
+msgstr "Administri la sistemagardaron"
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:3
+msgid "You need to authenticate to modify the system configuration"
+msgstr "Vi devas aŭtentigi vin por modifi la sistemagordaron."
+
+#: ../org.freedesktop.SystemToolsBackends.policy.in.h:4
+msgid "You need to authenticate to modify your user account information"
+msgstr "Vi devas aŭtentigi vin por modifi vian uzantokonto-agordaron."
